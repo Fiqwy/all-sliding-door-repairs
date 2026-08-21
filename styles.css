@@ -1,0 +1,2396 @@
+/* ============================================================
+   ALL SLIDING DOOR REPAIRS — styles.css  (Direction 2 retheme)
+
+   ORDER OF THIS FILE, and why:
+     1. design/tokens.css, pasted VERBATIM (THE GOOD HOUSE).
+        Do not edit it here — edit design/tokens.css, re-paste,
+        then re-run `python3 design/_contrast-audit.py`
+        (must print FAILURES: NONE).
+     2. A short :root EXTENSION for the build. It exists because
+        the brass-sill gradient and the rail geometry describe a
+        MATERIAL and a layout, not brand colours, and every
+        literal colour in this stylesheet must live in :root.
+     3. @font-face blocks (Archivo + Fraunces italic + IBM Plex).
+     4. Utility classes.
+     5. Component CSS, in page order.
+
+   ⚠️ HARD RULE: ZERO hardcoded hex below the :root blocks. The
+   gate is:  grep -n '#[0-9a-fA-F]\{3,6\}' styles.css
+   and every hit must fall inside a :root block or a comment.
+   ============================================================ */
+
+/* ============================================================
+   ALL SLIDING DOOR REPAIRS — DESIGN TOKENS
+   Direction: THE GOOD HOUSE (design/ART-DIRECTION.md, Direction 2).
+   Warm residential editorial. Bone paper, deep warm ink, one
+   bronze accent used as a MATERIAL, not a hue.
+
+   SCALE + RHYTHM come from design/ELEVATION.md (G1, G3, G4):
+   container 1376, H1 84px ceiling, H2 54.4px, --lh-head 1.06,
+   section gap to 144px. ART-DIRECTION.md wins on colour and
+   type family; ELEVATION.md wins on layout, scale and density.
+
+   ⚠️ CLIENT DIRECTION 2026-08-21 — THE DARK IS NOW NAVY.
+   Cream ground and bronze accent are UNCHANGED. The warm
+   brown-black ink family has been REPLACED by a deep midnight
+   navy in the family of his own gunmetal (#1F2D37), pushed
+   richer and deeper. Register: NAVY + BRASS + CREAM — heritage
+   hardware, not tradie livery. Every band, shadow, scrim,
+   hairline and text-on-dark token is derived from that one ramp.
+
+   The swap is LUMINANCE-MATCHED, not eyeballed: each navy step
+   was chosen to sit within ~0.005 relative luminance of the warm
+   step it replaces, so every one of the 55 audited pairs keeps
+   its ratio class. Measured ratios are recorded inline below.
+
+   CONTRAST DISCIPLINE (the Karine convention): every text and
+   surface pair this system permits is listed in design/tokens.css
+   with its measured WCAG 2.1 ratio — 55 pairs computed, 55 pass.
+   Recompute with `python3 design/_contrast-audit.py` after ANY
+   edit here; it must print FAILURES: NONE.
+
+   BANNED PAIRS (verified failures, never ship):
+      2.78  --bronze          on --ink         use --bronze-bright
+      1.93  --bronze-bright   on --bone        on-ink token only
+      2.90  --text-faint      on --ink
+      3.53  --on-ink over rgba(15,33,50,.56) on a white photo pixel
+      text on --brass-face — decorative surface, banned outright
+   ============================================================ */
+
+:root {
+
+  /* ---------- BONE RAMP — the light grounds ---------- */
+  --bone:           #F6F2EA;
+  --bone-2:         #EFEADF;   /* alternating band */
+  --bone-3:         #E5DED0;   /* picture mat / sand panel */
+  --card:           #FFFDF9;   /* raised card */
+  /* hairlines are INK falling on paper, so they follow the ink */
+  --line:           rgba(15, 33, 50, 0.12);
+  --line-strong:    rgba(15, 33, 50, 0.20);
+
+  /* ---------- INK RAMP — the dark bands ----------
+     DEEP MIDNIGHT NAVY. Hue held at 207-210° across the whole
+     ramp so the four steps read as one material under light,
+     not as four different colours. Never a neutral grey and
+     never a warm black. */
+  --ink:            #0F2132;   /* 14.67 vs --on-ink · the standard dark band */
+  --ink-2:          #0A1725;   /* 16.20 vs --on-ink · footer / deepest */
+  --ink-3:          #152C40;   /* 12.84 vs --on-ink · raised panel on ink */
+  --ink-4:          #1F3C52;   /* 10.31 vs --on-ink · highest panel; LARGE text only for on-ink-muted */
+  --line-ink:       rgba(247, 242, 233, 0.14);
+  --line-ink-strong:rgba(247, 242, 233, 0.24);
+
+  /* ---------- BRONZE — the one accent ---------- */
+  --bronze:         #8A5A24;   /* 5.27:1 on --bone as TEXT · 5.88:1 as a CTA fill */
+  --bronze-deep:    #5E3B13;   /* darkest CTA stop — 9.95:1 */
+  --bronze-bright:  #D8A868;   /* 7.82:1 on --ink · the ONLY bronze legal on ink; BANNED on bone */
+  --bronze-soft:    #F0E6D6;   /* opaque tint chip — selected chip ground, warranty band */
+  --bronze-tint:    rgba(138, 90, 36, 0.08);
+  --line-bronze:    rgba(138, 90, 36, 0.30);
+
+  /* CTA gradient — BOTH stops verified against --on-bronze. */
+  --cta-a:          #8A5A24;   /* lightest stop — 5.88:1 PASS */
+  --cta-b:          #5E3B13;   /* darkest stop  — 9.95:1 PASS */
+  --cta-grad:       linear-gradient(180deg, var(--cta-a) 0%, var(--cta-b) 100%);
+
+  /* ---------- TEXT ON LIGHT ----------
+     The text ramp IS the ink ramp seen on paper, so it follows the
+     navy. --text-primary is --ink by law; the three below it are
+     the same hue desaturating as they lighten. */
+  --text-primary:   #0F2132;   /* 14.67 bone · 16.11 card · 12.24 bone-3 */
+  --text-body:      #333F49;   /*  9.65 bone · 10.61 card ·  8.06 bone-3 */
+  --text-muted:     #4A5964;   /*  6.48 bone ·  5.40 bone-3 ← tightest muted pair */
+  --text-faint:     #5B6974;   /*  5.06 bone ·  4.71 bone-2 · 4.22 bone-3 = LARGE ONLY */
+
+  /* ---------- TEXT ON INK ---------- */
+  --on-ink:         #F7F2E9;   /* 15.15 ink · 16.57 ink-2 · 13.18 ink-3 · 10.92 ink-4 */
+  --on-ink-body:    #D6CBBA;   /* 10.55 ink ·  9.18 ink-3 ·  7.60 ink-4 */
+  --on-ink-muted:   #A99C8B;   /*  6.29 ink ·  5.47 ink-3 ·  4.53 ink-4 = LARGE ONLY */
+
+  /* ---------- TEXT ON BRONZE FILLS ---------- */
+  --on-bronze:      #FFFFFF;
+  --on-bronze-muted:#F3E2CC;   /* 4.64:1 on --bronze — the floor */
+
+  /* ---------- SCRIMS — type over photography ----------
+     0.74 navy flattens #FFFFFF to #4D5B67 → --on-ink at 6.26:1.
+     0.56 gives 3.53:1 and FAILS, so 0.74 is the floor for
+     --on-ink over a still.
+     --scrim-photo-bottom: rail caption band; its text zone is the
+     solid 0.86 ink-2 stop — 10.84:1 vs a white pixel. */
+  --scrim:          rgba(15, 33, 50, 0.74);
+  --scrim-soft:     rgba(15, 33, 50, 0.34);
+  --scrim-photo-bottom: linear-gradient(180deg,
+                      rgba(10, 23, 37, 0) 40%,
+                      rgba(10, 23, 37, 0.86) 78%,
+                      rgba(10, 23, 37, 0.86) 100%);
+
+  /* ---------- THE HERO REEL SCRIM ----------
+     CLIENT DIRECTION 2026-08-22: "make the hero video more clear,
+     right now there's a blue tint over it, I don't think that looks
+     good" + "make sure you can see the video properly".
+
+     TWO THINGS CHANGED, AND THIS IS WHY THEY WORK TOGETHER.
+
+     1 · THE SCRIM IS NO LONGER NAVY. It is a near-black,
+         rgb(12,13,15) — HSL 210°, 11% sat, 5.3% light, so it still
+         belongs to the navy family in name but reads as ink, not as
+         a blue filter. That alone is worth ~0.06 of alpha: over a
+         white pixel, --bronze-bright small needs composite 0.834
+         with #0F2132 and only 0.772 with rgb(12,13,15). Same
+         legibility, more picture.
+     2 · THE FLAT 0.62 FLOOR IS GONE. There is now ONE directional
+         wash plus an additive vignette, so the composite alpha at
+         any point IS the wash value and can be read straight off
+         the gradient. That is what lets the frame fall to 0.22 in
+         the action zone, which was impossible under a flat floor.
+
+     REQUIRED COMPOSITE over a pure #FFFFFF pixel, AA:
+       --on-ink         (display + body)  0.594
+       --on-ink-body    (small)           0.693
+       --bronze-bright  (small, eyebrow)  0.772   ← the binding pair
+       --bronze-bright  (large, the H1's italic line, min 3.0) 0.665
+     --on-ink-muted is NOT in this list any more: it needs 0.831
+     over neutral (0.898 over navy) and the hero shipped it at 11px
+     and 10px over a 0.871 composite, which was a real AA failure
+     nobody had audited. .spec__k and .hero__credit-link now carry
+     --on-ink-body. --on-ink-muted stays what it always was: a token
+     for OPAQUE ink grounds.
+
+     WHERE THE TYPE ACTUALLY IS, measured with Range.getClientRects()
+     (glyph ink, not container boxes) at 1025 / 1440 / 1920: the hero
+     type column's ink never passes 49.7% of the viewport width. The
+     wash therefore holds 0.78 out to 56% and only then falls. The
+     NAV links are the exception — they run to 81.9% at 1440 — and
+     they are covered by the vignette, which is 0.66 over the whole
+     nav strip: 1 − (1 − 0.66)(1 − 0.16) = 0.714 at the very lightest
+     point of the frame, against the 0.693 that --on-ink-body needs.
+
+     WORST-CASE FRAME, RE-MEASURED against the NEW grade: every frame
+     of the shipped clip decoded at 8fps and sampled inside both
+     display crops. The graded footage's own ceiling is 184/255 (the
+     grade hard-clips there); 4:2:0 chroma reconstruction rings that
+     up to ~250 on a few thousand pixels per frame. The audit target
+     stays #FFFFFF anyway — it costs nothing and it can never be
+     wrong. */
+  /* vertical: the stacked layout (<1025) where type spans the width.
+     Floor 0.775 through the type, then it OPENS to 0.28 over the
+     bottom of the frame, which at ≤1024 is a real 150px window of
+     nearly-unscrimmed footage below the reel credit. */
+  --scrim-hero-v: linear-gradient(180deg,
+                    rgba(12, 13, 15, 0.84) 0%,
+                    rgba(12, 13, 15, 0.79) 10%,
+                    rgba(12, 13, 15, 0.775) 62%,
+                    rgba(12, 13, 15, 0.78) 84%,
+                    rgba(12, 13, 15, 0.32) 94%,
+                    rgba(12, 13, 15, 0.26) 100%);
+  /* horizontal: ≥1025. 0.78 through the type column, then the frame
+     opens across the right 40% where the leaf glides and no type
+     ever goes. 0.16 is not a wash, it is a whisper. */
+  --scrim-hero-h: linear-gradient(90deg,
+                    rgba(12, 13, 15, 0.82) 0%,
+                    rgba(12, 13, 15, 0.81) 20%,
+                    rgba(12, 13, 15, 0.79) 40%,
+                    rgba(12, 13, 15, 0.78) 56%,
+                    rgba(12, 13, 15, 0.44) 70%,
+                    rgba(12, 13, 15, 0.24) 84%,
+                    rgba(12, 13, 15, 0.16) 100%);
+  /* vignette — additive only, so it cannot weaken the guarantee.
+     Its ONLY job now is the nav strip, which is the one run of type
+     that crosses into the open right-hand side of the frame. */
+  --scrim-hero-vig: linear-gradient(180deg,
+                    rgba(6, 7, 9, 0.68) 0%,
+                    rgba(6, 7, 9, 0.66) 7.5%,
+                    rgba(6, 7, 9, 0) 22%,
+                    rgba(6, 7, 9, 0) 100%);
+  /* the grade sits UNDER the scrim, so it can only pull the footage
+     away from white, never toward it. It used to be a bronze wash
+     heavy enough to read as a colour filter; the real grade now
+     lives in the footage itself (ffmpeg, see HANDOFF P9) and this
+     is only a whisper of warmth in the lit half plus a neutral
+     weight at the base. */
+  --grade-warm: linear-gradient(168deg,
+                  rgba(216, 168, 104, 0.05) 0%,
+                  rgba(138, 90, 36, 0.03) 46%,
+                  rgba(12, 13, 15, 0.18) 100%);
+
+  /* ---------- FOCUS ---------- */
+  --focus:          #8A5A24;   /* on light bands — 5.27:1 vs --bone */
+  --focus-ink:      #D8A868;   /* on ink bands   — 7.82:1 vs --ink */
+  --focus-width:    3px;
+  --focus-offset:   2px;
+
+  /* ---------- THE ONE GLOW — hero sunwash, one instance ----------
+     It used to be a desktop-only `.glow` div on the bone hero. That
+     element is gone with the framed print; the glow now rides UNDER
+     the reel's scrim as the top layer of the warm grade, which is
+     the same single instance doing the same job on new ground. */
+  --glow-warm:      radial-gradient(58% 44% at 74% 22%,
+                      rgba(216, 168, 104, 0.07) 0%,
+                      rgba(216, 168, 104, 0) 70%);
+
+  /* ---------- TYPE — four voices ----------
+     CLIENT DIRECTION (2026-08-21): "make it a cleaner font."
+     Fraunces roman read too decorative at display size, so the
+     DISPLAY voice is now Archivo — an industrial grotesk, heavy
+     (700–800), tightly tracked. Fraunces survives ONLY as the
+     italic accent (--font-em); no roman cut is loaded, so if a
+     rule ever asks for upright Fraunces it falls to Georgia,
+     which is the loud failure we want.
+     Archivo's wght axis is 500–800: it CANNOT set body copy.
+     Body stays IBM Plex Sans at 400. */
+  --font-display: 'Archivo', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-em:      'Fraunces', Georgia, 'Times New Roman', serif;
+  --font-body:    'IBM Plex Sans', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono:    'IBM Plex Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+
+  --fs-mega:    clamp(4.5rem, 11.5vw, 11rem);
+  --fs-display: clamp(2.5rem, 6.1vw, 5.25rem);
+  --fs-h2:      clamp(1.95rem, 3.85vw, 3.4rem);
+  --fs-h3:      clamp(1.2rem, 1.7vw, 1.5rem);
+  --fs-lead:    clamp(1.0625rem, 1.3vw, 1.1875rem);
+  --fs-body:    1.0625rem;
+  --fs-small:   0.9375rem;
+  --fs-micro:   0.75rem;
+  --fs-input:   1rem;          /* 16px floor: never let iOS zoom a field */
+
+  --lh-tight:   1.02;
+  --lh-head:    1.06;
+  --lh-lead:    1.55;
+  --lh-body:    1.62;
+
+  /* TRACKING — a heavy grotesk needs LESS negative tracking than a
+     high-contrast serif did, and needs it to loosen as the size
+     falls. These are the DESKTOP values (h1 84px / h2 54px); the
+     ≤700px block below relaxes them for the small end of each
+     clamp, where -0.02em would close the counters. */
+  --track-mega:  -0.030em;
+  --track-tight: -0.020em;
+  --track-head:  -0.018em;
+  --track-body:   0;
+  --track-mono:   0.15em;
+
+  --wt-body:    400;
+  --wt-mid:     500;
+  --wt-strong:  600;
+  --wt-display: 700;   /* Archivo heavy — the display voice */
+
+  /* Archivo has ONE axis, wght (500–800); there is no opsz. These
+     tokens now carry weight, not optical size, so the display tier
+     can be pushed past --wt-display without a second class. Each
+     rule still sets font-weight too, so the system fallback (which
+     ignores font-variation-settings) stays in the right ballpark.
+
+     --vf-em is `normal` and that is LOAD-BEARING, not laziness.
+     font-variation-settings INHERITS, and every Fraunces-italic
+     accent sits inside an Archivo parent that sets one — the .em
+     inside an h2, the .s2 inside the h1. Without an explicit reset
+     the italic span inherits 'wght' 740/780. The shipped italic is
+     a STATIC instance (verified: no fvar table at all), so today
+     that inheritance is a silent no-op — swap in a variable italic
+     later and it would suddenly render at 780. Reset it here. */
+  --vf-display: 'wght' 780;
+  --vf-h2:      'wght' 740;
+  --vf-inline:  'wght' 640;
+  --vf-em:      normal;
+
+  /* ---------- RHYTHM ---------- */
+  --container:        1376px;
+  --container-narrow: 760px;
+  --container-wide:   1376px;
+  --pad-x:            clamp(1.25rem, 5vw, 3rem);
+
+  --gap-section:       clamp(4.5rem, 8vw, 9rem);
+  --gap-section-tight: clamp(3rem, 5.5vw, 5.5rem);
+  --gap-inner:         clamp(1.75rem, 3vw, 3.25rem);
+  --gap-card:          clamp(1.1rem, 2.2vw, 1.75rem);
+  --pad-card:          clamp(1.35rem, 2.8vw, 2rem);
+
+  --tap-min:  44px;
+  --rail-gap: clamp(0.75rem, 1.6vw, 1.15rem);
+
+  /* ---------- RADIUS — joinery, not marshmallow ----------
+     ONE law: nested radius = outer radius − outer padding,
+     floored at --r-xs. */
+  --r-xs:   2px;
+  --r-sm:   4px;
+  --r-md:   10px;
+  --r-lg:   18px;
+  --r-pill: 999px;
+
+  /* ---------- SHADOW — four layers, NAVY ink alpha ----------
+     A shadow is ink falling on paper. When the ink changed
+     family the shadows had to follow it, or the cards would
+     cast a brown shadow in a navy house. Alphas are unchanged;
+     only the hue moved. */
+  --shadow-1: 0 1px 1px rgba(10, 23, 37, 0.05),
+              0 2px 4px rgba(10, 23, 37, 0.05),
+              0 6px 12px -2px rgba(10, 23, 37, 0.06);
+  --shadow-2: 0 1px 2px rgba(10, 23, 37, 0.05),
+              0 4px 8px -2px rgba(10, 23, 37, 0.06),
+              0 12px 24px -8px rgba(10, 23, 37, 0.10),
+              0 30px 56px -30px rgba(10, 23, 37, 0.20);
+  --shadow-3: 0 2px 4px rgba(10, 23, 37, 0.06),
+              0 8px 16px -6px rgba(10, 23, 37, 0.08),
+              0 24px 44px -18px rgba(10, 23, 37, 0.16),
+              0 56px 96px -42px rgba(10, 23, 37, 0.30);
+  --shadow-bronze: 0 2px 6px rgba(138, 90, 36, 0.16),
+                   0 12px 30px -14px rgba(138, 90, 36, 0.42);
+  --shadow-ink:    0 40px 90px -46px rgba(0, 0, 0, 0.80);
+
+  --rim-light:    inset 0 1px 0 rgba(255, 255, 255, 0.85);
+  --rim-ink:      inset 0 1px 0 rgba(247, 242, 233, 0.07);
+  --rim-base:     inset 0 -1px 0 rgba(15, 33, 50, 0.07);
+  --rim-base-ink: inset 0 -1px 0 rgba(0, 0, 0, 0.30);
+
+  /* Card faces — a face is a gradient, never a flat fill.
+     Both stops of each face are in the audit. */
+  --card-face:     linear-gradient(180deg, #FFFDF9 0%, #F8F3EA 100%);
+  --card-face-ink: linear-gradient(180deg, #152C40 0%, #10222F 100%);
+
+  /* The picture rebate + the glass */
+  --rebate: inset 0 0 0 1px var(--line-bronze),
+            0 1px 0 rgba(255, 255, 255, 0.70),
+            0 -1px 2px rgba(15, 33, 50, 0.10);
+  --glass: linear-gradient(148deg, rgba(255,255,255,0.34) 0%, rgba(255,255,255,0) 44%);
+  --glass-ink: linear-gradient(148deg, rgba(255,255,255,0.10) 0%, rgba(255,255,255,0) 46%);
+
+  /* ---------- MOTION — "things that slide" ----------
+     --ease-glide profiled numerically: v0 = 3.91, 27% of the
+     duration crossing the last 10% of travel, zero overshoot.
+     A sliding door has never bounced off its jamb. */
+  --ease-glide: cubic-bezier(0.22, 0.86, 0.26, 1);
+  --ease-soft:  cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-roll:  cubic-bezier(0.45, 0.05, 0.55, 0.95);
+  --ease-out:   cubic-bezier(0.33, 1, 0.68, 1);
+
+  --dur-fast:   180ms;
+  --dur-mid:    320ms;
+  --dur-slow:   620ms;
+  --dur-wipe:   820ms;
+  --dur-track: 1100ms;
+  --stagger:     90ms;
+
+  --parallax-max: 12px;
+}
+
+/* ============================================================
+   :root EXTENSION — build tokens
+   The ONLY colour values added below design/tokens.css. The
+   brass sill is a MATERIAL (an extruded brass track under the
+   work rail — the one moment the accent becomes literal metal).
+   Text on --brass-face is BANNED; it is decorative only.
+   ============================================================ */
+:root {
+  --brass-face: linear-gradient(180deg,
+                  #E9CD9F 0%, #D8B276 30%, #A87B35 52%,
+                  #8A5A24 72%, #C9A876 100%);
+  --brass-sheen:  rgba(255, 255, 255, 0.55);
+  --brass-shadow: rgba(94, 59, 19, 0.38);
+
+  --white-hi:   rgba(255, 255, 255, 0.70);
+
+  /* Rail geometry — TWO sizes only (ELEVATION §3.7). Every photo
+     is assigned the slot that keeps it inside native ÷ 2 at DPR2. */
+  --rail-w-l: 220px;  --rail-h-l: 293px;
+  --rail-w-s: 156px;  --rail-h-s: 208px;
+
+  --bronze-ring:  rgba(216, 168, 104, 0.26);   /* the ink frame's rebate line */
+  --halo-bright:  rgba(216, 168, 104, 0.22);   /* roller dot halo on ink */
+  --bronze-glass: rgba(216, 168, 104, 0.08);
+  --hover-bronze: 0 18px 40px -16px rgba(138, 90, 36, 0.52);
+  --field-well:   rgba(0, 0, 0, 0.22);         /* input wells on the ink form card */
+  --sill-base:    rgba(10, 23, 37, 0.34);
+
+  --nav-h: 72px;
+
+  /* Hero reel geometry. The type column is BOUNDED at ≥1025 so
+     the 0.66 wash stop at min(64%, 812px) is always outside it —
+     that bound is what makes the contrast guarantee structural
+     rather than a hope. Do not raise it past 812px. */
+  --hero-type-w: 760px;
+  --hero-open:   150px;   /* the ≤1024 clear window; 0 at ≥1025 */
+}
+
+
+/* ============================================================
+   FONTS
+   Archivo: variable, wght axis pinned 500–800 (32 KB). SIL OFL 1.1,
+   Omnibus-Type, self-hosted. THE DISPLAY VOICE — it sets the H1,
+   the LCP element, so it is the one face preloaded in <head>.
+   Verified from the file itself: fvar wght min 500 / default 600 /
+   max 800, named instances at 500/600/700/800 — the 700–800 this
+   system asks for is real interpolation, not synthetic bolding.
+
+   ⚠️ Archivo's axis FLOORS AT 500. It can never set body copy;
+   IBM Plex Sans keeps the 400 roman.
+
+   Fraunces italic: static 400 at opsz 144 (22 KB). Undercase Type.
+   The ACCENT voice only — no roman cut is loaded on purpose
+   (Fraunces-display-var.woff2 is now unreferenced; the roman is
+   what the client called "too decorative"). Not preloaded: it
+   paints below the H1 and a second preload competes with it.
+   ============================================================ */
+@font-face {
+  font-family: 'Archivo';
+  src: url('assets/fonts/Archivo-500-800.woff2') format('woff2-variations'),
+       url('assets/fonts/Archivo-500-800.woff2') format('woff2');
+  font-weight: 500 800;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Fraunces';
+  src: url('assets/fonts/Fraunces-italic-400.woff2') format('woff2');
+  font-weight: 400;
+  font-style: italic;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+2000-206F, U+20AC, U+2122, U+2212, U+FEFF, U+FFFD;
+}
+
+/* ---------- IBM Plex Sans — variable, wght 400–600 ---------- */
+@font-face {
+  font-family: 'IBM Plex Sans';
+  src: url('assets/fonts/IBMPlexSans-var-latin.woff2') format('woff2-variations'),
+       url('assets/fonts/IBMPlexSans-var-latin.woff2') format('woff2');
+  font-weight: 400 600;
+  font-style: normal;
+  font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+/* ---------- IBM Plex Mono — 400 / 500 ---------- */
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('assets/fonts/IBMPlexMono-400-latin.woff2') format('woff2');
+  font-weight: 400; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'IBM Plex Mono';
+  src: url('assets/fonts/IBMPlexMono-500-latin.woff2') format('woff2');
+  font-weight: 500; font-style: normal; font-display: swap;
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA,
+                 U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122,
+                 U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+
+
+/* ============================================================
+   UTILITY CLASSES
+   ============================================================ */
+
+/* .mono — the spec voice: the phone number, figures in tables. */
+.mono {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  letter-spacing: 0.02em;
+}
+
+/* .mono-label — letterspaced uppercase micro label. The eyebrow,
+   the photo caption, the "FROM" over a price. */
+.mono-label {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  font-size: var(--fs-micro);
+  font-weight: var(--wt-mid);
+  letter-spacing: var(--track-mono);
+  text-transform: uppercase;
+}
+
+/* .mono-figure — tabular figures in spec tables. */
+.mono-figure {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums slashed-zero;
+  font-feature-settings: 'tnum' 1, 'zero' 1;
+  font-weight: var(--wt-mid);
+}
+
+/* .figure-mega — the $150 and the 12. Archivo at 780, currency
+   reduced and raised, suffix as a mono superior (ELEVATION G7 —
+   fixes D10). A heavy grotesk numeral holds a 176px set size far
+   better than the serif did; --track-mega relaxed -0.040 → -0.030
+   because the sans figures do not need pulling together. */
+.figure-mega {
+  font-family: var(--font-display);
+  font-variation-settings: var(--vf-display);
+  font-weight: var(--wt-display);
+  font-size: var(--fs-mega);
+  line-height: var(--lh-tight);
+  letter-spacing: var(--track-mega);
+  font-variant-numeric: lining-nums proportional-nums;
+}
+.figure-mega .cur {
+  font-size: 0.56em; vertical-align: 0.30em; letter-spacing: 0;
+  margin-right: 0.02em; opacity: 0.86;
+}
+.figure-mega .suf {
+  font-family: var(--font-mono); font-size: 0.14em;
+  letter-spacing: var(--track-mono); text-transform: uppercase;
+  vertical-align: 0.30em; margin-left: 0.35em; opacity: 0.9;
+  font-variation-settings: normal; font-weight: var(--wt-mid);
+}
+
+/* .em-serif — the emotional voice, and now the ONLY place Fraunces
+   is allowed to appear. Rationed: the hero's second line, the
+   section .em accents, the pull quote, the plate captions.
+   Everything roman that used to be Fraunces is Archivo. */
+.em-serif {
+  font-family: var(--font-em);
+  font-variation-settings: var(--vf-em);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.006em;
+}
+
+/* Body defaults on <body>. */
+.type-base {
+  font-family: var(--font-body);
+  font-size: var(--fs-body);
+  font-weight: var(--wt-body);
+  line-height: var(--lh-body);
+  letter-spacing: var(--track-body);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  hyphens: none;
+}
+
+
+/* ============================================================
+   RESET / BASE
+   ============================================================ */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; scroll-behavior: auto; /* Lenis owns smooth scrolling */ }
+
+body {
+  margin: 0;
+  background: var(--bone);
+  color: var(--text-body);
+  overflow-x: hidden;
+  hyphens: none;
+}
+
+img, svg, video { display: block; max-width: 100%; }
+a { color: inherit; text-decoration: none; }
+p, blockquote, figure, dl, dd, dt { margin: 0; }
+h1, h2, h3, h4 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: var(--wt-display);
+  letter-spacing: var(--track-head);
+  line-height: var(--lh-head);
+}
+ul, ol { margin: 0; padding: 0; list-style: none; }
+button { font: inherit; color: inherit; background: none; border: 0; }
+
+h1, h2, .lede { text-wrap: balance; }
+p, li, figcaption, dd { text-wrap: pretty; }
+
+:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: var(--focus-offset);
+  border-radius: var(--r-xs);
+}
+/* ⚠️ A11Y-M4 (1.4.11). The hero was NOT in this list. It was meant to
+   be: a `.hero.is-scrim` selector was written for exactly this and the
+   class is never applied by any markup or JS, so the hero fell through
+   to the dark `--focus` (#8A5A24) that is cut for cream bands. Measured
+   over the real reel, focus rings on the hero came in at 3.21-3.35:1 —
+   above the 3:1 bar with two hundredths of headroom, and 2.60 where the
+   ring crossed the ghost button's own border. `--focus-ink` (#D8A868)
+   over the hero's near-black scrim is ~9:1 and removes the margin
+   problem outright. `.hero` replaces the dead selector; the two other
+   dead `.is-scrim` rules were deleted with it (see the .btn block). */
+.band--ink :focus-visible,
+.footer :focus-visible,
+.drawer :focus-visible,
+.trust :focus-visible,
+.nav :focus-visible,
+.hero :focus-visible { outline-color: var(--focus-ink); }
+/* ⚠️ `.nav` is a SIBLING of `.hero`, not a child — the header is absolutely
+   positioned OVER the reel and never sits on a light ground. Adding `.hero`
+   alone left the nav links on the cream-band colour, measured at 3.36:1
+   over the footage against 9.00 for the CTAs a few hundred pixels below.
+   Verified by pixel diff after the change, not assumed. */
+
+.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0 0 0 0); clip-path: inset(50%); white-space: nowrap;
+}
+
+.skip { position: absolute; left: -9999px; top: 0; }
+.skip:focus {
+  left: 1rem; top: 1rem; z-index: 99; min-height: var(--tap-min);
+  display: inline-flex; align-items: center;
+  background: var(--ink); color: var(--on-ink);
+  padding: 0.6rem 1rem; border-radius: var(--r-sm);
+}
+
+.wrap {
+  width: 100%; max-width: var(--container);
+  margin-inline: auto; padding-inline: var(--pad-x);
+}
+.wrap--narrow { max-width: var(--container-narrow); }
+
+
+/* ============================================================
+   BANDS + SECTION RHYTHM
+   bone · ink-seam · bone-2 · INK · bone · ink-thin · bone ·
+   bronze-soft · ink · bone · bone-2 · bone · ink · ink-2
+   No two heavy bands adjacent; adjacent lights are half-steps.
+   ============================================================ */
+.band--white       { background: var(--bone);        color: var(--text-body); }
+.band--surface-1   { background: var(--bone-2);      color: var(--text-body); }
+.band--brand       { background: var(--ink);         color: var(--on-ink-body); }
+.band--brand-soft  { background: var(--bronze-soft); color: var(--text-body); }
+.band--ink         { background: var(--ink);         color: var(--on-ink-body); }
+.band--bone-2      { background: var(--bone-2);      color: var(--text-body); }
+
+.sec { padding-block: var(--gap-section); }
+.sec--thin { padding-block: var(--gap-section-tight); }
+
+/* --- Section heads. TWO sanctioned layouts (ELEVATION G2):
+       --split (head left, payload right) and --centre.
+       No bare left-pinned head with a void beside it. --- */
+.sec__head { margin-bottom: var(--gap-inner); }
+.sec__head .eyebrow {
+  color: var(--bronze); margin-bottom: 0.85rem;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+}
+.sec__head .eyebrow::before {
+  content: ""; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bronze); flex: 0 0 auto;
+}
+.sec__head h2 {
+  font-size: var(--fs-h2); color: var(--text-primary);
+  font-variation-settings: var(--vf-h2); max-width: 19ch;
+}
+/* the roman→italic device: Archivo sets the sentence, Fraunces
+   leans into the phrase that carries the feeling. */
+.sec__head h2 .em {
+  font-family: var(--font-em); font-variation-settings: var(--vf-em);
+  font-style: italic; font-weight: 400; color: var(--bronze);
+  letter-spacing: -0.012em;
+}
+.sec__head .lede {
+  margin-top: 1rem; font-size: var(--fs-lead);
+  line-height: var(--lh-lead); color: var(--text-muted); max-width: 44ch;
+}
+
+.sec__head--on-ink h2 { color: var(--on-ink); }
+.sec__head--on-ink h2 .em { color: var(--bronze-bright); }
+.sec__head--on-ink .eyebrow { color: var(--bronze-bright); }
+.sec__head--on-ink .eyebrow::before { background: var(--bronze-bright); }
+.sec__head--on-ink .lede { color: var(--on-ink-body); }
+/* kept for the (retired) brand band class so nothing falls through */
+.sec__head--on-brand h2 { color: var(--on-ink); }
+.sec__head--on-brand .eyebrow { color: var(--bronze-bright); }
+.sec__head--on-brand .lede { color: var(--on-ink-body); }
+
+.sec__head--split { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
+@media (min-width: 1025px) {
+  .sec__head--split {
+    grid-template-columns: minmax(0, 0.52fr) minmax(0, 0.48fr);
+    gap: clamp(3rem, 5vw, 5.5rem); align-items: end;
+  }
+  .sec__head--split .sec__head-payload { justify-self: end; }
+}
+.sec__head--centre { max-width: 62ch; margin-inline: auto; text-align: center; }
+.sec__head--centre .eyebrow { justify-content: center; }
+.sec__head--centre h2 { margin-inline: auto; }
+.sec__head--centre .lede { margin-inline: auto; }
+.sec__head--centre .track-rule { margin-inline: auto; }
+
+/* --- The track rule: a hairline with a roller dot that runs it
+       once, finishing its travel (ELEVATION G8). --- */
+.track-rule {
+  position: relative; height: 1px; margin-top: 1.1rem; width: 100%; max-width: none;
+  background: linear-gradient(90deg, var(--line-strong) 0%, var(--line-strong) 92%, transparent 100%);
+}
+.sec__head--on-ink .track-rule,
+.sec__head--on-brand .track-rule {
+  background: linear-gradient(90deg, var(--line-ink-strong) 0%, var(--line-ink-strong) 92%, transparent 100%);
+}
+.track-rule::after {
+  content: ""; position: absolute; top: 50%; left: 0;
+  width: 7px; height: 7px; margin-top: -3.5px; border-radius: 50%;
+  background: var(--bronze); box-shadow: 0 0 0 2px var(--bronze-tint);
+  transform: translateX(0);
+}
+.sec__head--on-ink .track-rule::after,
+.sec__head--on-brand .track-rule::after { background: var(--bronze-bright); }
+.is-in .track-rule::after {
+  transform: translateX(calc(100cqw - 7px));
+  transition: transform var(--dur-track) var(--ease-roll);
+}
+.track-rule { container-type: inline-size; }
+
+
+/* ============================================================
+   DOOR-WIPE REVEALS  (DESIGN.md §2) — clip-path only.
+   ============================================================ */
+.has-js .reveal {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--dur-wipe) var(--ease-glide);
+  will-change: clip-path;
+}
+.has-js .reveal--rtl   { clip-path: inset(0 0 0 100%); }
+.has-js .reveal--up    { clip-path: inset(100% 0 0 0); }
+.has-js .reveal--split { clip-path: inset(0 50% 0 50%); }
+.has-js .reveal--card  { transition-duration: var(--dur-slow); }
+.has-js .reveal.is-in  { clip-path: inset(0 0 0 0); will-change: auto; }
+
+
+/* ============================================================
+   HERO ENTRANCE — the sentence stagger + the leaf settle
+   (DESIGN.md §8). One-shot, `backwards` fill so the base (end)
+   state owns the element afterwards and the desktop parallax can
+   write its transform. Reduced motion: animation is killed
+   outright at the bottom of this file; the base state is visible.
+   ============================================================ */
+@keyframes hero-rise {
+  from { opacity: 0; transform: translateY(14px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+/* The reel plane settles too: it opens 1.5% over-scaled and lands,
+   so the hero arrives rather than switching on. `scale` (not
+   `transform`) because the ticker owns `translate` for the parallax
+   and the two must never fight. */
+@keyframes reel-settle {
+  from { opacity: 0; scale: 1.05; }
+  to   { opacity: 1; scale: 1; }
+}
+.has-js .hero h1 .s1 { animation: hero-rise 900ms var(--ease-glide) backwards; }
+.has-js .hero h1 .s2 { animation: hero-rise 900ms var(--ease-glide) 180ms backwards; }
+.has-js .hero__media { animation: reel-settle 1400ms var(--ease-glide) backwards; }
+
+
+/* ============================================================
+   TYPE HELPERS
+   ============================================================ */
+.eyebrow { display: block; }
+.num { font-family: var(--font-mono); font-variant-numeric: tabular-nums slashed-zero; letter-spacing: 0.02em; }
+
+
+/* ============================================================
+   BUTTONS — pill radius, bronze material
+   ============================================================ */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.6rem;
+  min-height: 52px; padding: 0 1.7rem; border-radius: var(--r-pill);
+  font-family: var(--font-body); font-size: 1rem; font-weight: var(--wt-strong);
+  letter-spacing: -0.008em; border: 1px solid transparent; cursor: pointer;
+  text-align: center;
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-fast) var(--ease-soft),
+              background var(--dur-fast) var(--ease-soft),
+              border-color var(--dur-fast) var(--ease-soft);
+}
+.btn svg { width: 17px; height: 17px; flex: 0 0 auto; }
+.btn--primary { background: var(--cta-grad); color: var(--on-bronze); box-shadow: var(--shadow-bronze), var(--rim-light); }
+.btn--ghost { color: var(--text-primary); border-color: var(--line-strong); background: var(--card); box-shadow: var(--shadow-1); }
+.btn--ghost .num { font-weight: var(--wt-mid); }
+/* ghost on an ink ground.
+   `.hero.is-scrim` was dropped from both of these selectors: the class
+   is set by nothing, so the rules were dead code (ADVERSARIAL-L1). */
+.band--ink .btn--ghost, .drawer .btn--ghost {
+  color: var(--on-ink); border-color: var(--line-ink-strong); background: transparent; box-shadow: none;
+}
+.btn--light { background: var(--card); color: var(--bronze); box-shadow: var(--shadow-1); }
+.btn--dark { background: var(--cta-grad); color: var(--on-bronze); box-shadow: var(--shadow-bronze), var(--rim-light); }
+.btn--block { width: 100%; }
+
+@media (hover: hover) and (pointer: fine) {
+  .btn--primary:hover, .btn--dark:hover { transform: translateY(-2px); box-shadow: var(--hover-bronze), var(--rim-light); }
+  .btn--ghost:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); border-color: var(--line-bronze); }
+  .band--ink .btn--ghost:hover { border-color: var(--bronze-bright); background: var(--bronze-glass); box-shadow: none; }
+  .btn--light:hover { transform: translateY(-2px); box-shadow: var(--shadow-2); }
+  .btn:active { transform: translateY(1px); }
+}
+
+
+/* ============================================================
+   NAV — OVERLAID on the hero reel; the phone pill paints on frame 1
+
+   The nav is absolutely positioned over the hero, not stacked above
+   it, so the reel starts at y=0 and the page opens on a full-bleed
+   image instead of a cream strip. It is NOT sticky (it never was),
+   so there is no scrolled state to manage and no scroll listener.
+   Its colours are the on-ink set, and it is legible by construction:
+   --scrim-hero-vig puts 0.66 of extra near-black over the whole nav
+   strip. That matters more than it used to — the nav links run out
+   to 81.9% of the width at 1440, into the open part of the frame
+   where the wash is only 0.16, and 1 − (1 − 0.66)(1 − 0.16) = 0.714
+   against the 0.693 --on-ink-body needs. The phone pill is an OPAQUE
+   bronze gradient and is not scrim-dependent at all.
+   ============================================================ */
+.nav {
+  position: absolute; inset: 0 0 auto; z-index: 40;
+  background: transparent; border-bottom: 1px solid var(--line-ink);
+}
+.nav__in { display: flex; align-items: center; gap: 1rem; min-height: var(--nav-h); }
+.brand { display: flex; align-items: center; gap: 0.75rem; margin-right: auto; min-height: var(--tap-min); }
+.brand__glyph { width: 30px; height: 30px; color: var(--bronze-bright); flex: 0 0 auto; }
+.brand__words { display: flex; flex-direction: column; line-height: 1.12; }
+.brand__n1 {
+  font-family: var(--font-display); font-variation-settings: var(--vf-inline);
+  font-size: 1rem; font-weight: var(--wt-display); letter-spacing: 0.005em;
+  color: var(--on-ink); white-space: nowrap;
+}
+.brand__n2 {
+  margin-top: 0.18rem; font-family: var(--font-mono); font-size: 0.5625rem;
+  font-weight: var(--wt-mid); letter-spacing: 0.34em; text-transform: uppercase;
+  color: var(--on-ink-body); white-space: nowrap;
+}
+
+.nav__links { display: none; gap: 1.8rem; }
+.nav__links a {
+  font-size: var(--fs-small); color: var(--on-ink-body); padding-block: 0.72rem;
+  position: relative; min-height: var(--tap-min); display: inline-flex; align-items: center;
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+.nav__links a::after {
+  content: ""; position: absolute; left: 0; right: 0; bottom: 8px; height: 1px;
+  background: var(--bronze-bright); transform: scaleX(0); transform-origin: left;
+  transition: transform var(--dur-fast) var(--ease-glide);
+}
+.nav__links a:hover { color: var(--bronze-bright); }
+.nav__links a:hover::after { transform: scaleX(1); }
+
+.nav__call {
+  display: inline-flex; align-items: center; gap: 0.55rem; min-height: var(--tap-min);
+  padding: 0 1.2rem; border-radius: var(--r-pill); flex: 0 0 auto;
+  background: var(--cta-grad); color: var(--on-bronze);
+  font-size: var(--fs-small); font-weight: var(--wt-strong); white-space: nowrap;
+  box-shadow: var(--shadow-bronze), var(--rim-light);
+  transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .nav__call:hover { transform: translateY(-1px); box-shadow: var(--hover-bronze), var(--rim-light); }
+}
+.nav__call .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--on-bronze); opacity: 0.85; flex: 0 0 auto; }
+
+.nav__burger {
+  display: inline-flex; flex-direction: column; justify-content: center; gap: 5px;
+  flex: 0 0 auto;
+  width: var(--tap-min); height: var(--tap-min); padding: 0 10px; cursor: pointer;
+  border-radius: var(--r-sm);
+}
+.nav__burger span { display: block; height: 2px; background: var(--on-ink); border-radius: 2px; transition: transform var(--dur-fast) var(--ease-soft), opacity var(--dur-fast) var(--ease-soft); }
+.nav__burger[aria-expanded="true"] span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+.nav__burger[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
+.nav__burger[aria-expanded="true"] span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+/* --- Drawer --- */
+.drawer { position: fixed; inset: 0; z-index: 60; background: var(--scrim); }
+.drawer[hidden] { display: none; }
+.drawer__panel {
+  position: absolute; inset: 0 0 0 auto; width: min(360px, 88vw);
+  background: var(--ink-2); color: var(--on-ink-body);
+  padding: 1.25rem var(--pad-x) 2rem;
+  padding-top: max(1.25rem, env(safe-area-inset-top));
+  padding-bottom: max(2rem, env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 1.25rem;
+  transform: translateX(100%);
+  transition: transform var(--dur-mid) var(--ease-glide);
+  overflow-y: auto;
+}
+.drawer.is-open .drawer__panel { transform: translateX(0); }
+.drawer__close {
+  align-self: flex-end; width: var(--tap-min); height: var(--tap-min);
+  font-size: 1.8rem; line-height: 1; color: var(--on-ink); cursor: pointer; border-radius: var(--r-sm);
+}
+.drawer__links { display: flex; flex-direction: column; }
+.drawer__links a {
+  min-height: 52px; display: flex; align-items: center;
+  color: var(--on-ink); font-size: 1.125rem; font-weight: var(--wt-mid);
+  border-bottom: 1px solid var(--line-ink);
+}
+.drawer__foot { display: flex; flex-direction: column; gap: 0.7rem; margin-top: auto; }
+.drawer__foot .btn { width: 100%; }
+
+
+/* ============================================================
+   1 · HERO — HIS OWN REEL, FULL-BLEED, BEHIND EVERYTHING
+
+   Client direction 2026-08-21. This replaces the framed-print hero
+   and supersedes design/ELEVATION.md §5, which rejected a video
+   hero because the reel reads as "a balcony". The answer is the
+   TREATMENT: a heavy navy scrim over a warm grade turns the clip
+   into a dark leaf gliding across a lit aperture — ambient motion,
+   not a photograph of somebody's patio furniture.
+
+   ⚠️ THE DPR2 RULE IS DELIBERATELY NOT APPLIED HERE, and that is
+   not an oversight. `no PHOTO above native ÷ 2 at DPR2` is a PHOTO
+   rule: it exists so a still someone LOOKS AT is never mushy. This
+   is a 720px-wide scrimmed ambient background that no one reads
+   detail from; a cover-crop upscale (2.0x at 1440, 1.42x at 390)
+   is accepted. Every <img> on the page is still capped, in the
+   markup, by imgHtml()'s capPx.
+   ============================================================ */
+.hero { position: relative; background: var(--ink); color: var(--on-ink-body); }
+
+/* The stage holds the reel and the type; the trust seam sits BELOW
+   it as an opaque sill, so the footage stops at a machined edge
+   instead of bleeding into the next band. */
+.hero__stage {
+  position: relative; overflow: hidden;
+  padding-top: var(--nav-h);          /* the nav is absolute, over this */
+  background: var(--ink);
+  isolation: isolate;
+}
+
+/* ---------- THE REEL PLANE ---------- */
+.hero__media { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.hero__video {
+  width: 100%; height: 100%;
+  /* 30%, chosen by decoding the clip and comparing six candidate
+     bands: at 40%+ the desktop cover-crop shows patio tiles and an
+     outdoor table (exactly ELEVATION §5's objection); at 30% it
+     shows the HAND, the leading stile and the screen mesh. */
+  object-fit: cover; object-position: 50% 24%;
+  /* The grade is BAKED IN now (ffmpeg curves + saturation, HANDOFF
+     P9), so CSS no longer has to fake one. saturate(0.55) was what
+     made the footage read as a grey-blue filter rather than as
+     footage; 0.92 is "one step back from real", which is all a
+     background wants. Nothing here brightens a pixel. */
+  filter: saturate(0.92) contrast(1.02);
+}
+/* the warm grade — UNDER the scrim, so it can only pull the footage
+   away from white, never toward it (this is what keeps the audit's
+   "worst pixel is #FFFFFF" claim conservative) */
+.hero__media::before {
+  content: ""; position: absolute; inset: 0; z-index: 1;
+  background: var(--glow-warm), var(--grade-warm);
+}
+/* the scrim — ONE directional wash plus an additive vignette. The
+   composite alpha at any point IS the wash value, so it can be read
+   straight off the gradient. ≥0.775 anywhere type sits, 0.16–0.26
+   where it does not. See the --scrim-hero-* block in :root. */
+.hero__media::after {
+  content: ""; position: absolute; inset: 0; z-index: 2;
+  background:
+    var(--scrim-hero-vig),
+    var(--scrim-hero-v);
+}
+
+/* --hero-open is the CLEAR WINDOW: at ≤1024 the stage is grown by
+   150px BELOW the reel credit, and the vertical wash falls to 0.28
+   across it. It is the only place on a phone where the footage is
+   allowed to be footage — the type block otherwise spans the whole
+   frame, so a phone has no left-hand column to give away. It costs
+   nothing above the fold: both CTAs sit at 595–717 of an 844
+   viewport either way. */
+.hero__in {
+  display: grid; grid-template-columns: minmax(0, 1fr);
+  padding-top: clamp(1.75rem, 4vw, 3.5rem);
+  padding-bottom: calc(clamp(2.25rem, 5vw, 4.5rem) + var(--hero-open));
+  position: relative; z-index: 2;
+}
+.hero__in > * { min-width: 0; }
+.hero__type { max-width: var(--hero-type-w); }
+
+/* `display:block` and an INLINE dot, not inline-flex: at 390 the
+   region list wraps to two lines and a flex dot lands at the start
+   of line 2, which reads as a bullet that lost its sentence. */
+.hero .eyebrow {
+  display: block; color: var(--bronze-bright);
+  margin-bottom: clamp(1rem, 1.8vw, 1.3rem);
+}
+.hero .eyebrow::before {
+  content: ""; display: inline-block; vertical-align: middle;
+  width: 5px; height: 5px; border-radius: 50%; margin-right: 0.6rem;
+  background: var(--bronze-bright);
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-variation-settings: var(--vf-display);
+  font-size: var(--fs-display);
+  line-height: var(--lh-tight); letter-spacing: var(--track-tight);
+  color: var(--on-ink); max-width: 14ch;
+}
+.hero h1 .s1 { display: block; }
+/* the hero's italic second line — the one big Fraunces moment,
+   now leaning against a heavy Archivo first line rather than
+   against more serif. Bumped 0.62em → 0.64em: Fraunces italic
+   runs optically smaller than Archivo at the same set size. */
+.hero h1 .s2 {
+  display: block; margin-top: 0.26em;
+  font-family: var(--font-em); font-variation-settings: var(--vf-em);
+  font-style: italic; font-weight: 400; color: var(--bronze-bright);
+  font-size: 0.64em; max-width: 21ch;
+  line-height: 1.14; letter-spacing: -0.012em;
+}
+.has-js .hero h1 > span { opacity: 1; }
+
+.hero .lede {
+  margin-top: clamp(1.3rem, 2.4vw, 1.9rem); max-width: 46ch;
+  color: var(--on-ink-body); font-size: var(--fs-lead); line-height: 1.58;
+}
+.hero .lede b { color: var(--on-ink); font-weight: var(--wt-strong); }
+
+/* --- The spec strip: hairline-divided, mono keys, Archivo values --- */
+.spec {
+  display: flex; flex-wrap: wrap; gap: 0;
+  margin-top: clamp(1.5rem, 2.8vw, 2.1rem);
+  border-top: 1px solid var(--line-ink-strong); border-bottom: 1px solid var(--line-ink);
+  max-width: 560px;
+}
+.spec__i { padding: 0.9rem 1.5rem 0.9rem 0; margin-right: 1.5rem; border-right: 1px solid var(--line-ink); display: flex; flex-direction: column; gap: 0.3rem; }
+.spec__i:last-child { border-right: 0; margin-right: 0; padding-right: 0; }
+/* --on-ink-body, NOT --on-ink-muted. The muted token is legal on an
+   OPAQUE ink ground (6.29:1) and this strip has not sat on one since
+   the reel became the hero: at 11px over the scrim it needed a 0.831
+   composite and was getting 0.871 of NAVY, which is only 0.898-worth
+   short of the same thing. Fixed at the token, not at the scrim. */
+.spec__k { color: var(--on-ink-body); font-size: 0.6875rem; letter-spacing: 0.16em; text-transform: uppercase; font-family: var(--font-mono); font-weight: var(--wt-mid); }
+.spec__v {
+  font-family: var(--font-display); font-variation-settings: var(--vf-inline);
+  font-weight: var(--wt-display); font-size: 1.35rem; letter-spacing: -0.015em;
+  color: var(--on-ink); font-variant-numeric: lining-nums;
+}
+
+.hero .cta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: clamp(1.5rem, 2.8vw, 2.1rem); }
+.hero .note { margin-top: 1.1rem; color: var(--on-ink-body); font-size: var(--fs-small); max-width: 46ch; }
+
+/* the reel's provenance — a real 44px target, never a 12px credit */
+/* ============================================================
+   REEL PAUSE CONTROL — A11Y-B4 (WCAG 2.2.2 Pause, Stop, Hide, A)
+   ============================================================
+   Two videos auto-start and loop forever beside text and there was no
+   way to stop either one. This is that way.
+
+   The brief was "quiet and premium, it must not cheapen the hero", so
+   the object is a 44px ink disc with a mono glyph, sitting in the
+   corner of the footage it governs — the same cream-on-navy pair as the
+   skip link, which is the most contrast-safe pair in the system
+   (--on-ink on --ink = 15.15:1 text, far past the 3:1 that a glyph
+   needs under 1.4.11). It is created by script.js at the moment a reel
+   actually arms, so it never exists under reduced motion, Save-Data or
+   a 2g/3g link, where no video ever plays and a pause button would be a
+   control that does nothing.
+
+   ⚠️ 44px is the FLOOR, not a target to shave. It is a real <button>,
+   so keyboard operation, focus ring and Enter/Space come free. */
+.reelbtn {
+  position: absolute; z-index: 6;
+  width: var(--tap-min); height: var(--tap-min);
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: var(--r-pill);
+  background: var(--ink); color: var(--on-ink);
+  border: 1px solid var(--line-ink-strong);
+  box-shadow: var(--shadow-2);
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease-soft),
+              border-color var(--dur-fast) var(--ease-soft),
+              transform var(--dur-fast) var(--ease-soft);
+}
+.reelbtn svg { width: 13px; height: 13px; fill: currentColor; display: block; }
+@media (hover: hover) and (pointer: fine) {
+  .reelbtn:hover { border-color: var(--bronze-bright); color: var(--bronze-bright); transform: translateY(-1px); }
+}
+.reelbtn:active { transform: translateY(1px); }
+/* ⚠️ THE RING IS DRAWN INSIDE THE DISC, AND THAT IS A MEASUREMENT, NOT A
+   PREFERENCE. At the default +2px offset the ring lands on whatever frame
+   of the reel happens to be behind the button: measured against the patio
+   tiles at 2.15:1, under the 3:1 bar. Pulled inside, it is bronze on the
+   button's own --ink face at a fixed 7.82:1 on every frame of every clip,
+   for ever. Re-measured after the change: 7.57:1 off real pixels. */
+.reelbtn:focus-visible { outline-color: var(--focus-ink); outline-offset: -3px; }
+
+/* HERO: bottom-right of the stage. At ≤1024 the stage grows by
+   --hero-open below the credit line (the clear window, where the
+   footage is actually allowed to be footage) — the control sits inside
+   that window, over picture rather than over type. */
+.reelbtn--hero {
+  right: var(--pad-x);
+  bottom: max(1rem, calc(var(--hero-open) * 0.28));
+}
+/* WORK RAIL: top-right of the reel card, clear of the .rail__cap that
+   owns the bottom edge. */
+.rail__item > .reelbtn { top: 0.55rem; right: 0.55rem; }
+
+.hero__credit { margin-top: 0.9rem; }
+.hero__credit-link {
+  display: inline-flex; align-items: center; min-height: var(--tap-min);
+  /* --on-ink-body for the same reason as .spec__k: 10px of
+     --on-ink-muted over live footage was never an audited pair. */
+  color: var(--on-ink-body);
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+.hero__credit-link .mono-label { font-size: 0.625rem; }
+@media (hover: hover) and (pointer: fine) {
+  .hero__credit-link:hover { color: var(--bronze-bright); }
+}
+
+/* ---------- THE FRAMED PRINT ---------- */
+.frame {
+  position: relative; margin: 0; background: var(--bone-3);
+  padding: clamp(1rem, 1.8vw, 1.5rem); border-radius: var(--r-lg);
+  box-shadow: var(--shadow-3);
+}
+.frame::after { /* the glass: one specular sweep */
+  content: ""; position: absolute; inset: 0; border-radius: var(--r-lg);
+  pointer-events: none; background: var(--glass);
+}
+.frame__inner {
+  background: var(--card); border-radius: var(--r-sm);
+  padding: clamp(0.7rem, 1.2vw, 1rem);
+  box-shadow: var(--rebate);
+}
+.frame__img {
+  width: 100%; margin-inline: auto; border-radius: var(--r-xs);
+  height: auto;
+}
+.frame__cap {
+  margin-top: 0.9rem; padding-top: 0.75rem; border-top: 1px solid var(--line);
+  display: flex; flex-direction: column; gap: 0.3rem;
+}
+.frame__cap .mono-label { color: var(--bronze); }
+.frame__cap .sub {
+  font-size: 0.8125rem; color: var(--text-faint); font-style: italic;
+  font-family: var(--font-em); font-variation-settings: var(--vf-em);
+}
+/* the ink-band variant: the mat goes dark */
+.frame--ink { background: var(--ink-4); box-shadow: var(--shadow-ink); }
+.frame--ink::after { background: var(--glass-ink); }
+.frame--ink .frame__inner { background: var(--ink-3); box-shadow: inset 0 0 0 1px var(--bronze-ring); }
+.frame--ink .frame__cap { border-top-color: var(--line-ink); }
+.frame--ink .frame__cap .mono-label { color: var(--bronze-bright); }
+.frame--ink .frame__cap .sub { color: var(--on-ink-muted); }
+
+/* --- 2 · Trust seam: a machined joint under the hero. OPAQUE —
+       it is the sill the reel stops at, not part of the picture. --- */
+.trust {
+  border-top: 1px solid var(--line-ink);
+  background: var(--ink-2); color: var(--on-ink-body);
+  position: relative; z-index: 2;
+  box-shadow: var(--rim-ink);
+}
+.trust__in { display: flex; flex-wrap: wrap; gap: 0.5rem 2rem; padding-block: 1.15rem; align-items: center; }
+/* A11Y-H2: the seam is a tab stop now (below 760 it is a scroller whose
+   last three facts WebKit could not reach). It sits on an ink ground, so
+   it takes the ink focus colour, and the ring is drawn inside because
+   the seam runs the full width of the band at ≥1120. */
+.trust :focus-visible { outline-color: var(--focus-ink); }
+.trust__in:focus-visible { outline-offset: -3px; }
+.trust__i {
+  display: flex; align-items: center; gap: 0.55rem; color: var(--on-ink-body);
+  font-size: var(--fs-micro); letter-spacing: 0.13em; text-transform: uppercase;
+  font-family: var(--font-mono); font-variant-numeric: tabular-nums slashed-zero; font-weight: var(--wt-mid);
+  white-space: nowrap;
+}
+.trust__i::before {
+  content: ""; width: 5px; height: 5px; border-radius: 50%;
+  background: var(--bronze-bright); flex: 0 0 auto;
+}
+
+
+/* ============================================================
+   3 · PROBLEM — the conversion engine. Chips → message → send.
+   (The drag-the-door demo is CUT — client decision.)
+   ============================================================ */
+.problem__grid { max-width: 1140px; margin-inline: auto; }
+
+.chips { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 0.85rem; }
+.chip {
+  display: flex; align-items: center; gap: 0.85rem; text-align: left;
+  min-height: 64px; padding: 1rem 1.25rem; border-radius: var(--r-md);
+  background: var(--card-face); border: 1px solid var(--line);
+  box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
+  font: inherit; font-size: var(--fs-body); color: var(--text-primary); cursor: pointer;
+  transition: transform var(--dur-fast) var(--ease-out),
+              box-shadow var(--dur-mid) var(--ease-soft),
+              border-color var(--dur-mid) var(--ease-soft),
+              background var(--dur-mid) var(--ease-soft);
+}
+.chip::before {
+  content: ""; width: 7px; height: 7px; border-radius: 50%;
+  background: var(--bronze); flex: 0 0 auto; opacity: 0.35;
+  transition: opacity var(--dur-mid) var(--ease-soft), transform var(--dur-mid) var(--ease-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .chip:hover { transform: translateY(-2px); box-shadow: var(--rim-light), var(--rim-base), var(--shadow-2); border-color: var(--line-bronze); }
+  .chip:hover::before { opacity: 1; }
+}
+.chip[aria-pressed="true"] {
+  background: var(--bronze-soft); border-color: var(--bronze);
+  box-shadow: var(--shadow-2), inset 0 0 0 1px var(--bronze);
+  font-weight: var(--wt-mid);
+}
+.chip[aria-pressed="true"]::before { opacity: 1; transform: scale(1.3); }
+
+.picker__label { color: var(--text-primary); font-weight: var(--wt-mid); margin-bottom: 1rem; text-align: center; }
+
+/* the composer: preview (only when non-empty) + send */
+.picker__preview {
+  margin-top: var(--gap-inner);
+  padding: var(--pad-card); border-radius: var(--r-md);
+  background: var(--card); border: 1px solid var(--line-bronze);
+  box-shadow: var(--rim-light), var(--shadow-2);
+  font-family: var(--font-mono); font-size: var(--fs-small); line-height: 1.7; color: var(--text-body);
+  word-break: break-word; max-width: 720px; margin-inline: auto;
+  position: relative;
+}
+/* A11Y-M3: the preview is a live region, so it is NEVER `hidden` any
+   more — an element removed from the tree cannot announce the text that
+   is injected into it in the same tick. It stays in the DOM and empties
+   instead, and :empty does exactly what [hidden] used to do on screen.
+   [hidden] is kept for defence in depth if anything ever sets it. */
+.picker__preview:empty,
+.picker__preview[hidden] { display: none; }
+.picker__preview .k {
+  color: var(--bronze); letter-spacing: var(--track-mono); display: block;
+  margin-bottom: 0.5rem; font-size: var(--fs-micro); text-transform: uppercase;
+  font-weight: var(--wt-mid);
+}
+/* His causal chain, in the section built out of its symptoms. The one
+   piece of loss framing on this site that is mechanically true. */
+.picker__foot {
+  margin: var(--gap-inner) auto 0; max-width: 60ch; text-align: center;
+  color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-body);
+}
+/* ⚠️ THE HINT COMES BEFORE THE BUTTON, and that is a fix, not a
+   preference. At ≤640 the .fab call pill is fixed to the bottom centre,
+   and once the preview card pushed this row down it sat directly on top
+   of "nothing sends until you press send" — the site's most important
+   risk reversal, hidden at the exact moment of doubt. Order-first also
+   reads better: reassurance, then the ask. */
+.picker__cta {
+  margin-top: var(--gap-inner); display: flex; flex-direction: column;
+  gap: 0.85rem; align-items: center; text-align: center;
+}
+.picker__hint { color: var(--text-muted); font-size: var(--fs-small); max-width: 46ch; }
+
+
+/* ============================================================
+   4 · VALUE — the money section. The one place the page goes
+   dark, so the price has somewhere to glow.
+   ============================================================ */
+.value__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); align-items: center; }
+
+.value__price-card {
+  position: relative; overflow: hidden; text-align: center;
+  background: var(--card-face-ink); border: 1px solid var(--line-ink);
+  border-radius: var(--r-lg); padding: clamp(1.6rem, 3.2vw, 2.6rem);
+  box-shadow: var(--rim-ink), var(--rim-base-ink), var(--shadow-ink);
+}
+.value__price-card::before { /* top light */
+  content: ""; position: absolute; inset: 0 0 auto 0; height: 70%; pointer-events: none;
+  background: radial-gradient(60% 100% at 50% 0%, rgba(216, 168, 104, 0.16), transparent 72%);
+}
+.value__from { position: relative; display: block; color: var(--on-ink-muted); }
+.value__figure { position: relative; display: block; color: var(--bronze-bright); margin-top: 0.2rem; }
+.value__gst { position: relative; display: block; margin-top: 0.9rem; color: var(--bronze-bright); }
+.value__rule { position: relative; height: 1px; background: var(--line-ink); margin: 1.4rem 0 1.1rem; }
+.value__note { position: relative; font-size: var(--fs-small); color: var(--on-ink-body); }
+/* The free quote belongs AT the price: it is the only moment on the
+   page where the visitor is thinking about money. */
+.value__pricenote {
+  position: relative; margin-top: 0.7rem; color: var(--on-ink-body);
+  font-size: var(--fs-small); line-height: var(--lh-body);
+}
+/* And one customer sentence about the price, because "great price" out
+   of a customer's mouth beats any adjective we could write. */
+.value__pricequote {
+  position: relative; margin: 1.1rem 0 0; padding-top: 1.1rem;
+  border-top: 1px solid var(--line-ink);
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.value__pricequote .q {
+  color: var(--on-ink); font-family: var(--font-em); font-variation-settings: var(--vf-em);
+  font-style: italic; font-size: 1.0625rem; line-height: 1.5;
+}
+
+.value__body { color: var(--on-ink-body); font-size: var(--fs-lead); line-height: var(--lh-lead); max-width: 56ch; margin-top: 1.1rem; }
+.value__cta { margin-top: var(--gap-inner); }
+
+.value__quote { margin-top: clamp(1.8rem, 3.5vw, 2.6rem); }
+.value__quote .pull {
+  display: block; font-family: var(--font-em); font-style: italic; font-weight: 400;
+  font-variation-settings: var(--vf-em);
+  font-size: clamp(1.35rem, 2.4vw, 1.9rem); line-height: 1.24; letter-spacing: -0.015em;
+  color: var(--bronze-bright); max-width: 24ch; text-wrap: balance;
+}
+.value__quote .rest { display: block; margin-top: 0.75rem; color: var(--on-ink-body); max-width: 46ch; }
+.value__attr { margin-top: 1rem; display: flex; flex-wrap: wrap; gap: 0.25rem 0.9rem; align-items: center; }
+.value__handle { font-family: var(--font-mono); font-weight: var(--wt-mid); color: var(--on-ink); font-size: var(--fs-small); }
+.value__src { color: var(--on-ink-muted); font-size: var(--fs-micro); letter-spacing: 0.08em; }
+
+.value__frame { margin-top: clamp(1.2rem, 2.4vw, 1.9rem); }
+/* track photo: 1024 native ÷ 2 = 512 cap; rendered ≤ 460 */
+.value__frame .frame__img { max-width: 460px; aspect-ratio: 16 / 9; object-fit: cover; object-position: 50% 58%; }
+
+
+/* ============================================================
+   5 · SERVICES — a strict grid, one anatomy, six times
+
+   Client direction 2026-08-21: "make it cleaner on desktop so they
+   line up nice and photos a little bigger, maybe drop down info."
+
+   3 x 2 at ≥1120 (six categories divide by three; two rows of three
+   at ~408px each reads as a catalogue, where 2x3 at ~620px reads as
+   a list). Alignment is by RESERVED ROWS, not by stretching:
+   the mount is a fixed square, the name reserves two lines and the
+   summary reserves two, so names align, summaries align and the
+   chevrons align across the grid — and opening one card still only
+   grows that card. Measured at 1440: name rows within 1px, summary
+   rows within 1px, chevrons within 1px.
+   ============================================================ */
+.svc__grid { display: grid; gap: var(--gap-card); grid-template-columns: minmax(0, 1fr); align-items: start; }
+.svc {
+  background: var(--card-face);
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
+  padding: var(--pad-card);
+  display: flex; flex-direction: column;
+  transition: transform var(--dur-fast) var(--ease-soft),
+              box-shadow var(--dur-fast) var(--ease-soft),
+              border-color var(--dur-fast) var(--ease-soft);
+}
+@media (hover: hover) and (pointer: fine) and (min-width: 1025px) {
+  .svc:hover { transform: translateY(-2px); border-color: var(--line-bronze); box-shadow: var(--rim-light), var(--rim-base), var(--shadow-2); }
+}
+
+/* The mount. 140px is the LARGEST square every source can fill
+   without breaching native ÷ 2 at DPR2 — wardrobe-doors-281.webp
+   (281x500, cap 140) sets that ceiling. Raising it needs a bigger
+   wardrobe source from Lachlan, not a bigger number here. */
+.svc__figure {
+  flex: 0 0 auto; align-self: flex-start;
+  background: var(--bone-3); padding: 6px; border-radius: var(--r-md);
+  box-shadow: var(--rebate);
+  margin-bottom: 1.1rem;
+}
+.svc__figure img {
+  border-radius: var(--r-sm); object-fit: cover;
+  width: 140px; height: 186px;          /* 3:4 — door photography is portrait */
+}
+/* the type-only card: a DRAWN diagram in the same mount, same size,
+   so the grid never breaks and no stock photo is ever published */
+.svc__drawn {
+  width: 140px; height: 186px; border-radius: var(--r-sm);
+  background: var(--card); color: var(--text-muted);
+  padding: 10px 6px;
+}
+.svc__drawn .accent { color: var(--bronze); }
+
+.svc__name { font-size: var(--fs-h3); color: var(--text-primary); font-variation-settings: var(--vf-inline); letter-spacing: -0.012em; }
+.svc__blurb { margin-top: 0.5rem; color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-lead); }
+.svc__items { display: flex; flex-direction: column; gap: 0.85rem; padding-top: 0.9rem; }
+.svc__item dt { font-weight: var(--wt-mid); color: var(--text-primary); font-size: var(--fs-small); }
+.svc__item dd { margin: 0.25rem 0 0; color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-body); }
+.svc__note { margin-top: 1rem; color: var(--text-faint); font-size: var(--fs-micro); font-family: var(--font-mono); letter-spacing: 0.04em; line-height: 1.5; }
+
+/* THE DROP-DOWN — one component, every breakpoint. No JS force-open,
+   no desktop fork: native <details>, closed by default. */
+.svc__acc { margin-top: auto; }
+.svc__acc > summary {
+  list-style: none; cursor: pointer;
+  display: flex; align-items: center; gap: 0.7rem; min-height: 48px;
+  margin-top: 1.1rem;
+  font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: var(--wt-mid);
+  letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--bronze);
+  border-top: 1px solid var(--line);
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+.svc__acc > summary::-webkit-details-marker { display: none; }
+.svc__acc > summary::marker { content: ""; }
+.svc__acc-label { min-width: 0; }
+.svc__acc-n {
+  margin-left: auto; color: var(--text-faint); font-size: 0.6875rem;
+  letter-spacing: 0.06em;
+}
+.svc__acc > summary .faq__chev {
+  flex: 0 0 auto; transform: rotate(90deg);
+  transition: transform var(--dur-mid) var(--ease-glide);
+}
+.svc__acc[open] > summary .faq__chev { transform: rotate(-90deg); }
+@media (hover: hover) and (pointer: fine) {
+  .svc__acc > summary:hover { color: var(--bronze-deep); }
+}
+
+/* the roller cross-section: the head payload, and the one rotation */
+.roller-fig { display: none; }
+@media (min-width: 1025px) {
+  .roller-fig { display: flex; flex-direction: column; gap: 0.8rem; align-items: center; }
+}
+.roller-fig svg { width: 240px; height: 240px; color: var(--text-muted); }
+.roller-fig svg .accent { color: var(--bronze); }
+.roller-fig .roller-spin { transform-origin: 50% 50%; transform: rotate(calc(var(--deg, 0) * 1deg)); }
+.roller-fig figcaption { color: var(--text-faint); }
+
+
+/* ============================================================
+   6 · EMERGENCY — thin ink band, one tap
+   ============================================================ */
+.emergency__in { display: flex; flex-wrap: wrap; gap: 1.25rem var(--gap-inner); align-items: center; justify-content: space-between; }
+.emergency__copy { min-width: 0; max-width: 62ch; }
+.emergency__label {
+  font-family: var(--font-mono); font-weight: var(--wt-mid);
+  color: var(--bronze-bright); font-size: var(--fs-micro);
+  letter-spacing: var(--track-mono); text-transform: uppercase;
+  display: inline-flex; align-items: center; gap: 0.6rem;
+}
+.emergency__label::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--bronze-bright); }
+.emergency__heading { color: var(--on-ink); font-size: var(--fs-h3); margin-top: 0.55rem; font-variation-settings: var(--vf-inline); line-height: 1.25; }
+.emergency__body { color: var(--on-ink-body); font-size: var(--fs-small); margin-top: 0.5rem; max-width: 56ch; }
+
+
+/* ============================================================
+   7 · WORK — the rail in a brass track
+   ============================================================ */
+.work__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+/* A11Y-M6: the chips are wrapped in a named role="radiogroup" (they are
+   mutually exclusive, so aria-pressed described the wrong thing).
+   The wrapper is a flex row with the SAME gap and alignment as its
+   parent, so the chips lay out exactly as they did when they were the
+   parent's own children. ⚠️ Deliberately NOT `display: contents`: a
+   display:contents box with an ARIA role has a history of being dropped
+   from the accessibility tree, which would delete the very semantics
+   this wrapper exists to add. */
+.work__chips { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+.filter-chip {
+  min-height: var(--tap-min); padding: 0 1.05rem; border-radius: var(--r-pill);
+  border: 1px solid var(--line-strong); background: var(--card);
+  color: var(--text-body); font-size: var(--fs-small); cursor: pointer;
+  display: inline-flex; align-items: center;
+  transition: border-color var(--dur-mid) var(--ease-soft), background var(--dur-mid) var(--ease-soft), color var(--dur-mid) var(--ease-soft);
+}
+@media (hover: hover) and (pointer: fine) {
+  .filter-chip:hover { border-color: var(--line-bronze); background: var(--bronze-tint); }
+}
+/* ⚠️ BOTH ATTRIBUTES. A11Y-M6 moved the filters from aria-pressed to
+   role="radio" + aria-checked, and this selector still said
+   aria-pressed — so the selected chip silently lost its bronze state on
+   first paint. Caught by diffing the rendered section against the P9
+   reference shot, not by any gate. `aria-pressed` is kept so the rule
+   survives a revert, and both resolve to the identical audited colours
+   (`filter-chip selected` measures 4.76:1). */
+.filter-chip[aria-pressed="true"],
+.filter-chip[aria-checked="true"] { border-color: var(--bronze); background: var(--bronze-soft); color: var(--bronze); font-weight: var(--wt-mid); }
+.work__count { margin-left: auto; color: var(--text-faint); display: none; }
+
+/* Native overflow rail. scroll-padding tracks padding so snap
+   never eats the gutter. The edge mask makes the cut a decision. */
+.rail {
+  --rail-pad: var(--pad-x);
+  display: flex; gap: var(--rail-gap); align-items: end;
+  overflow-x: auto; overscroll-behavior-x: contain;
+  scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch;
+  padding-inline: var(--rail-pad); scroll-padding-inline: var(--rail-pad);
+  padding-top: 0.5rem; padding-bottom: 1.1rem;
+  scrollbar-width: none;
+  mask-image: linear-gradient(90deg, transparent 0, rgb(0 0 0) 24px, rgb(0 0 0) calc(100% - 56px), transparent 100%);
+  -webkit-mask-image: linear-gradient(90deg, transparent 0, rgb(0 0 0) 24px, rgb(0 0 0) calc(100% - 56px), transparent 100%);
+}
+.rail::-webkit-scrollbar { display: none; }
+
+/* ⚠️ A11Y-B2 — THE FOCUS RING ON A FULL-BLEED SCROLLER.
+   Both rails are keyboard tab stops (see index.html), and the default
+   `:focus-visible` rule draws the ring at outline-offset: +2px. On an
+   element that is 1440px wide inside a 1440px viewport that ring is
+   painted OUTSIDE the viewport: a pixel diff of #workRail focused vs
+   blurred measured ZERO changed pixels. The ring is drawn INSIDE the
+   box here, and the edge mask is dropped while focused so the ring is
+   not faded out at the very edges it has to be visible on. Applies to
+   BOTH rails; .rail--voices no longer needs its own offset rule. */
+.rail:focus-visible {
+  outline: var(--focus-width) solid var(--focus);
+  outline-offset: -3px;
+  mask-image: none; -webkit-mask-image: none;
+}
+.rail__item {
+  flex: 0 0 auto; scroll-snap-align: start; margin: 0;
+  position: relative; overflow: hidden; border-radius: var(--r-md);
+  width: var(--rail-w-l); height: var(--rail-h-l);
+  box-shadow: 0 0 0 1px var(--line), var(--shadow-2);
+  background: var(--bone-3);
+}
+.rail__item--s { width: var(--rail-w-s); height: var(--rail-h-s); }
+.rail__item img, .rail__item video {
+  width: 100%; height: 100%; object-fit: cover; object-position: center;
+}
+.rail__item::after { /* caption scrim — every item carries one */
+  content: ""; position: absolute; inset: 0; pointer-events: none;
+  background: var(--scrim-photo-bottom);
+}
+.rail__cap {
+  position: absolute; left: 0; right: 0; bottom: 0; z-index: 2;
+  padding: 0.65rem 0.8rem;
+  color: var(--on-ink); font-size: 0.6875rem; font-family: var(--font-mono);
+  font-weight: var(--wt-mid); letter-spacing: 0.1em; text-transform: uppercase;
+  line-height: 1.45;
+}
+.rail__item[hidden] { display: none; }
+
+/* the brass sill: the photographs sit in a track */
+.rail-sill {
+  height: 9px; border-radius: var(--r-xs);
+  background: var(--brass-face);
+  box-shadow: inset 0 1px 0 var(--brass-sheen),
+              inset 0 -1px 0 var(--sill-base),
+              0 10px 24px -8px var(--brass-shadow);
+  margin-top: 0.2rem;
+}
+
+/* --- The ONE real before/after. His own labels, burned in. --- */
+.ba { margin-top: var(--gap-section-tight); border-top: 1px solid var(--line); padding-top: var(--gap-inner); }
+.ba__head { margin-bottom: var(--gap-inner); max-width: 52ch; }
+.ba__head .eyebrow { color: var(--bronze); margin-bottom: 0.6rem; display: inline-flex; align-items: center; gap: 0.6rem; }
+.ba__head .eyebrow::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--bronze); }
+.ba__head h3 { font-size: clamp(1.35rem, 2.2vw, 1.9rem); color: var(--text-primary); font-variation-settings: var(--vf-inline); }
+.ba__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); align-items: start; }
+.ba__pair { position: relative; display: flex; flex-wrap: wrap; gap: var(--gap-card); }
+.ba__fig {
+  margin: 0; flex: 1 1 240px; max-width: 320px;   /* native 640 ÷ 2 */
+  background: var(--bone-3); padding: 8px; border-radius: var(--r-md);
+  box-shadow: var(--rebate), var(--shadow-2);
+}
+.ba__fig img { width: 100%; height: auto; border-radius: var(--r-sm); }
+/* his labels are burned into the photos; the spans are the
+   accessible layer only */
+.ba__label { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+.ba__aside { max-width: 46ch; }
+.ba__cap { color: var(--text-body); font-size: var(--fs-lead); font-family: var(--font-em); font-style: italic; font-variation-settings: var(--vf-em); line-height: 1.4; }
+.ba__src { margin-top: 0.9rem; color: var(--text-faint); font-size: var(--fs-micro); font-family: var(--font-mono); letter-spacing: 0.06em; }
+
+
+/* ============================================================
+   8 · WARRANTY — bronze-soft band
+   ============================================================ */
+.warranty__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); align-items: center; }
+.warranty__figure { display: flex; align-items: baseline; color: var(--bronze); }
+.warranty__num { color: var(--bronze); }
+.warranty__heading { font-size: var(--fs-h2); color: var(--text-primary); max-width: 18ch; font-variation-settings: var(--vf-h2); line-height: var(--lh-head); letter-spacing: var(--track-head); }
+.warranty__italic { margin-top: 1rem; color: var(--text-muted); font-size: clamp(1.15rem, 1.8vw, 1.45rem); }
+.warranty__points {
+  display: flex; flex-direction: column; margin-top: var(--gap-inner);
+  background: var(--card-face); border: 1px solid var(--line); border-radius: var(--r-md);
+  box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
+  padding: 0.35rem 1.15rem;
+}
+.warranty__point { display: flex; justify-content: space-between; align-items: center; gap: 1rem; min-height: 52px; border-bottom: 1px solid var(--line); }
+.warranty__point:last-child { border-bottom: 0; }
+.warranty__k { color: var(--text-muted); font-size: var(--fs-small); }
+.warranty__v { font-family: var(--font-mono); font-variant-numeric: tabular-nums slashed-zero; color: var(--text-primary); font-size: var(--fs-small); font-weight: var(--wt-mid); text-align: right; }
+.warranty__hw { margin-top: 1rem; color: var(--text-faint); font-size: var(--fs-small); }
+/* The guarantee is the strongest risk reversal on the site and it had
+   nothing to press: the nearest CTA was 2,170px above it at 390. */
+.warranty__cta { display: flex; flex-direction: column; align-items: flex-start; gap: 0.8rem; }
+.warranty__cta .picker__hint { max-width: 48ch; }
+
+
+/* ============================================================
+   9 · STORY — father and son, on ink
+   ============================================================ */
+.story__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
+.gens { position: relative; padding-left: 1.9rem; display: flex; flex-direction: column; gap: 2rem; align-self: start; }
+.gens::before {
+  content: ""; position: absolute; left: 7px; top: 10px; bottom: 10px; width: 1px;
+  background: linear-gradient(180deg, var(--line-ink-strong), transparent);
+}
+.gen { position: relative; }
+.gen::before {
+  content: ""; position: absolute; left: -1.9rem; top: 0.75rem; width: 9px; height: 9px;
+  margin-left: 3px; border-radius: 50%; background: var(--bronze-bright);
+  box-shadow: 0 0 0 3px var(--halo-bright);
+}
+.gen__fig { display: flex; align-items: baseline; gap: 0.55rem; }
+.gen__num {
+  font-family: var(--font-display); font-variation-settings: var(--vf-h2);
+  font-weight: var(--wt-display); font-size: clamp(2.4rem, 4vw, 3.4rem);
+  color: var(--on-ink); letter-spacing: -0.03em; line-height: 1;
+}
+.gen__unit { color: var(--on-ink-muted); font-size: var(--fs-small); font-family: var(--font-mono); letter-spacing: 0.08em; }
+.gen__who { color: var(--bronze-bright); font-size: var(--fs-micro); letter-spacing: var(--track-mono); text-transform: uppercase; font-family: var(--font-mono); font-weight: var(--wt-mid); margin-top: 0.4rem; }
+
+.story__body { display: flex; flex-direction: column; gap: 1.1rem; color: var(--on-ink-body); max-width: 62ch; }
+.story__italic { color: var(--on-ink); font-size: clamp(1.15rem, 1.8vw, 1.45rem); line-height: 1.45; margin-top: 0.35rem; }
+.story__sig { margin-top: 0.5rem; color: var(--on-ink-muted); font-family: var(--font-mono); font-size: var(--fs-small); letter-spacing: 0.08em; }
+.story__more > summary { display: none; }
+.story__more > summary::-webkit-details-marker { display: none; }
+
+
+/* ============================================================
+   10 · VOICES — a horizontal rail of his hipages recommendations
+
+   Client direction 2026-08-21: "import his reviews and make them
+   horizontal scroll." Same mechanics as #work's rail — native
+   overflow-x, snap, contained overscroll, an edge mask — so the
+   page has ONE scroll-rail idea, used twice, not two inventions.
+   Cards stretch to a common height so the footers lock into a
+   single line across the rail; the quote measure is ~34ch.
+   ============================================================ */
+.voices__banner {
+  margin-top: 1.1rem; color: var(--bronze);
+  display: inline-flex; align-items: center; gap: 0.6rem;
+}
+.voices__banner::before,
+.voices__banner::after {
+  content: ""; width: 22px; height: 1px; background: var(--line-bronze); flex: 0 0 auto;
+}
+
+.rail--voices { align-items: stretch; padding-block: 0.5rem 1.4rem; }
+/* focus ring: see the shared .rail:focus-visible rule above */
+
+.voice {
+  position: relative; flex: 0 0 auto;
+  width: clamp(268px, 80vw, 352px);
+  scroll-snap-align: start;
+  background: var(--card-face);
+  border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
+  padding: var(--pad-card);
+  display: flex; flex-direction: column; gap: 1rem;
+}
+/* the quote mark is a watermark in the top-right corner now, so the
+   category chip can own the top-left without a collision */
+.voice::before {
+  content: "\201D"; position: absolute; top: 0.1rem; right: 0.9rem;
+  font-family: var(--font-display); font-variation-settings: var(--vf-display);
+  font-size: 3.4rem; line-height: 1; color: var(--line-bronze); pointer-events: none;
+}
+.voice__cat {
+  align-self: flex-start; position: relative; z-index: 1;
+  color: var(--bronze); background: var(--bronze-tint);
+  border: 1px solid var(--line-bronze); border-radius: var(--r-pill);
+  padding: 0.3rem 0.7rem; font-size: 0.625rem; max-width: 100%;
+}
+.voice__quote { color: var(--text-primary); font-size: var(--fs-small); line-height: var(--lh-lead); }
+.voice__foot {
+  margin-top: auto;
+  border-top: 1px solid var(--line); padding-top: 0.9rem; min-height: 56px;
+  display: flex; flex-direction: column; gap: 0.15rem; justify-content: center;
+}
+.voice__handle { font-family: var(--font-mono); font-weight: var(--wt-mid); color: var(--bronze); font-size: var(--fs-small); }
+.voice__src { color: var(--text-faint); font-size: var(--fs-micro); letter-spacing: 0.06em; }
+
+.voices__foot {
+  margin-top: var(--gap-inner); color: var(--text-muted);
+  font-size: var(--fs-small); max-width: 78ch;
+}
+.voices__link {
+  display: inline-flex; align-items: center; min-height: var(--tap-min);
+  color: var(--bronze); text-decoration: underline; text-underline-offset: 3px;
+  white-space: nowrap;
+}
+/* Peak conviction used to have exactly one exit, and it pointed
+   off-site to a marketplace that lists his competitors. The hipages
+   link stays (the attribution rail requires it); it is just no longer
+   the only way out. */
+.voices__cta { display: block; margin-top: var(--gap-inner); }
+
+.value__src a, .ba__src a, .voice__src a {
+  display: inline-flex; align-items: center; min-height: var(--tap-min);
+  text-decoration: underline; text-underline-offset: 3px;
+}
+
+
+/* ============================================================
+   11 · AREAS — the service-area map + the spec sheet of regions
+
+   CLIENT DIRECTION 2026-08-22: "add the map, like what we've done
+   for Marcos, that map of the area he services."
+
+   ⚠️ IT IS A VENDORED SVG, NOT A TILE MAP, AND THAT IS THE POINT.
+   Marcos's build uses Leaflet against CARTO's tile CDN. This site
+   makes ZERO off-origin requests and every asset is vendored, and
+   that invariant is worth more than a street grid nobody reads at
+   this size. The coastline is real: Natural Earth 10m, projected
+   and simplified at build time (content.js → areas.map.geo).
+
+   The colour is the site's, not a map library's: --ink sea,
+   --bone-3 land, a --bronze service area, brass pins. Which is why
+   it looks like it belongs on this page and a tile map would not.
+   ============================================================ */
+.areas__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
+.areas__map { min-width: 0; }
+.areas__card {
+  background: var(--card-face); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
+  padding: 0.5rem 1.4rem; align-self: start;
+}
+.area {
+  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
+  min-height: 56px; padding-block: 0.7rem; border-bottom: 1px solid var(--line);
+}
+.area:last-child { border-bottom: 0; }
+.area__body { display: flex; flex-direction: column; gap: 0.22rem; min-width: 0; }
+.area__name { font-weight: var(--wt-mid); color: var(--text-primary); font-size: var(--fs-lead); }
+/* The suburbs are not new claims: every one is already printed in
+   that region's own area-page intro. The row just shows it. */
+.area__subs { color: var(--text-muted); font-size: var(--fs-micro); line-height: 1.5; }
+.area__go { font-family: var(--font-mono); color: var(--bronze); font-size: var(--fs-micro); letter-spacing: var(--track-mono); text-transform: uppercase; flex: 0 0 auto; }
+
+/* --- the map plate --- */
+.map { margin: 0; }
+.map__plate {
+  position: relative; border-radius: var(--r-lg); overflow: hidden;
+  border: 1px solid var(--line-strong);
+  box-shadow: var(--rim-light), var(--shadow-2);
+  background: var(--ink);
+}
+.map__svg { display: block; width: 100%; height: auto; }
+.map__sea  { fill: var(--ink); }
+.map__land { fill: var(--bone-3); }
+.map__area {
+  fill: var(--bronze); fill-opacity: 0.20;
+  stroke: var(--bronze); stroke-width: 2.5; stroke-linejoin: round;
+}
+/* ⚠️ TWO THINGS MAKE THIS A REAL TAP TARGET AND BOTH ARE REQUIRED.
+   `pointer-events: all` because a transparent fill is NOT painted, and
+   the default `visiblePainted` therefore ignores it entirely. And r=78
+   because the plate scales with the column: the narrowest render is
+   ~312 CSS px at 360, where 78 user units = 48.7 CSS px across. */
+.map__hit  { fill: transparent; pointer-events: all; }
+.map__halo { fill: var(--bronze); fill-opacity: 0; }
+.map__dot  { fill: var(--bronze); stroke: var(--bone); stroke-width: 3; }
+.map__label {
+  font-family: var(--font-body); font-size: 30px; font-weight: var(--wt-strong);
+  fill: var(--text-primary); letter-spacing: -0.01em;
+  paint-order: stroke; stroke: var(--bone-3); stroke-width: 6px; stroke-linejoin: round;
+}
+.map__pin { cursor: pointer; }
+.map__pin .map__dot, .map__pin .map__halo, .map__pin .map__label {
+  transition: fill-opacity var(--dur-fast) var(--ease-soft),
+              r var(--dur-fast) var(--ease-soft), fill var(--dur-fast) var(--ease-soft);
+}
+/* The lit state. Set by initAreaMap() on BOTH the pin and its row, so
+   hovering the list lights the map and hovering the map lights the
+   list. It is colour and radius only — reduced motion just drops the
+   transition. */
+.map__pin.is-lit .map__halo { fill-opacity: 0.30; r: 34; }
+.map__pin.is-lit .map__dot  { r: 11; }
+.map__pin.is-lit .map__label { fill: var(--bronze-deep); }
+.areas__grid.is-picking .map__pin:not(.is-lit) .map__dot { fill-opacity: 0.55; }
+a.area.is-lit { background: var(--bronze-soft); }
+a.area.is-lit .area__name { color: var(--bronze-deep); }
+/* ⚠️ A11Y-H1 (1.4.11 Non-text Contrast). The outline was removed and
+   replaced by a translucent halo alone. Over the bronze service-area
+   envelope that halo measured 1.66:1 against what it covers — the bar
+   is 3:1 — so on the Gold Coast and Tweed pins, which sit INSIDE the
+   shaded area, a sighted keyboard user could not tell which of the five
+   pins had focus. The halo stays as the decorative bloom; the indicator
+   is now a real ring on the dot itself. `--ink` on the bronze envelope
+   measures 9.5:1 (already proven by the map labels), and it reads on
+   the cream land and the navy sea too. Drawn as a `stroke`, not an
+   `outline`, because outline on SVG children is patchy. */
+.map__pin:focus-visible { outline: none; }
+.map__pin:focus-visible .map__halo { fill-opacity: 0.45; r: 38; }
+.map__pin:focus-visible .map__dot {
+  stroke: var(--ink); stroke-width: 6; r: 11; paint-order: stroke;
+}
+
+.map__legend {
+  position: absolute; left: 0.9rem; bottom: 0.9rem;
+  display: inline-flex; align-items: center; gap: 0.5rem;
+  padding: 0.42rem 0.7rem; border-radius: var(--r-sm);
+  background: var(--card); box-shadow: var(--shadow-1);
+  color: var(--text-body); font-size: var(--fs-micro);
+}
+.map__swatch {
+  width: 14px; height: 10px; border-radius: 2px; flex: 0 0 auto;
+  background: var(--bronze-soft); border: 1.5px solid var(--bronze);
+}
+.map__note { margin-top: 0.85rem; color: var(--text-muted); font-size: var(--fs-small); line-height: 1.6; }
+
+
+/* ============================================================
+   12 · FAQ — native details, grid-rows open
+   ============================================================ */
+.faq__list { display: flex; flex-direction: column; }
+.faq__item { border-bottom: 1px solid var(--line-strong); }
+.faq__item:first-child { border-top: 1px solid var(--line-strong); }
+.faq__q {
+  list-style: none; cursor: pointer; display: flex; gap: 1rem; align-items: center;
+  min-height: 60px; padding-block: 1.05rem; padding-right: 44px; position: relative;
+  font-weight: var(--wt-mid); color: var(--text-primary); font-size: var(--fs-lead);
+  font-family: var(--font-body);
+}
+.faq__q::-webkit-details-marker { display: none; }
+.faq__chev {
+  position: absolute; right: 4px; top: 50%; margin-top: -6px;
+  flex: 0 0 auto; width: 12px; height: 12px; color: var(--bronze);
+  transition: transform var(--dur-mid) var(--ease-soft);
+}
+.faq__item[open] .faq__chev { transform: rotate(90deg); }
+.faq__inner { display: grid; grid-template-rows: 0fr; transition: grid-template-rows var(--dur-mid) var(--ease-glide); }
+.faq__item[open] .faq__inner { grid-template-rows: 1fr; }
+.faq__inner > div { overflow: hidden; }
+.faq__a { padding-bottom: 1.25rem; color: var(--text-muted); max-width: 62ch; line-height: var(--lh-body); }
+/* The last objection-handler before the close, which used to end on a
+   paragraph about mesh types with nothing to press. */
+.faq__foot { margin-top: var(--gap-inner); text-align: center; }
+.faq__foot-lead { color: var(--text-body); font-size: var(--fs-lead); max-width: 46ch; margin: 0 auto 1.1rem; }
+
+
+/* ============================================================
+   13 · CONTACT — ink. The form composes an SMS; no fake success.
+   ============================================================ */
+.contact__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); align-items: start; }
+.contact__italic { color: var(--on-ink); font-size: clamp(1.2rem, 1.9vw, 1.5rem); line-height: 1.45; margin-bottom: 1.1rem; max-width: 30ch; }
+.contact__direct { margin-top: var(--gap-inner); display: flex; flex-direction: column; gap: 0.4rem; }
+.contact__direct a {
+  color: var(--on-ink); display: flex; flex-direction: column; gap: 0.15rem;
+  min-height: 52px; justify-content: center;
+  border-bottom: 1px solid var(--line-ink); padding-block: 0.5rem;
+}
+.contact__direct a:last-child { border-bottom: 0; }
+/* The section is headed "Send Lachlan a photo of the door" and its text
+   row used to render as the second of three identical mono rows, under
+   a hedge ("Or just call him"). It leads now, and it is marked. */
+.contact__primary { position: relative; padding-left: 1rem; }
+.contact__primary::before {
+  content: ""; position: absolute; left: 0; top: 0.5rem; bottom: 0.5rem;
+  width: 2px; border-radius: 2px; background: var(--bronze-bright);
+}
+.contact__primary .k { color: var(--bronze-bright); }
+.contact__direct .k { color: var(--on-ink-muted); font-size: var(--fs-micro); letter-spacing: 0.14em; text-transform: uppercase; font-family: var(--font-mono); display: block; }
+.contact__facts { margin-top: var(--gap-inner); display: flex; flex-direction: column; gap: 0.55rem; }
+.contact__fact {
+  display: flex; align-items: center; gap: 0.6rem;
+  color: var(--on-ink-body); font-family: var(--font-mono); font-size: var(--fs-micro);
+  font-weight: var(--wt-mid); letter-spacing: 0.1em; text-transform: uppercase;
+}
+.contact__fact::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: var(--bronze-bright); flex: 0 0 auto; }
+
+.contact__formcard {
+  background: var(--card-face-ink); border: 1px solid var(--line-ink);
+  border-radius: var(--r-lg); padding: var(--pad-card);
+  box-shadow: var(--rim-ink), var(--rim-base-ink), var(--shadow-ink);
+}
+.form { display: flex; flex-direction: column; gap: 1rem; }
+.field { display: flex; flex-direction: column; gap: 0.4rem; }
+.field label { color: var(--on-ink-body); font-size: var(--fs-small); font-weight: var(--wt-mid); }
+.field input, .field textarea {
+  font-family: var(--font-body);
+  font-size: var(--fs-input);            /* 16px floor */
+  min-height: 52px; padding: 0.85rem 1rem;
+  color: var(--on-ink); background: var(--field-well);
+  border: 1px solid var(--line-ink-strong); border-radius: var(--r-md);
+  width: 100%;
+}
+.field textarea { min-height: 110px; resize: vertical; line-height: var(--lh-lead); }
+.field input::placeholder, .field textarea::placeholder { color: var(--on-ink-muted); }
+.field input:focus-visible, .field textarea:focus-visible { border-color: var(--bronze-bright); }
+.form__note { color: var(--on-ink-muted); font-size: var(--fs-small); }
+/* ⚠️ ADVERSARIAL-H4 / A11Y-M5. This notice used to render
+   unconditionally: on every device, at all times, the last thing under
+   the primary conversion button was a pre-emptive apology for a failure
+   that had not happened — and it addressed a phone as "your computer".
+   script.js now reveals it only on the real failure path (still here,
+   still visible ~1.2s after the sms: navigation) and it carries
+   `role="alert"`, so when it does appear it is announced.
+   It is `hidden` by default — the UA rule handles the display; nothing
+   here may set `display` or that stops working.
+   `--on-ink-body` rather than `--on-ink-muted`: it is now a real error
+   message someone has to read, not ambient small print. */
+.form__fail { color: var(--on-ink-body); font-size: var(--fs-micro); font-family: var(--font-mono); letter-spacing: 0.04em; }
+.form__fail .num { color: var(--bronze-bright); text-decoration: underline; text-underline-offset: 2px; }
+.contact__formwrap > summary { display: none; }
+.contact__formwrap > summary::-webkit-details-marker { display: none; }
+
+
+/* ============================================================
+   14 · FOOTER — the darkest thing on the page
+   ============================================================ */
+.footer { background: var(--ink-2); color: var(--on-ink-body); padding-block: var(--gap-section-tight) 1.5rem; }
+.footer__in { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
+.footer__blurb { max-width: 40ch; color: var(--on-ink-body); font-size: var(--fs-small); line-height: var(--lh-body); }
+.footer__col h3 {
+  font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: var(--track-mono);
+  text-transform: uppercase; color: var(--on-ink-muted); font-weight: var(--wt-mid); margin-bottom: 0.8rem;
+}
+.footer__col { min-width: 0; }
+.footer__col a {
+  color: var(--on-ink-body); display: inline-flex; align-items: center;
+  min-height: var(--tap-min); font-size: var(--fs-small);
+  transition: color var(--dur-fast) var(--ease-soft);
+  overflow-wrap: anywhere; word-break: break-word; max-width: 100%;
+}
+.footer__col a:hover { color: var(--bronze-bright); }
+.footer__col li:not(:has(a)) { min-height: var(--tap-min); display: flex; align-items: center; font-size: var(--fs-small); }
+.footer__intro { display: none; color: var(--on-ink-muted); font-size: var(--fs-small); margin-bottom: 0.6rem; max-width: 34ch; }
+.footer__callrow { display: none; grid-column: 1 / -1; }
+.footer__bottom {
+  grid-column: 1 / -1; position: relative;
+  border-top: 1px solid var(--line-ink); margin-top: var(--gap-inner); padding-top: 0.6rem;
+  display: flex; flex-wrap: wrap; gap: 0 1.25rem; justify-content: space-between;
+  align-items: center; color: var(--on-ink-muted); font-size: var(--fs-micro);
+}
+.footer__bottom::before { /* the page's last roller, parked */
+  content: ""; position: absolute; left: 0; top: -4px; width: 7px; height: 7px;
+  border-radius: 50%; background: var(--bronze-bright);
+}
+.footer__bottom > span { min-height: var(--tap-min); display: inline-flex; align-items: center; }
+.footer__bottom a { min-height: var(--tap-min); display: inline-flex; align-items: center; }
+
+
+/* ============================================================
+   FAB — labelled pill, centre-bottom, ≤640, safe-area inset.
+   Hidden while #contact or the footer is on screen (JS + IO).
+   ============================================================ */
+.fab {
+  display: none; position: fixed; z-index: 50;
+  left: 50%; bottom: max(1rem, env(safe-area-inset-bottom));
+  height: 56px; padding-inline: 22px; border-radius: var(--r-pill);
+  gap: 0.6rem; align-items: center; justify-content: center;
+  background: var(--cta-grad); color: var(--on-bronze);
+  font-weight: var(--wt-strong); font-size: var(--fs-body);
+  box-shadow: var(--shadow-bronze), var(--rim-light);
+  transform: translateX(-50%) translateY(140%); opacity: 0;
+  /* ⚠️ A11Y-B5 (2.4.7 Focus Visible · 2.4.3). The hidden state was
+     opacity:0 + translateY(140%) while KEEPING display:inline-flex, so
+     the pill stayed focusable while invisible — and on every phone it
+     was the LAST tab stop of the whole page (stop 82 of 83 at 390).
+     Measured focused: opacity 0, box top 906 in a 900px viewport. The
+     visitor's focus simply vanished off the bottom of the screen with
+     nothing on it to explain where it went.
+     `visibility: hidden` removes it from the tab order AND from hit
+     testing. It is transitioned with a discrete step so the pill still
+     animates: on show, visibility flips at 0s and the slide plays; on
+     hide, it holds visible for the whole slide-out and flips at the
+     end (transition-behavior is not needed — visibility interpolates
+     as a step function at the far end of the timing function). */
+  visibility: hidden;
+  transition: transform var(--dur-mid) var(--ease-glide),
+              opacity var(--dur-mid) var(--ease-soft),
+              visibility var(--dur-mid) var(--ease-soft);
+}
+.fab svg { width: 20px; height: 20px; }
+.fab.is-visible { transform: translateX(-50%) translateY(0); opacity: 1; visibility: visible; }
+@media (max-width: 640px) { .fab { display: inline-flex; } }
+
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+/* ---------- TRACKING RELAXES AS THE TYPE SHRINKS ----------
+   The desktop tokens are cut for Archivo at 84px / 54px. Those same
+   em values at the bottom of each clamp (h1 40px, h2 31px) close the
+   counters of a 780-weight grotesk and the words start to clot.
+   Negative tracking is an optical correction for LARGE type; it is
+   the wrong instrument at small sizes, so it is dialled back here.
+   The em unit already scales the value with the font — this block
+   changes the RATIO on top of that, which is the part that matters. */
+@media (max-width: 759px) {
+  :root {
+    --track-mega:  -0.022em;
+    --track-tight: -0.012em;
+    --track-head:  -0.010em;
+  }
+}
+
+/* --- The hero reel is now the ground at EVERY width, so the old
+       ≤759 "photo as a scrimmed background" block is gone. The only
+       thing left to say below 760 is that the ghost CTA sits on
+       dark, which it now does at all widths. --- */
+.hero .btn--ghost { color: var(--on-ink); border-color: var(--line-ink-strong); background: transparent; box-shadow: none; }
+@media (hover: hover) and (pointer: fine) {
+  .hero .btn--ghost:hover { border-color: var(--bronze-bright); background: var(--bronze-glass); box-shadow: none; }
+}
+
+/* --- ≤640: fold discipline + section re-sets (M0) --- */
+@media (max-width: 640px) {
+  .hero__in { padding-top: 1.5rem; padding-bottom: 2rem; }
+  /* 12ch → 13ch. Archivo sets ~9% wider than Fraunces did at the
+     same size, and at 12ch the H1 broke to FOUR lines ending in a
+     lone "replacing." 13ch (322px inside a 350px column) pulls it
+     back to three: "Your sliding / door doesn't / need replacing."
+     Measured, not guessed — 13/14/15/16ch and no cap all produce
+     the same three lines, so 13ch is the narrowest safe value and
+     keeps the most rag control. */
+  .hero h1 { max-width: 13ch; font-size: 2.5rem; line-height: 1.04; }
+  .hero h1 .s2 { font-size: 0.58em; max-width: 24ch; }
+  .hero .lede { max-width: 30ch; font-size: 1.0625rem; }
+
+  .spec { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0; margin-top: 1rem; max-width: none; }
+  .spec__i { padding: 0.6rem 0.6rem 0.6rem 0; margin-right: 0; gap: 0.22rem; }
+  .spec__i + .spec__i { padding-left: 0.7rem; }
+  .spec__k { font-size: 0.5625rem; letter-spacing: 0.1em; line-height: 1.3; min-height: 2.6em; }
+  .spec__v { font-size: 1.05rem; }
+  .hero .eyebrow { font-size: 0.6875rem; letter-spacing: 0.13em; }
+  .hero .cta { gap: 0.6rem; margin-top: 1.1rem; }
+  .hero .cta .btn { width: 100%; min-height: 56px; }
+
+  /* trust seam: one-row snap strip, right-edge mask */
+  .trust__in {
+    flex-wrap: nowrap; overflow-x: auto; scroll-snap-type: x proximity;
+    scrollbar-width: none; gap: 1.4rem; padding-block: 0.8rem;
+    mask-image: linear-gradient(90deg, rgb(0 0 0) 0 calc(100% - 24px), transparent);
+    -webkit-mask-image: linear-gradient(90deg, rgb(0 0 0) 0 calc(100% - 24px), transparent);
+  }
+  .trust__in::-webkit-scrollbar { display: none; }
+  .trust__i { scroll-snap-align: start; }
+
+  /* problem: chips 48px, one per row so labels never truncate */
+  .chips { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
+  .chip { min-height: 48px; padding: 0.6rem 0.9rem; font-size: var(--fs-small); }
+  .picker__cta .btn { width: 100%; min-height: 56px; }
+
+  /* value: figure capped at 96px, band ≤ 2.4 screens */
+  .value__figure.figure-mega, .warranty__num.figure-mega { font-size: 6rem; }
+
+  /* services: single column, mount steps down to 108px (still
+     inside every DPR2 cap), no reserved rows — a one-column stack
+     has nothing to align to. */
+  .svc__figure { padding: 5px; }
+  .svc__figure img, .svc__drawn { width: 108px; height: 144px; }
+
+  /* emergency: stack, full-width button */
+  .emergency__in { flex-direction: column; align-items: stretch; }
+  .emergency__in .btn { width: 100%; min-height: 56px; }
+
+  /* rail: every item small; count readout on */
+  .rail__item { width: var(--rail-w-s); height: var(--rail-h-s); }
+  .rail { scroll-snap-type: x mandatory; }
+  .rail__item { scroll-snap-align: center; }
+  .work__count { display: inline-block; }
+  .rail__cap { padding: 0.5rem 0.6rem; font-size: 0.625rem; }
+
+  /* warranty: figure first, rows 52px */
+  .warranty__grid { gap: 1.5rem; }
+
+  /* story: timeline first; paragraph 2 behind "Read the rest" */
+  .story__grid { gap: 2rem; }
+  .story__more > summary {
+    display: flex; align-items: center; gap: 0.7rem; min-height: 48px;
+    cursor: pointer; color: var(--bronze-bright);
+    font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: var(--wt-mid);
+    letter-spacing: var(--track-mono); text-transform: uppercase;
+  }
+
+  /* voices: the rail is the mobile design too — no merge, no move */
+  .rail--voices { scroll-snap-type: x mandatory; }
+  .voice { scroll-snap-align: center; }
+  .voices__banner { font-size: 0.625rem; }
+
+  /* AREAS IS NO LONGER HIDDEN HERE. It used to be merged into the
+     footer's WHERE HE GOES column to save ~300px of phone scroll;
+     it now carries the map, which is the answer to the one question
+     ("do you even come to me?") that stops people ringing. It stacks
+     map-then-list and the SVG labels step up to 42 units so they
+     still set at ~14px on a 350px-wide plate. */
+  .areas__grid { gap: 1.5rem; }
+  .map__label { font-size: 42px; stroke-width: 8px; }
+  .map__area { stroke-width: 3.5; }
+  .map__dot { r: 11; stroke-width: 4; }
+  .map__pin.is-lit .map__dot { r: 13; }
+  .area__subs { font-size: 0.625rem; }
+  .footer__intro { display: block; }
+  .footer__col--areas { order: -1; }
+  .footer__callrow { display: block; }
+  .footer__callrow .footer__call { display: inline-flex; width: 100%; min-height: 56px; }
+
+  /* contact: call first, then text, then the form behind a summary */
+  .contact__direct { margin-top: 1rem; }
+  .contact__formwrap > summary {
+    display: flex; align-items: center; gap: 0.7rem; min-height: 52px;
+    cursor: pointer; color: var(--on-ink);
+    font-weight: var(--wt-mid);
+    border-top: 1px solid var(--line-ink); margin-top: 0.5rem;
+  }
+  .contact__formwrap:not([open]) .contact__formcard { display: none; }
+
+  /* footer: 2-col rows */
+  .footer__in { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem var(--gap-card); }
+  .footer__col--blurb { grid-column: 1 / -1; }
+}
+
+/* ≤479: the nav drops the wordmark; glyph + number + burger win */
+@media (max-width: 479px) {
+  .brand__words { display: none; }
+  .brand__glyph { width: 36px; height: 36px; }
+  .nav__in { gap: 0.6rem; }
+}
+
+@media (min-width: 641px) {
+  .nav__burger { display: none; }
+}
+
+@media (min-width: 760px) {
+  /* The hero gets real presence once there is room for it. Below
+     this the content sets the height, which on a phone is already
+     most of the viewport. */
+  .hero__stage { min-height: clamp(560px, 76vh, 780px); display: flex; flex-direction: column; justify-content: center; }
+  .hero__in { width: 100%; }
+
+  /* SERVICES — RESERVED ROWS. Two lines for the name, two for the
+     summary, so every card in a row hits the same baselines and the
+     chevrons land on one line. The longest name ("Fly Screen Mesh
+     Replacements") and the longest summary (the glass-slider one)
+     both set exactly two lines at these column widths — measured at
+     760, 1024, 1120 and 1440, not assumed. */
+  .svc__name  { min-height: calc(2em * var(--lh-head)); }
+  .svc__blurb { min-height: calc(2em * var(--lh-lead)); }
+
+  .trust__in { gap: 0.55rem 2.4rem; }
+  .value__grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(2.5rem, 5vw, 5rem); }
+  .svc__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .warranty__grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2.5rem, 5vw, 5rem); }
+  .story__grid { grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr); gap: clamp(2.5rem, 5vw, 5rem); }
+  .contact__grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(2.5rem, 5vw, 5rem); }
+  /* map left, the region spec sheet right. 0.86fr keeps the map plate
+     around 460 CSS px at 1440, which is where the 30-unit SVG labels
+     land at ~13px — the same size as the body small step. */
+  .areas__grid { grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); gap: clamp(2.5rem, 4vw, 3.5rem); align-items: start; }
+  .footer__in { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); }
+  .rail { --rail-pad: max(var(--pad-x), calc((100vw - var(--container)) / 2 + var(--pad-x))); }
+  .rail-sill { margin-inline: auto; max-width: calc(var(--container) - 2 * var(--pad-x)); }
+}
+
+/* SERVICES — 3 x 2. Six categories divide by three; at 1440 that is
+   a ~408px card, which is a catalogue plate. Two columns at that
+   width would be ~620px, which is a list. */
+@media (min-width: 1120px) {
+  .svc__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (min-width: 1025px) {
+  .nav__links { display: flex; }
+  /* The scrim goes HORIZONTAL: the hero type's measured glyph ink
+     never passes 49.7% of the viewport at any width ≥1025, the wash
+     holds 0.78 out to 56%, and the frame then opens to 0.16 across
+     the right 40% where the leaf glides and no type ever goes. */
+  .hero__media::after {
+    background:
+      var(--scrim-hero-vig),
+      var(--scrim-hero-h);
+  }
+  .hero__video { object-position: 50% 24%; }
+  /* the clear window is a phone idea: at ≥1025 the open right-hand
+     40% of the frame does that job and the stage stays as it was. */
+  .hero { --hero-open: 0px; }
+  /* the work head: filters sit as the right payload, baseline-locked */
+  /* The chips are inside .work__chips now (A11Y-M6 radiogroup), so the
+     justification has to reach the element that actually lays them out
+     or the whole strip flips to the left of the column. Both, so the
+     group is pushed right AND its own rows are right-aligned when they
+     wrap — which is exactly how it read before the wrapper existed. */
+  .work__filters, .work__chips { justify-content: flex-end; }
+  .ba__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr); align-items: center; }
+}
+
+@media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
+  .hero__in { gap: 5.5rem; }
+}
+
+.min-vh { min-height: 100vh; min-height: 100svh; min-height: 100dvh; }
+
+
+/* ============================================================
+   REDUCED MOTION — a complete static page. No wipes, no travel,
+   no fade substitutes, ZERO running animations:
+   document.getAnimations().length must be 0.
+   ============================================================ */
+@media (prefers-reduced-motion: reduce) {
+  .has-js .reveal,
+  .has-js .reveal--rtl,
+  .has-js .reveal--up,
+  .has-js .reveal--split { clip-path: none; transition: none; }
+  .is-in .track-rule::after { transition: none; transform: translateX(calc(100cqw - 7px)); }
+  .drawer__panel { transition: none; }
+  .fab { transition: none; }
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+
+/* ============================================================
+   AREA PAGES — areas/*.html  (generated by _generate-areas.py)
+   ============================================================
+   These pages run WITHOUT script.js: it is index-only and mounts
+   #heroReel, #symptomChips, #workRail and the drawer by id. So
+   everything below has to work on CSS alone, and it does —
+   <details> is native, .rail is native overflow, and .reveal only
+   engages under the .has-js class script.js adds, so nothing here
+   is ever left invisible waiting for an observer that never runs.
+
+   Almost every component is REUSED from the sections above
+   (.nav, .btn, .spec, .trust, .sec__head, .faq__item, .voice,
+   .areas__card, .footer). The rules here are the four things an
+   area page genuinely needs and the home page does not:
+     1. a nav that is not overlaid on a video,
+     2. a breadcrumb,
+     3. an <h1> at a sentence scale rather than a headline scale,
+     4. grid variants of two components the home page scrolls.
+   ZERO hardcoded hex, same as the rest of the file.
+   ============================================================ */
+
+/* 1 · The nav is SOLID here. On the home page it is absolutely
+   positioned over the reel; there is no reel behind it here, so
+   it sits in flow on the deepest ink step and the hero picks up
+   from --ink underneath it. No burger: there is no drawer. */
+.nav--solid { position: relative; background: var(--ink-2); }
+
+/* 2 · Breadcrumb. Sits on --ink so it reads as the top of the hero
+   band, not as a second bar. Every link is a real 44px target. */
+.ap-crumbs { background: var(--ink); padding-top: clamp(1rem, 2.2vw, 1.6rem); }
+.ap-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; }
+.ap-crumbs li { display: inline-flex; align-items: center; color: var(--on-ink-muted); }
+.ap-crumbs li + li::before { content: "/"; margin: 0 0.6rem; color: var(--line-ink-strong); }
+.ap-crumbs a, .ap-crumbs span {
+  display: inline-flex; align-items: center; min-height: var(--tap-min);
+  color: var(--on-ink-body);
+}
+.ap-crumbs li:last-child span { color: var(--bronze-bright); }
+@media (hover: hover) and (pointer: fine) {
+  .ap-crumbs a:hover { color: var(--bronze-bright); }
+}
+
+/* 3 · The hero. The <h1>s here are sentences ("Sliding door repairs
+   across the Tweed"), not the home page's three-word hammer, so the
+   display clamp is a step down from --fs-display and the measure is
+   held at 20ch to keep the rag under control. */
+.ap-hero { padding-block: clamp(1.4rem, 2.6vw, 2.1rem) clamp(3rem, 6vw, 5rem); }
+.ap-hero__in { display: grid; grid-template-columns: minmax(0, 1fr); }
+/* Desktop only. Below 1025 the type column is the whole hero and the
+   diagram would just be a picture of nothing between the CTAs and the
+   trust seam. */
+.ap-hero__fig { display: none; }
+.ap-hero__drawn { width: 100%; height: auto; color: var(--on-ink-muted); }
+.ap-hero__drawn .accent { color: var(--bronze-bright); }
+.ap-hero h1 {
+  font-size: clamp(2.15rem, 4.4vw, 3.5rem);
+  line-height: 1.04; letter-spacing: var(--track-tight);
+  color: var(--on-ink); max-width: 20ch;
+}
+.ap-hero .eyebrow { color: var(--bronze-bright); margin-bottom: 0.9rem; }
+
+/* The full 3-paragraph regional intro. Paragraph 1 leads at lede
+   size; 2 and 3 carry the argument at body size. All three are the
+   copy deck's verbatim words. */
+.ap-intro {
+  margin-top: clamp(1.1rem, 2vw, 1.5rem); max-width: 68ch;
+  display: flex; flex-direction: column; gap: 0.95rem;
+}
+.ap-intro .lede {
+  color: var(--on-ink); font-size: var(--fs-lead); line-height: var(--lh-lead);
+}
+.ap-p { color: var(--on-ink-body); line-height: var(--lh-body); }
+
+.ap .cta { display: flex; flex-wrap: wrap; gap: 0.8rem; margin-top: clamp(1.5rem, 2.8vw, 2.1rem); }
+.ap .note { margin-top: 1.1rem; color: var(--on-ink-body); font-size: var(--fs-small); max-width: 52ch; }
+
+/* 4a · Services as a catalogue grid. Same card material as .svc,
+   without the photo mount: an area page argues about the region,
+   and the photographs live on the home page where they can be
+   filtered and looked at properly. Each card links to its own
+   section there. */
+.ap-grid { display: grid; gap: var(--gap-card); grid-template-columns: minmax(0, 1fr); align-items: stretch; }
+.ap-svc {
+  background: var(--card-face); border: 1px solid var(--line); border-radius: var(--r-lg);
+  box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
+  padding: var(--pad-card);
+  display: flex; flex-direction: column; gap: 0.5rem;
+}
+.ap-svc__name {
+  font-size: var(--fs-h3); color: var(--text-primary);
+  font-variation-settings: var(--vf-inline); letter-spacing: -0.012em;
+}
+.ap-svc__blurb { color: var(--text-muted); font-size: var(--fs-small); line-height: var(--lh-lead); }
+.ap-svc__go {
+  margin-top: auto; padding-top: 0.9rem; color: var(--bronze);
+  display: inline-flex; align-items: center; min-height: var(--tap-min);
+}
+@media (hover: hover) and (pointer: fine) {
+  .ap-svc:hover { border-color: var(--line-bronze); box-shadow: var(--rim-light), var(--rim-base), var(--shadow-2); }
+  .ap-svc__go:hover { color: var(--bronze-deep); }
+}
+
+/* 4b · The money band and the sign-off band. */
+.ap-value, .ap-contact {
+  display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr);
+}
+.ap-value { align-items: center; }
+.ap-contact { align-items: start; }
+.ap-value .sec__head, .ap-contact .sec__head { margin-bottom: 0; }
+.ap-areas__h { color: var(--bronze-bright); margin-bottom: 0.9rem; }
+
+/* The region card on an ink band: the same spec sheet as #areas, in
+   the ink material. */
+.ap-areas .areas__card {
+  background: var(--card-face-ink); border-color: var(--line-ink);
+  box-shadow: var(--rim-ink), var(--rim-base-ink), var(--shadow-ink);
+}
+.ap-areas .area { border-bottom-color: var(--line-ink); }
+.ap-areas .area__name { color: var(--on-ink); }
+.ap-areas .area__go { color: var(--bronze-bright); }
+.ap-areas .area--here .area__go { color: var(--on-ink-muted); }
+
+/* 4c · The recommendations as a grid, not a rail. Three cards do not
+   need a scroller, and a scroller with three cards and no overflow
+   reads as broken. Same card, width released. */
+.ap-voices { display: grid; gap: var(--gap-card); grid-template-columns: minmax(0, 1fr); }
+.ap-voices .voice { width: auto; }
+.ap .voices__foot { text-align: center; margin-inline: auto; }
+
+@media (min-width: 760px) {
+  .ap-grid   { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ap-voices { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .ap-value  { grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: clamp(2.5rem, 5vw, 5rem); }
+  .ap-contact { grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr); gap: clamp(2.5rem, 5vw, 5rem); }
+}
+@media (min-width: 1025px) {
+  .ap-hero__in { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr); gap: clamp(2.5rem, 5vw, 5rem); align-items: center; }
+  .ap-hero__fig { display: block; max-width: 300px; justify-self: end; }
+}
+@media (min-width: 1120px) {
+  .ap-grid   { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .ap-voices { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+@media (max-width: 640px) {
+  .ap .cta .btn { width: 100%; min-height: 56px; }
+  .ap-hero h1 { font-size: 2.15rem; max-width: 16ch; letter-spacing: var(--track-tight); }
+
+  /* THE SALE IS NEVER BELOW THREE PARAGRAPHS.
+     An area page opens with 150 words of regional prose, which is what
+     makes it a real page rather than a doorway — but on a phone that
+     pushes both CTAs a screen and a half down. So at ≤640 the hero
+     reorders VISUALLY to eyebrow → H1 → spec → CTAs → note → prose.
+     DOM order is untouched, so reading order and focus order are
+     unchanged (nothing inside .ap-intro is focusable), and the prose
+     is still the first thing under the heading for a crawler. */
+  .ap-hero__type { display: flex; flex-direction: column; }
+  .ap-hero__type > .eyebrow  { order: 1; }
+  .ap-hero__type > h1        { order: 2; }
+  .ap-hero__type > .spec     { order: 3; }
+  .ap-hero__type > .cta      { order: 4; }
+  .ap-hero__type > .note     { order: 5; }
+  .ap-hero__type > .ap-intro { order: 6; margin-top: clamp(1.6rem, 4vw, 2.2rem); }
+  .ap-hero__type > .note     { margin-bottom: 0; }
+}
+
+
+/* ============================================================
+   AREA ROWS AS LINKS — #areas on the home page AND the region card
+   on every area page. The rows were inert <div>s until the pages
+   existed; they are anchors now. The WORDS did not change
+   ("Covered" is the copy deck's honest label) — only a chevron was
+   added, because a row that navigates has to look like one.
+   ============================================================ */
+.area__go { display: inline-flex; align-items: center; }
+.area__chev {
+  width: 11px; height: 11px; flex: 0 0 auto; margin-left: 0.45rem;
+  transition: transform var(--dur-fast) var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  a.area:hover .area__name { color: var(--bronze); }
+  a.area:hover .area__chev { transform: translateX(3px); }
+  .ap-areas a.area:hover .area__name { color: var(--bronze-bright); }
+}

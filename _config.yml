@@ -1,0 +1,10 @@
+# GitHub Pages (Jekyll) config.
+# Jekyll is kept ON deliberately: it refuses to serve _-prefixed paths
+# (_seo.py, _generate-areas.py, _redirects-plan.md), which is our guard
+# against internal files leaking onto the live site.
+# This exclude list stops Jekyll from RENDERING internal markdown into
+# public HTML pages (CLAUDE.md would otherwise become /CLAUDE.html).
+exclude:
+  - CLAUDE.md
+  - README.md
+  - "*.py"

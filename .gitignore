@@ -1,0 +1,22 @@
+HANDOFF.md
+_incoming/
+.DS_Store
+
+# Master media, never deployed. Only the transcoded web derivatives ship.
+assets/video/hero-reel-source.mp4
+
+# Internal docs — the public repo must never carry the agency's internal
+# assessments of the client's claims, nor the sales artefacts.
+CLAUDE.md
+_redirects-plan.md
+
+# Internal working files — never pushed to the PUBLIC repo.
+# concepts/  = build-time screenshots + rejected hero concepts (~115MB)
+# design/    = art direction explorations, critique shots, build scripts (~60MB)
+# assets/_source/ = raw scraped masters + provenance, includes do-not-publish
+#                   supplier imagery that must not sit in a public repo.
+# Local copies are the single source; document location in HANDOFF.md.
+concepts/
+design/
+assets/_source/
+tools/
