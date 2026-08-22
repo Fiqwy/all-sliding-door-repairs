@@ -386,10 +386,12 @@ def build_page(c, region, region_index, used):
     # a link to itself.
     area_rows = "".join(
         ('<span class="area area--here" aria-current="page">'
+         '<span class="area__mark" aria-hidden="true"></span>'
          '<span class="area__name">%s</span>'
          '<span class="area__go mono">You are here</span></span>'
          if r["slug"] == region["slug"] else
          '<a class="area" href="%s.html">'
+         '<span class="area__mark" aria-hidden="true"></span>'
          '<span class="area__name">%s</span>'
          '<span class="area__go mono">Covered%s</span></a>')
         % ((esc(r["name"]),) if r["slug"] == region["slug"]

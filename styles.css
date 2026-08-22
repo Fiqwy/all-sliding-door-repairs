@@ -172,20 +172,32 @@
      up to ~250 on a few thousand pixels per frame. The audit target
      stays #FFFFFF anyway — it costs nothing and it can never be
      wrong. */
-  /* vertical: the stacked layout (<1025) where type spans the width.
-     Floor 0.775 through the type, then it OPENS to 0.28 over the
-     bottom of the frame, which at ≤1024 is a real 150px window of
-     nearly-unscrimmed footage below the reel credit. */
+  /* vertical: the stacked layout (<1025) where type spans the width,
+     so the whole frame IS a text zone and the floor has to hold.
+     0.775 through the type, then it OPENS across the clear window.
+
+     ⚠️ THE OPENING IS PINNED TO THE BOTTOM OF THE CREDIT LINE, which
+     is measured, not assumed: the credit's box bottom is 82.2% of the
+     stage at 390 and 81.3% at 360 once --hero-open is restored (see
+     the ≤640 block). The floor therefore holds to 83% and only then
+     falls. The previous stops opened at 84% -> 94% while the credit
+     sat at 92.9-94.7%, i.e. the window was UNDER the type instead of
+     below it, and two runs of --on-ink-body were shipping on a 0.31
+     composite. That was a real AA failure and it is fixed here. */
   --scrim-hero-v: linear-gradient(180deg,
                     rgba(12, 13, 15, 0.84) 0%,
                     rgba(12, 13, 15, 0.79) 10%,
                     rgba(12, 13, 15, 0.775) 62%,
-                    rgba(12, 13, 15, 0.78) 84%,
-                    rgba(12, 13, 15, 0.32) 94%,
-                    rgba(12, 13, 15, 0.26) 100%);
-  /* horizontal: ≥1025. 0.78 through the type column, then the frame
-     opens across the right 40% where the leaf glides and no type
-     ever goes. 0.16 is not a wash, it is a whisper. */
+                    rgba(12, 13, 15, 0.78) 83%,
+                    rgba(12, 13, 15, 0.30) 89%,
+                    rgba(12, 13, 15, 0.18) 100%);
+  /* ≥1025 — SUPERSEDED BY THE PANEL (P11). Kept as the record of what
+     a full-bleed cover scrim had to be: 0.78 through the type column,
+     opening to 0.16 across the right 40%. The reason it is gone is
+     that 0.78 over the type column is 0.78 over the PICTURE, and the
+     client could not see his own video through it. The panel moves
+     the type off the footage entirely, so the wash over the picture
+     drops to 0.10 and the only heavy layer left is the nav shade. */
   --scrim-hero-h: linear-gradient(90deg,
                     rgba(12, 13, 15, 0.82) 0%,
                     rgba(12, 13, 15, 0.81) 20%,
@@ -194,6 +206,79 @@
                     rgba(12, 13, 15, 0.44) 70%,
                     rgba(12, 13, 15, 0.24) 84%,
                     rgba(12, 13, 15, 0.16) 100%);
+
+  /* ---------- THE REEL PANEL, ≥1025 (P11) ----------
+     Client, 2026-08-22: "not so zoomed in, and if it can play more of
+     the video I think it will look better, and in normal colour."
+
+     THE FEATHER. The reel plane is right-anchored and ~50vw wide, and
+     this gradient dissolves its LEFT edge into --ink so there is no
+     vertical seam anywhere on the page. It is fully OPAQUE for its
+     first 6%, which is what keeps every glyph of hero type on solid
+     ink at 1025 / 1440 / 1920 (measured; see the panel block below).
+     It is --ink coloured, not scrim coloured, because it has to land
+     on exactly the ground it is dissolving into.
+
+     ⚠️ THE RAMP IS A SMOOTHSTEP, NOT A LINE, AND THAT IS THE WHOLE
+     POINT. A linear veil against a bright picture still reads as an
+     edge. These eleven stops are 1 − smoothstep(t) sampled every 10%
+     across 8% → 52% of the plane, which is ~317px at 1440, and it
+     dissolves instead of ending.
+
+     ⚠️ THE OPAQUE RUN IS 8%, NOT P11's 6%, AND THAT IS A BUG FIX.
+     P11 measured the hero's type ink with Range.getClientRects() and
+     recorded 509.7px at 1025 — but that method walked the H1, the
+     lede and the note and MISSED .spec__v. The real widest run at
+     1025 is "Free by text", whose ink ends at 536px, i.e. 23px INSIDE
+     a plane that starts at 513. It was still landing on opaque ink,
+     but by 7px, and the comment claiming a structural guarantee was
+     describing a coincidence. 8% moves the opaque edge to 554 at
+     1025 and 777 at 1440, which is a real 18px and 77px of margin.
+     The alpha values below are unchanged; only the stop positions
+     moved, from 6+4.6k to 8+4.4k. */
+  --reel-feather: linear-gradient(90deg,
+                    rgb(15, 33, 50)          0%,
+                    rgb(15, 33, 50)          8%,
+                    rgba(15, 33, 50, 0.972)  12.4%,
+                    rgba(15, 33, 50, 0.896)  16.8%,
+                    rgba(15, 33, 50, 0.784)  21.2%,
+                    rgba(15, 33, 50, 0.648)  25.6%,
+                    rgba(15, 33, 50, 0.500)  30.0%,
+                    rgba(15, 33, 50, 0.352)  34.4%,
+                    rgba(15, 33, 50, 0.216)  38.8%,
+                    rgba(15, 33, 50, 0.104)  43.2%,
+                    rgba(15, 33, 50, 0.028)  47.6%,
+                    rgba(15, 33, 50, 0)      52%);
+  /* THE SEATING WASH. Not a scrim — NO TYPE SITS ON IT, so it is not
+     an audited layer. It is the 0.07 that stops a daylight rectangle
+     from floating off a night page, plus a little more at the top and
+     bottom edges so the panel is seated under the nav and against the
+     trust seam. Everything the client called "not normal colour" was
+     the 0.78 this replaces. */
+  --reel-wash: linear-gradient(180deg,
+                    rgba(12, 13, 15, 0.20) 0%,
+                    rgba(12, 13, 15, 0.10) 20%,
+                    rgba(12, 13, 15, 0.07) 62%,
+                    rgba(12, 13, 15, 0.14) 88%,
+                    rgba(12, 13, 15, 0.30) 100%);
+  /* THE NAV SHADE — the ONLY heavy layer left over the footage, and
+     it exists for exactly one run of type: the nav links, which cross
+     the panel at every desktop width.
+
+     It is painted FULL STAGE WIDTH on .hero__stage, not on the reel
+     plane. Painted on the plane it ended at the plane's left edge and
+     drew a hard-cornered dark box into the top right of the hero,
+     which was the most obvious artefact in the first build. Over the
+     ink half it is invisible; over the panel it is the shade.
+
+     Its height is pinned to --nav-h (x4), NOT to a percentage of the
+     stage, so the 0.68 plateau covers the whole 72px nav strip at
+     every viewport height rather than drifting with the type block. */
+  --reel-top: linear-gradient(180deg,
+                    rgba(6, 7, 9, 0.70) 0%,
+                    rgba(6, 7, 9, 0.68) 26%,
+                    rgba(6, 7, 9, 0.22) 58%,
+                    rgba(6, 7, 9, 0) 100%);
   /* vignette — additive only, so it cannot weaken the guarantee.
      Its ONLY job now is the nav strip, which is the one run of type
      that crosses into the open right-hand side of the frame. */
@@ -202,16 +287,12 @@
                     rgba(6, 7, 9, 0.66) 7.5%,
                     rgba(6, 7, 9, 0) 22%,
                     rgba(6, 7, 9, 0) 100%);
-  /* the grade sits UNDER the scrim, so it can only pull the footage
-     away from white, never toward it. It used to be a bronze wash
-     heavy enough to read as a colour filter; the real grade now
-     lives in the footage itself (ffmpeg, see HANDOFF P9) and this
-     is only a whisper of warmth in the lit half plus a neutral
-     weight at the base. */
-  --grade-warm: linear-gradient(168deg,
-                  rgba(216, 168, 104, 0.05) 0%,
-                  rgba(138, 90, 36, 0.03) 46%,
-                  rgba(12, 13, 15, 0.18) 100%);
+  /* --grade-warm and --glow-warm are DELETED, P11. They were a bronze
+     wash and a bronze sunwash sitting over the whole reel, and "in
+     normal colour" is a direction to stop tinting his footage. Nothing
+     references them; the hero's only layers now are --reel-feather,
+     --reel-wash and --reel-top (>=1025) or --scrim-hero-v plus
+     --scrim-hero-vig (<=1024), and every one of them is neutral. */
 
   /* ---------- FOCUS ---------- */
   --focus:          #8A5A24;   /* on light bands — 5.27:1 vs --bone */
@@ -219,14 +300,8 @@
   --focus-width:    3px;
   --focus-offset:   2px;
 
-  /* ---------- THE ONE GLOW — hero sunwash, one instance ----------
-     It used to be a desktop-only `.glow` div on the bone hero. That
-     element is gone with the framed print; the glow now rides UNDER
-     the reel's scrim as the top layer of the warm grade, which is
-     the same single instance doing the same job on new ground. */
-  --glow-warm:      radial-gradient(58% 44% at 74% 22%,
-                      rgba(216, 168, 104, 0.07) 0%,
-                      rgba(216, 168, 104, 0) 70%);
+  /* (--glow-warm, the hero sunwash, is gone with --grade-warm. See the
+     note above the scrim block: there is no bronze over the reel now.) */
 
   /* ---------- TYPE — four voices ----------
      CLIENT DIRECTION (2026-08-21): "make it a cleaner font."
@@ -409,6 +484,22 @@
      rather than a hope. Do not raise it past 812px. */
   --hero-type-w: 760px;
   --hero-open:   150px;   /* the ≤1024 clear window; 0 at ≥1025 */
+
+  /* THE SERVICE-AREA MAP'S TWO GROUNDS (P12). Both are OPAQUE fills
+     that carry no type — the pin labels sit on --card plates and the
+     key sits on --ink-2 — so neither is a contrast pair and neither
+     is in the audit. They exist because the first build tinted the
+     served area with bronze at 0.20 over a cream land, which over
+     cream is almost nothing: the one thing the map is for was its
+     faintest mark.
+
+     The logic is inverted here. --map-served is LIGHTER and warmer
+     than the site's paper; --map-land is a step DOWN from --bone-3,
+     the same hue, so the ground he does not cover recedes. The
+     difference between them is 8.5 points of L*, which is a clear
+     read at 350px wide and still quiet at 500. */
+  --map-land:   #D9D0BE;   /* unserved ground — two steps under --bone-3 */
+  --map-served: #F1E4CE;   /* the run he does — warm, light, lifted */
 }
 
 
@@ -671,10 +762,18 @@ p, li, figcaption, dd { text-wrap: pretty; }
   content: ""; width: 5px; height: 5px; border-radius: 50%;
   background: var(--bronze); flex: 0 0 auto;
 }
+/* text-wrap: balance evens the rag on a 2-3 line display heading, and
+   at this scale one short trailing word is the most visible defect a
+   section head can have. It is NOT on the hero h1: that block's line
+   breaks are measured against the reel panel's left edge, and balance
+   would make the measurement unrepeatable. */
 .sec__head h2 {
   font-size: var(--fs-h2); color: var(--text-primary);
   font-variation-settings: var(--vf-h2); max-width: 19ch;
+  text-wrap: balance;
 }
+/* a phrase that must never break — see nbHtml() in script.js */
+.nb { white-space: nowrap; }
 /* the roman→italic device: Archivo sets the sentence, Fraunces
    leans into the phrase that carries the feeling. */
 .sec__head h2 .em {
@@ -839,7 +938,12 @@ p, li, figcaption, dd { text-wrap: pretty; }
   background: transparent; border-bottom: 1px solid var(--line-ink);
 }
 .nav__in { display: flex; align-items: center; gap: 1rem; min-height: var(--nav-h); }
-.brand { display: flex; align-items: center; gap: 0.75rem; margin-right: auto; min-height: var(--tap-min); }
+/* ⚠️ min-WIDTH too (P12, closing ADVERSARIAL-L4's first half). At ≤479
+   .brand__words is hidden and the brand collapses to a 36px glyph, so
+   the target measured 36x44 — it passed WCAG 2.2's 24px floor and
+   failed the house 44px rule on width alone. The glyph is centred in
+   the wider box, so nothing moved on screen. */
+.brand { display: flex; align-items: center; justify-content: center; gap: 0.75rem; margin-right: auto; min-height: var(--tap-min); min-width: var(--tap-min); }
 .brand__glyph { width: 30px; height: 30px; color: var(--bronze-bright); flex: 0 0 auto; }
 .brand__words { display: flex; flex-direction: column; line-height: 1.12; }
 .brand__n1 {
@@ -854,9 +958,16 @@ p, li, figcaption, dd { text-wrap: pretty; }
 }
 
 .nav__links { display: none; gap: 1.8rem; }
+/* ⚠️ min-WIDTH (P12, closing ADVERSARIAL-L4's second half). "FAQ" was a
+   27.8px-wide target and "Cost" 30.2. L4 was deferred because padding a
+   nav link "changes the nav rhythm at 390" — but .nav__links is
+   `display: none` below 1025, so there is no 390 rhythm to change. The
+   links are centred in the wider box and the 1.8rem gap is untouched,
+   so the strip is pixel-identical; only the hit area grew. */
 .nav__links a {
   font-size: var(--fs-small); color: var(--on-ink-body); padding-block: 0.72rem;
-  position: relative; min-height: var(--tap-min); display: inline-flex; align-items: center;
+  position: relative; min-height: var(--tap-min); min-width: var(--tap-min);
+  display: inline-flex; align-items: center; justify-content: center;
   transition: color var(--dur-fast) var(--ease-soft);
 }
 .nav__links a::after {
@@ -930,13 +1041,21 @@ p, li, figcaption, dd { text-wrap: pretty; }
    into a dark leaf gliding across a lit aperture — ambient motion,
    not a photograph of somebody's patio furniture.
 
-   ⚠️ THE DPR2 RULE IS DELIBERATELY NOT APPLIED HERE, and that is
-   not an oversight. `no PHOTO above native ÷ 2 at DPR2` is a PHOTO
-   rule: it exists so a still someone LOOKS AT is never mushy. This
-   is a 720px-wide scrimmed ambient background that no one reads
-   detail from; a cover-crop upscale (2.0x at 1440, 1.42x at 390)
-   is accepted. Every <img> on the page is still capped, in the
-   markup, by imgHtml()'s capPx.
+   ⚠️ P11 (2026-08-22) REPLACED THE FULL-BLEED COVER CROP WITH A
+   RIGHT-ANCHORED PANEL at ≥1025, and dropped every colour layer.
+   Client: "not so zoomed in, and if it can play more of the video I
+   think it will look better, and in normal colour." See the panel
+   block in the ≥1025 media query for the geometry and the numbers.
+
+   THE DPR2 RULE. `no PHOTO above native ÷ 2 at DPR2` is a PHOTO rule
+   and it was knowingly waived here while this was a heavily scrimmed
+   ambient background at a 2.00x CSS upscale. It is close to moot now:
+   the panel renders the 720px-wide source at 720 CSS px at 1440
+   (1.00x), 640 at 1280 (0.89x) and 790 at 1920 (1.10x). At ≤1024 the
+   full-bleed cover is height-driven and lands at 0.68x. The reel is
+   never upscaled by more than 10% at any width the site is designed
+   for. Every <img> on the page is still capped, in the markup, by
+   imgHtml()'s capPx.
    ============================================================ */
 .hero { position: relative; background: var(--ink); color: var(--on-ink-body); }
 
@@ -954,24 +1073,26 @@ p, li, figcaption, dd { text-wrap: pretty; }
 .hero__media { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
 .hero__video {
   width: 100%; height: 100%;
-  /* 30%, chosen by decoding the clip and comparing six candidate
-     bands: at 40%+ the desktop cover-crop shows patio tiles and an
-     outdoor table (exactly ELEVATION §5's objection); at 30% it
-     shows the HAND, the leading stile and the screen mesh. */
+  /* <1025 this is HEIGHT-driven cover: 720x1280 into a 390x873 stage
+     scales at 0.68 and shows the WHOLE vertical field with a 21%
+     horizontal crop, so the vertical figure is inert on a phone and
+     50% simply centres the doorway. The ≥1025 panel sets its own. */
   object-fit: cover; object-position: 50% 24%;
-  /* The grade is BAKED IN now (ffmpeg curves + saturation, HANDOFF
-     P9), so CSS no longer has to fake one. saturate(0.55) was what
-     made the footage read as a grey-blue filter rather than as
-     footage; 0.92 is "one step back from real", which is all a
-     background wants. Nothing here brightens a pixel. */
-  filter: saturate(0.92) contrast(1.02);
+  /* ⚠️ NO FILTER. Client, 2026-08-22: "in normal colour." saturate()
+     and contrast() are exactly the "filter over a slice" he is
+     objecting to, and there is no longer a grade in the file either
+     (the transcode is stabilisation only — see HANDOFF P11). If you
+     ever need to darken the footage, do it in the SCRIM, which is
+     audited, and never in a filter, which is not. */
+  filter: none;
 }
-/* the warm grade — UNDER the scrim, so it can only pull the footage
-   away from white, never toward it (this is what keeps the audit's
-   "worst pixel is #FFFFFF" claim conservative) */
+/* ≥1025 this becomes the panel's LEFT-EDGE FEATHER (--reel-feather).
+   Below 1025 it is nothing at all: the warm grade that used to live
+   here was a colour cast over the whole frame and the client asked
+   for normal colour. --grade-warm / --glow-warm are unused now. */
 .hero__media::before {
   content: ""; position: absolute; inset: 0; z-index: 1;
-  background: var(--glow-warm), var(--grade-warm);
+  background: none;
 }
 /* the scrim — ONE directional wash plus an additive vignette. The
    composite alpha at any point IS the wash value, so it can be read
@@ -1435,8 +1556,46 @@ p, li, figcaption, dd { text-wrap: pretty; }
 /* ============================================================
    6 · EMERGENCY — thin ink band, one tap
    ============================================================ */
-.emergency__in { display: flex; flex-wrap: wrap; gap: 1.25rem var(--gap-inner); align-items: center; justify-content: space-between; }
-.emergency__copy { min-width: 0; max-width: 62ch; }
+/* ⭐ P12. The band was `justify-content: space-between` — type on the
+   left, a button on the right — which at 1440 left a measured 45% of
+   the strip empty and had been flagged twice as "spec-correct but
+   plain". It is a three-part editorial band now:
+
+     [ AFTER HOURS + the heading ] [ the body + the CALL ] [ the print ]
+
+   Three things came out of that. The dead column is gone. The CALL sits
+   under the argument it belongs to instead of at the far right of the
+   band. And IMG_2779, the sharpest photograph in the inventory and
+   until now a 220px rail thumbnail, has the slot it was owed.
+
+   ⚠️ THE PRINT IS ≥761 ONLY. Below that the band stacks and a 268px
+   photograph buys ~350px of phone scroll for a frame that reappears in
+   the work rail two sections down. */
+.emergency__in { display: flex; flex-wrap: wrap; gap: 1.6rem var(--gap-inner); align-items: center; }
+.emergency__text {
+  flex: 1 1 26rem; min-width: 0;
+  display: grid; grid-template-columns: minmax(0, 1fr); gap: 1.1rem var(--gap-inner);
+}
+.emergency__copy, .emergency__act { min-width: 0; }
+.emergency__cta { margin-top: 1.3rem; }
+.emergency__frame { display: none; }
+@media (min-width: 761px) {
+  /* 268px is the declared cap on a 900px-native file: 1.68x of DPR2
+     headroom, and the widest this photograph may ever be rendered is
+     450. Do not grow this box without moving content.js's capPx. The
+     source is already 900x1199, i.e. 3:4 to within half a pixel, so
+     there is no crop here and none is wanted. */
+  .emergency__frame { display: block; flex: 0 0 auto; width: 268px; }
+  .emergency__frame .frame__cap { margin-top: 0.7rem; padding-top: 0.6rem; }
+  .emergency__frame .frame__cap .mono-label { font-size: 0.625rem; }
+}
+@media (min-width: 1025px) {
+  /* 0.85/1.15, not 1/1: the heading is two short lines and the body is
+     three long ones, so an even split left 160px of ragged right in
+     column one and read as a hole rather than as a gutter. */
+  .emergency__text { grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr); align-items: start; }
+  .emergency__heading { margin-top: 0.6rem; }
+}
 .emergency__label {
   font-family: var(--font-mono); font-weight: var(--wt-mid);
   color: var(--bronze-bright); font-size: var(--fs-micro);
@@ -1451,7 +1610,9 @@ p, li, figcaption, dd { text-wrap: pretty; }
 /* ============================================================
    7 · WORK — the rail in a brass track
    ============================================================ */
-.work__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; }
+/* A full-width strip under the section head since P12 — see the
+   comment on #work's <header> in index.html. */
+.work__filters { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; margin-top: var(--gap-inner); }
 /* A11Y-M6: the chips are wrapped in a named role="radiogroup" (they are
    mutually exclusive, so aria-pressed described the wrong thing).
    The wrapper is a flex row with the SAME gap and alignment as its
@@ -1480,7 +1641,15 @@ p, li, figcaption, dd { text-wrap: pretty; }
    (`filter-chip selected` measures 4.76:1). */
 .filter-chip[aria-pressed="true"],
 .filter-chip[aria-checked="true"] { border-color: var(--bronze); background: var(--bronze-soft); color: var(--bronze); font-weight: var(--wt-mid); }
-.work__count { margin-left: auto; color: var(--text-faint); display: none; }
+/* ⚠️ THIS WAS `display: none` FROM P6 TO P12. renderWork() has been
+   computing and writing "01 / 11" into it on every scroll the whole
+   time, into a node nobody could see. It is the rail's readout and it
+   belongs on the sill, where it answers "is there more?" in one glance.
+   Still aria-hidden: #railStatus says the same thing in a sentence. */
+.work__count {
+  flex: 0 0 auto; color: var(--text-faint); font-size: var(--fs-micro);
+  letter-spacing: var(--track-mono); font-variant-numeric: tabular-nums;
+}
 
 /* Native overflow rail. scroll-padding tracks padding so snap
    never eats the gutter. The edge mask makes the cut a decision. */
@@ -1535,14 +1704,44 @@ p, li, figcaption, dd { text-wrap: pretty; }
 }
 .rail__item[hidden] { display: none; }
 
-/* the brass sill: the photographs sit in a track */
+/* the brass sill: the photographs sit in a track, and since P12 the
+   track carries a ROLLER that travels as the rail scrolls, plus the
+   01 / 11 readout beside it. That is the answer to "can a visitor tell
+   this scrolls?" on a site about things that slide.
+
+   ⚠️ IT IS POSITION, NOT ANIMATION. --rail-p is written by a passive
+   scroll listener in renderWork(); there is no transition on `left`, so
+   document.getAnimations() is still 0 under reduced motion and the
+   roller still tracks the rail. */
+.rail-track { display: flex; align-items: center; gap: 0.9rem; margin-top: 0.2rem; }
 .rail-sill {
+  position: relative; flex: 1 1 auto;
   height: 9px; border-radius: var(--r-xs);
   background: var(--brass-face);
   box-shadow: inset 0 1px 0 var(--brass-sheen),
               inset 0 -1px 0 var(--sill-base),
               0 10px 24px -8px var(--brass-shadow);
-  margin-top: 0.2rem;
+}
+.rail-sill::after {
+  content: ""; position: absolute; top: 50%; width: 13px; height: 13px;
+  margin-top: -6.5px; border-radius: 50%;
+  background: var(--ink); box-shadow: 0 0 0 2px var(--white-hi), var(--shadow-1);
+  left: calc(var(--rail-p, 0) * (100% - 13px));
+}
+/* a rail with nothing to scroll has nothing to say */
+.rail-sill.is-static::after { display: none; }
+/* the hairline variant, for the reviews rail on a white band: the same
+   roller travelling the same kind of track, without the brass — the
+   work rail is the one that gets the material. */
+.rail-sill--hair {
+  height: 3px; border-radius: var(--r-pill);
+  background: var(--line-strong); box-shadow: none;
+}
+.rail-sill--hair::after {
+  width: 11px; height: 11px; margin-top: -5.5px;
+  background: var(--bronze);
+  box-shadow: 0 0 0 3px var(--bone), 0 0 0 4px var(--bronze-tint);
+  left: calc(var(--rail-p, 0) * (100% - 11px));
 }
 
 /* --- The ONE real before/after. His own labels, burned in. --- */
@@ -1573,7 +1772,10 @@ p, li, figcaption, dd { text-wrap: pretty; }
 .warranty__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); align-items: center; }
 .warranty__figure { display: flex; align-items: baseline; color: var(--bronze); }
 .warranty__num { color: var(--bronze); }
-.warranty__heading { font-size: var(--fs-h2); color: var(--text-primary); max-width: 18ch; font-variation-settings: var(--vf-h2); line-height: var(--lh-head); letter-spacing: var(--track-head); }
+/* 20ch + balance, not 18ch. With "12-month" held together (headingNb)
+   an 18ch measure forced a 4-line heading with a 1-word last line;
+   balance across 20ch sets it as three even lines. */
+.warranty__heading { font-size: var(--fs-h2); color: var(--text-primary); max-width: 20ch; font-variation-settings: var(--vf-h2); line-height: var(--lh-head); letter-spacing: var(--track-head); text-wrap: balance; }
 .warranty__italic { margin-top: 1rem; color: var(--text-muted); font-size: clamp(1.15rem, 1.8vw, 1.45rem); }
 .warranty__points {
   display: flex; flex-direction: column; margin-top: var(--gap-inner);
@@ -1619,6 +1821,19 @@ p, li, figcaption, dd { text-wrap: pretty; }
 .story__body { display: flex; flex-direction: column; gap: 1.1rem; color: var(--on-ink-body); max-width: 62ch; }
 .story__italic { color: var(--on-ink); font-size: clamp(1.15rem, 1.8vw, 1.45rem); line-height: 1.45; margin-top: 0.35rem; }
 .story__sig { margin-top: 0.5rem; color: var(--on-ink-muted); font-family: var(--font-mono); font-size: var(--fs-small); letter-spacing: 0.08em; }
+/* ⚠️ ADVERSARIAL-H3, CLOSED AT EVERY WIDTH (P12). body[1] is HIS
+   archived paragraph and it says "We specialise…" on a page that says
+   "he" everywhere else. The P10 fix marked it as a quotation by putting
+   the attribution on the <details> summary — which is display:none
+   above 640, so desktop and tablet never saw it and the paragraph read
+   as an unmarked first-person-plural claim.
+   The attribution is a real line now, above the block, at every width,
+   and the block carries a brass rule so it reads as quoted before it is
+   read at all. Marking his words as his is not restyling them. */
+.story__quoted { border-left: 2px solid var(--bronze-bright); padding-left: 1.15rem; }
+.story__attr {
+  color: var(--bronze-bright); font-size: 0.625rem; margin-bottom: 0.5rem;
+}
 .story__more > summary { display: none; }
 .story__more > summary::-webkit-details-marker { display: none; }
 
@@ -1699,110 +1914,233 @@ p, li, figcaption, dd { text-wrap: pretty; }
 
 
 /* ============================================================
-   11 · AREAS — the service-area map + the spec sheet of regions
+   11 · AREAS — the service-area map + the region spec sheet
 
    CLIENT DIRECTION 2026-08-22: "add the map, like what we've done
    for Marcos, that map of the area he services."
+   CLIENT DIRECTION 2026-08-22 (P12): "his map needs to be nicer,
+   better."
 
    ⚠️ IT IS A VENDORED SVG, NOT A TILE MAP, AND THAT IS THE POINT.
-   Marcos's build uses Leaflet against CARTO's tile CDN. This site
-   makes ZERO off-origin requests and every asset is vendored, and
-   that invariant is worth more than a street grid nobody reads at
-   this size. The coastline is real: Natural Earth 10m, projected
-   and simplified at build time (content.js → areas.map.geo).
+   Marcos's build uses Leaflet against CARTO's tile CDN. This map
+   adds ZERO off-origin requests, and the coastline is real:
+   Natural Earth 10m, projected and simplified at build time
+   (design/map-build/build_map.py → content.js areas.map.geo).
 
-   The colour is the site's, not a map library's: --ink sea,
-   --bone-3 land, a --bronze service area, brass pins. Which is why
-   it looks like it belongs on this page and a tile map would not.
+   ⭐ WHAT P12 CHANGED, AND WHY IT IS NOT DECORATION.
+   The first build was four flat shapes: navy sea, cream land, a
+   0.20 bronze wash for the service area, brass pins. Over a cream
+   land the 0.20 wash was almost invisible, so the one thing the
+   section exists to say — HERE IS WHERE HE GOES — was the weakest
+   mark on the plate. The rebuild inverts the logic:
+
+     · the SERVED ground is the light, warm one (--map-served) and
+       everything he does not cover steps back (--map-land). The
+       envelope is now read as light, not as tint.
+     · it is lifted off the land by a real drop shadow, rimmed by
+       an 18-unit bronze stroke CLIPPED to itself (an inner rim
+       light, not a second outline) and edged at 3 units.
+     · the water gained two derived textures: a quarter-degree
+       GRATICULE and a three-stop coastal SHELF glow, both painted
+       under the land so they can only ever appear in the sea.
+     · a shoreline hairline in --ink, which is the fine coastline
+       treatment that stops the lit envelope bleeding into the bay.
+
+   ⚠️ THE PINS AND LABELS ARE HTML. SVG <text> scales with the
+   viewBox, which is why the old build carried a 30-unit label at
+   desktop, a 42-unit one at ≤640, and an invisible r=78 circle to
+   buy a 44px tap target. The HTML chip sets at ONE size at every
+   plate width, sits on a real --card plate so it can never be
+   ambiguous against land or water, is a 44x44 anchor by
+   construction, and takes an ordinary CSS focus ring.
    ============================================================ */
 .areas__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
 .areas__map { min-width: 0; }
 .areas__card {
   background: var(--card-face); border: 1px solid var(--line); border-radius: var(--r-lg);
   box-shadow: var(--rim-light), var(--rim-base), var(--shadow-1);
-  padding: 0.5rem 1.4rem; align-self: start;
+  padding: 0.4rem 1.4rem; align-self: start;
 }
 .area {
-  display: flex; align-items: center; justify-content: space-between; gap: 1rem;
-  min-height: 56px; padding-block: 0.7rem; border-bottom: 1px solid var(--line);
+  display: flex; align-items: center; gap: 0.95rem;
+  min-height: 56px; padding-block: 0.8rem; border-bottom: 1px solid var(--line);
 }
 .area:last-child { border-bottom: 0; }
-.area__body { display: flex; flex-direction: column; gap: 0.22rem; min-width: 0; }
+/* The row's marker IS the map's marker. One drawing, used in both
+   halves, which is what makes the cross-highlight read as one idea
+   instead of two components that happen to change colour together. */
+.area__mark {
+  flex: 0 0 auto; width: 10px; height: 10px; border-radius: 50%;
+  background: var(--bronze);
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--line-bronze);
+  transition: box-shadow var(--dur-fast) var(--ease-soft);
+}
+.area__body { display: flex; flex-direction: column; gap: 0.22rem; min-width: 0; flex: 1 1 auto; }
 .area__name { font-weight: var(--wt-mid); color: var(--text-primary); font-size: var(--fs-lead); }
 /* The suburbs are not new claims: every one is already printed in
    that region's own area-page intro. The row just shows it. */
 .area__subs { color: var(--text-muted); font-size: var(--fs-micro); line-height: 1.5; }
-.area__go { font-family: var(--font-mono); color: var(--bronze); font-size: var(--fs-micro); letter-spacing: var(--track-mono); text-transform: uppercase; flex: 0 0 auto; }
+/* ⚠️ margin-left: auto, not the row's `justify-content: space-between`.
+   The home page's row has a .area__body that flexes and pushes this
+   right; the GENERATED area-page row does not (it is mark + name + go),
+   so without this the "COVERED" sat against the region name. One rule,
+   both markups. */
+.area__go { font-family: var(--font-mono); color: var(--bronze); font-size: var(--fs-micro); letter-spacing: var(--track-mono); text-transform: uppercase; flex: 0 0 auto; margin-left: auto; }
 
 /* --- the map plate --- */
 .map { margin: 0; }
 .map__plate {
   position: relative; border-radius: var(--r-lg); overflow: hidden;
-  border: 1px solid var(--line-strong);
-  box-shadow: var(--rim-light), var(--shadow-2);
+  /* the container the scale bar measures against — see .map__bar */
+  container-type: inline-size;
+  /* ⚠️ THE EDGE IS AN INSET RIM, NOT A BORDER, AND THAT IS A
+     MEASUREMENT. --map-land is close enough to the band's own --bone-2
+     that at the plate's left edge the unserved hinterland ran straight
+     out into the page and the plate lost its corner, so it needs an
+     edge. It cannot be a `border`, because `container-type: inline-size`
+     measures the CONTENT box: a 1px border on each side made 1cqw 0.6%
+     short and the scale bar came out 15.78% long against the 15.87%
+     the projection says. Drawn inside, the container query and the
+     plate are the same 350px. */
+  box-shadow: var(--rim-light), var(--shadow-2), inset 0 0 0 1px var(--line-strong);
   background: var(--ink);
 }
+/* The FIELD is exactly the SVG's box, and that is load-bearing: the
+   HTML pins are positioned inside it as percentages of the generated
+   viewBox, so anything else in the plate (the key strip) has to live
+   OUTSIDE it or every pin moves. */
+.map__field { position: relative; }
 .map__svg { display: block; width: 100%; height: auto; }
 .map__sea  { fill: var(--ink); }
-.map__land { fill: var(--bone-3); }
-.map__area {
-  fill: var(--bronze); fill-opacity: 0.20;
-  stroke: var(--bronze); stroke-width: 2.5; stroke-linejoin: round;
+.map__land { fill: var(--map-land); }
+/* the water's two derived textures — both under the land by paint
+   order, so neither can ever appear on the ground */
+.map__grat  { fill: none; stroke: var(--on-ink); stroke-opacity: 0.085; stroke-width: 1; }
+.map__shelf { fill: none; stroke: var(--on-ink); stroke-linejoin: round; stroke-linecap: round; }
+/* the service envelope: LIGHT, not tint */
+.map__area      { fill: var(--map-served); }
+.map__area-glow { fill: none; stroke: var(--bronze); stroke-opacity: 0.16; stroke-width: 18; }
+.map__area-edge { fill: none; stroke: var(--bronze); stroke-width: 3; stroke-linejoin: round; }
+.map__shore     { fill: none; stroke: var(--ink); stroke-opacity: 0.22; stroke-width: 1.4; stroke-linejoin: round; }
+
+/* --- the pins: HTML over the field --- */
+.map__pins { position: absolute; inset: 0; }
+/* ⚠️ 44x44 BY CONSTRUCTION. The anchor's border box IS the tap target
+   at every plate width, so there is no invisible SVG circle to keep in
+   sync with the render size any more. --px/--py come straight from the
+   build script's xPct/yPct. */
+.map__pin {
+  position: absolute; left: var(--px); top: var(--py);
+  width: var(--tap-min); height: var(--tap-min);
+  margin: calc(var(--tap-min) / -2) 0 0 calc(var(--tap-min) / -2);
+  display: block; cursor: pointer;
 }
-/* ⚠️ TWO THINGS MAKE THIS A REAL TAP TARGET AND BOTH ARE REQUIRED.
-   `pointer-events: all` because a transparent fill is NOT painted, and
-   the default `visiblePainted` therefore ignores it entirely. And r=78
-   because the plate scales with the column: the narrowest render is
-   ~312 CSS px at 360, where 78 user units = 48.7 CSS px across. */
-.map__hit  { fill: transparent; pointer-events: all; }
-.map__halo { fill: var(--bronze); fill-opacity: 0; }
-.map__dot  { fill: var(--bronze); stroke: var(--bone); stroke-width: 3; }
-.map__label {
-  font-family: var(--font-body); font-size: 30px; font-weight: var(--wt-strong);
-  fill: var(--text-primary); letter-spacing: -0.01em;
-  paint-order: stroke; stroke: var(--bone-3); stroke-width: 6px; stroke-linejoin: round;
+.map__dot {
+  position: absolute; left: 50%; top: 50%; width: 12px; height: 12px;
+  margin: -6px 0 0 -6px; border-radius: 50%; background: var(--bronze);
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--line-bronze), var(--shadow-1);
+  transition: box-shadow var(--dur-fast) var(--ease-soft),
+              background var(--dur-fast) var(--ease-soft);
 }
-.map__pin { cursor: pointer; }
-.map__pin .map__dot, .map__pin .map__halo, .map__pin .map__label {
-  transition: fill-opacity var(--dur-fast) var(--ease-soft),
-              r var(--dur-fast) var(--ease-soft), fill var(--dur-fast) var(--ease-soft);
+/* The label is a PLATE, never bare type on geography: it is opaque, so
+   it reads the same over cream land, warm served ground and navy sea,
+   and it can never be mistaken for a place name printed on the map. */
+.map__tag {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  white-space: nowrap; padding: 0.24rem 0.5rem;
+  background: var(--card); border-radius: var(--r-sm);
+  box-shadow: inset 0 0 0 1px var(--line-strong), var(--shadow-1);
+  color: var(--text-primary); font-size: 0.75rem; font-weight: var(--wt-mid);
+  line-height: 1.25; letter-spacing: -0.005em;
+  transition: box-shadow var(--dur-fast) var(--ease-soft),
+              opacity var(--dur-fast) var(--ease-soft);
 }
-/* The lit state. Set by initAreaMap() on BOTH the pin and its row, so
-   hovering the list lights the map and hovering the map lights the
-   list. It is colour and radius only — reduced motion just drops the
-   transition. */
-.map__pin.is-lit .map__halo { fill-opacity: 0.30; r: 34; }
-.map__pin.is-lit .map__dot  { r: 11; }
-.map__pin.is-lit .map__label { fill: var(--bronze-deep); }
-.areas__grid.is-picking .map__pin:not(.is-lit) .map__dot { fill-opacity: 0.55; }
-a.area.is-lit { background: var(--bronze-soft); }
-a.area.is-lit .area__name { color: var(--bronze-deep); }
-/* ⚠️ A11Y-H1 (1.4.11 Non-text Contrast). The outline was removed and
-   replaced by a translucent halo alone. Over the bronze service-area
-   envelope that halo measured 1.66:1 against what it covers — the bar
-   is 3:1 — so on the Gold Coast and Tweed pins, which sit INSIDE the
-   shaded area, a sighted keyboard user could not tell which of the five
-   pins had focus. The halo stays as the decorative bloom; the indicator
-   is now a real ring on the dot itself. `--ink` on the bronze envelope
-   measures 9.5:1 (already proven by the map labels), and it reads on
-   the cream land and the navy sea too. Drawn as a `stroke`, not an
-   `outline`, because outline on SVG children is patchy. */
-.map__pin:focus-visible { outline: none; }
-.map__pin:focus-visible .map__halo { fill-opacity: 0.45; r: 38; }
-.map__pin:focus-visible .map__dot {
-  stroke: var(--ink); stroke-width: 6; r: 11; paint-order: stroke;
+.map__pin[data-side="e"] .map__tag { left: calc(50% + 13px); }
+.map__pin[data-side="w"] .map__tag { right: calc(50% + 13px); }
+/* 's' hangs the chip centred BELOW the dot. It exists for Ipswich,
+   which sits at 20.4% of the plate width: a west chip runs off the
+   left edge on a 350px plate and an east one collides with Logan.
+   The side is emitted by build_map.py beside the coordinates. */
+.map__pin[data-side="s"] .map__tag {
+  top: calc(50% + 13px); left: 50%; transform: translateX(-50%);
 }
 
-.map__legend {
-  position: absolute; left: 0.9rem; bottom: 0.9rem;
-  display: inline-flex; align-items: center; gap: 0.5rem;
-  padding: 0.42rem 0.7rem; border-radius: var(--r-sm);
-  background: var(--card); box-shadow: var(--shadow-1);
-  color: var(--text-body); font-size: var(--fs-micro);
+/* the lit state — set by initAreaMap() on BOTH the pin and its row */
+.map__pin.is-lit .map__dot {
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 4px var(--bronze), 0 0 0 11px var(--bronze-tint);
+}
+.map__pin.is-lit .map__tag { box-shadow: inset 0 0 0 1px var(--bronze), var(--shadow-2); }
+.areas__grid.is-picking .map__pin:not(.is-lit) .map__tag { opacity: 0.45; }
+.areas__grid.is-picking .map__pin:not(.is-lit) .map__dot { opacity: 0.55; }
+a.area.is-lit { background: var(--bronze-soft); }
+a.area.is-lit .area__name { color: var(--bronze-deep); }
+a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px var(--bronze), 0 0 0 9px var(--bronze-tint); }
+
+/* ⚠️ A11Y-H1 (1.4.11 Non-text Contrast). The original failure: focus
+   was a translucent bronze halo, which over the bronze envelope
+   measured 1.66:1 against what it covered, so on the Gold Coast and
+   Tweed pins a sighted keyboard user could not tell which pin had
+   focus. The rule that fixes it for good is to ring the COMPONENT, not
+   the ground: an --ink ring hugging the --card tag is 16.11:1 against
+   the tag itself, and the tag is opaque, so the indicator's contrast is
+   independent of whatever geography lies beyond it. Same trick on the
+   dot, whose --card collar the ink ring sits against. */
+.map__pin:focus-visible { outline: none; }
+.map__pin:focus-visible .map__tag {
+  box-shadow: inset 0 0 0 1px var(--line-strong), 0 0 0 3px var(--ink), var(--shadow-2);
+}
+.map__pin:focus-visible .map__dot {
+  box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--ink);
+}
+
+/* --- the scale bar. Its length is a PERCENTAGE emitted by
+       build_map.py out of the projection itself (20 km = 15.87% of the
+       126.0 km window), so it is correct at 1440 and at 360 without a
+       second number anywhere in the build.
+
+       ⚠️ IT IS MEASURED IN cqw, NOT %. A percentage would resolve
+       against .map__scale, which is shrink-to-fit, and the bar came out
+       as a 6px stub. 1cqw is 1% of .map__plate, which is the box the
+       SVG fills, and that is the only box the figure is true against.
+
+       ⚠️ IT LIVES IN THE KEY STRIP, NOT OVER THE WATER. It was drawn
+       bottom-right inside the field first, which is where a chart puts
+       it — and at 350px the 15.87% bar reached back across the point
+       where the coast turns in at Pottsville, so half of it sat on
+       cream land with --on-ink-body type beside it. In the strip it can
+       never cover geography at any plate width, which is the same
+       reason the legend was moved out of the field. --- */
+.map__scale {
+  margin: 0 0 0 auto;
+  display: flex; align-items: center; gap: 0.45rem; white-space: nowrap;
+  color: var(--on-ink-body); font-size: 0.625rem; line-height: 1;
+}
+.map__bar {
+  width: calc(var(--sw) * 1cqw); height: 5px; flex: 0 0 auto;
+  border: 1px solid var(--on-ink-body); border-top: 0;
+  opacity: 0.9;
+}
+
+/* --- the key strip: BELOW the field, not floating over it. The old
+       legend was an absolute chip at the plate's bottom left, which at
+       390 sat squarely on the western edge of the service area and
+       covered the thing it was labelling. --- */
+.map__strip {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.4rem;
+  padding: 0.7rem 0.95rem;
+  background: var(--ink-2); border-top: 1px solid var(--line-ink);
+}
+.map__legend, .map__key {
+  margin: 0; display: inline-flex; align-items: center; gap: 0.5rem;
+  color: var(--on-ink-body); font-size: 0.625rem;
 }
 .map__swatch {
-  width: 14px; height: 10px; border-radius: 2px; flex: 0 0 auto;
-  background: var(--bronze-soft); border: 1.5px solid var(--bronze);
+  width: 15px; height: 10px; border-radius: 2px; flex: 0 0 auto;
+  background: var(--map-served); border: 1.5px solid var(--bronze);
+}
+.map__keydot {
+  width: 8px; height: 8px; border-radius: 50%; flex: 0 0 auto;
+  background: var(--bronze-bright); box-shadow: 0 0 0 2px var(--bronze-glass);
 }
 .map__note { margin-top: 0.85rem; color: var(--text-muted); font-size: var(--fs-small); line-height: 1.6; }
 
@@ -1909,12 +2247,29 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
 .footer { background: var(--ink-2); color: var(--on-ink-body); padding-block: var(--gap-section-tight) 1.5rem; }
 .footer__in { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
 .footer__blurb { max-width: 40ch; color: var(--on-ink-body); font-size: var(--fs-small); line-height: var(--lh-body); }
+/* the two facts a footer is actually read for. Values come from
+   content.trust, so they cannot drift from the seam under the hero. */
+.footer__facts {
+  margin-top: 1.5rem; max-width: 40ch;
+  display: flex; flex-direction: column; gap: 0.55rem;
+  border-top: 1px solid var(--line-ink); padding-top: 1.1rem;
+}
+.footer__facts > div { display: flex; gap: 0.9rem; align-items: baseline; }
+.footer__facts dt {
+  flex: 0 0 5.5rem; color: var(--bronze-bright);
+  font-family: var(--font-mono); font-size: 0.625rem;
+  letter-spacing: var(--track-mono); text-transform: uppercase;
+}
+.footer__facts dd { margin: 0; color: var(--on-ink-body); font-size: var(--fs-small); }
 .footer__col h3 {
   font-family: var(--font-mono); font-size: var(--fs-micro); letter-spacing: var(--track-mono);
   text-transform: uppercase; color: var(--on-ink-muted); font-weight: var(--wt-mid); margin-bottom: 0.8rem;
 }
 .footer__col { min-width: 0; }
+/* min-width for the same reason as .nav__links a — "Logan" was a 40.2px
+   target in a column of links that has room to spare. */
 .footer__col a {
+  min-width: var(--tap-min);
   color: var(--on-ink-body); display: inline-flex; align-items: center;
   min-height: var(--tap-min); font-size: var(--fs-small);
   transition: color var(--dur-fast) var(--ease-soft);
@@ -2005,7 +2360,15 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
 
 /* --- ≤640: fold discipline + section re-sets (M0) --- */
 @media (max-width: 640px) {
-  .hero__in { padding-top: 1.5rem; padding-bottom: 2rem; }
+  /* ⚠️ `padding-bottom: 2rem` here used to DROP var(--hero-open), which
+     silently deleted the ≤1024 clear window on every phone (it only
+     ever existed at 641-1024) AND left a real AA failure behind: with
+     no window the credit line landed at 92.9-94.7% of the stage, which
+     is exactly where --scrim-hero-v opens to 0.31-0.37, against the
+     0.692 that --on-ink-body needs over a blown white pixel. Measured
+     at 390 and 360, P11. The window is back, and --scrim-hero-v now
+     holds its floor to 83% and opens BELOW the credit, not under it. */
+  .hero__in { padding-top: 1.5rem; padding-bottom: calc(2rem + var(--hero-open)); }
   /* 12ch → 13ch. Archivo sets ~9% wider than Fraunces did at the
      same size, and at 12ch the H1 broke to FOUR lines ending in a
      lone "replacing." 13ch (322px inside a 350px column) pulls it
@@ -2039,6 +2402,13 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
   /* problem: chips 48px, one per row so labels never truncate */
   .chips { grid-template-columns: 1fr 1fr; gap: 0.6rem; }
   .chip { min-height: 48px; padding: 0.6rem 0.9rem; font-size: var(--fs-small); }
+  /* The same orphan the desktop head had, at the other end of the
+     scale: at 15px/1.05rem the seven filters wrapped 4 / 2 / 1 in a
+     351px strip and "Pet doors" sat alone on a third row. 14px and
+     0.85rem of side padding measures 334.6px for the last three, which
+     is a 4 / 3 wrap with 16px to spare. The 44px target is untouched:
+     it is min-height, not padding. */
+  .filter-chip { padding: 0 0.85rem; font-size: 0.875rem; }
   .picker__cta .btn { width: 100%; min-height: 56px; }
 
   /* value: figure capped at 96px, band ≤ 2.4 screens */
@@ -2051,8 +2421,14 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
   .svc__figure img, .svc__drawn { width: 108px; height: 144px; }
 
   /* emergency: stack, full-width button */
+  /* ⚠️ `flex: 1 1 26rem` on .emergency__text is a WIDTH basis in the
+     row layout and a HEIGHT basis once the band turns into a column
+     here — which stretched the block to 416px tall and opened a 200px
+     hole between the heading and the body. */
   .emergency__in { flex-direction: column; align-items: stretch; }
+  .emergency__text { flex: 0 0 auto; }
   .emergency__in .btn { width: 100%; min-height: 56px; }
+  .emergency__cta { margin-top: 1.2rem; }
 
   /* rail: every item small; count readout on */
   .rail__item { width: var(--rail-w-s); height: var(--rail-h-s); }
@@ -2082,13 +2458,24 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
      footer's WHERE HE GOES column to save ~300px of phone scroll;
      it now carries the map, which is the answer to the one question
      ("do you even come to me?") that stops people ringing. It stacks
-     map-then-list and the SVG labels step up to 42 units so they
-     still set at ~14px on a 350px-wide plate. */
+     map-then-list.
+
+     ⚠️ P12: THE OLD SIZE HACKS ARE GONE, NOT LOST. The SVG label
+     had to jump 30 → 42 user units here because it scaled with the
+     viewBox and would otherwise have set at ~9px on a 350px plate.
+     The label is an HTML chip now: it sets at one size at every
+     plate width and this block has nothing to correct. What is left
+     is the two marks whose STROKE weight is in user units and does
+     genuinely go thin on a 350px plate. */
   .areas__grid { gap: 1.5rem; }
-  .map__label { font-size: 42px; stroke-width: 8px; }
-  .map__area { stroke-width: 3.5; }
-  .map__dot { r: 11; stroke-width: 4; }
-  .map__pin.is-lit .map__dot { r: 13; }
+  .map__area-edge { stroke-width: 4; }
+  .map__shore { stroke-width: 2; }
+  .map__tag { font-size: 0.6875rem; padding: 0.2rem 0.42rem; }
+  /* the strip has room for the legend and the scale on one line at
+     350px, but not for all three. The pins are self-evidently tappable;
+     the scale is the one a map cannot do without. */
+  .map__key { display: none; }
+  .map__strip { padding: 0.65rem 0.8rem; gap: 0.4rem 1rem; }
   .area__subs { font-size: 0.625rem; }
   .footer__intro { display: block; }
   .footer__col--areas { order: -1; }
@@ -2117,7 +2504,15 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
   .nav__in { gap: 0.6rem; }
 }
 
-@media (min-width: 641px) {
+/* ⚠️ 1025, NOT 641 (P12) — this was a real hole. `.nav__links` is
+   `display: none` below 1025 and the burger was hidden above 640, so
+   between 641 and 1024 the header carried a wordmark, a phone pill and
+   NO NAVIGATION AT ALL: an iPad user could not jump to Cost, Services,
+   Work or the FAQ without scrolling the whole page. The drawer already
+   existed and already worked; it just was not reachable. Now the two
+   breakpoints meet at the same number, so exactly one of the burger and
+   the link strip is on at every width. */
+@media (min-width: 1025px) {
   .nav__burger { display: none; }
 }
 
@@ -2146,7 +2541,11 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
   /* map left, the region spec sheet right. 0.86fr keeps the map plate
      around 460 CSS px at 1440, which is where the 30-unit SVG labels
      land at ~13px — the same size as the body small step. */
-  .areas__grid { grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); gap: clamp(2.5rem, 4vw, 3.5rem); align-items: start; }
+    /* `align-items: center`, not start: the map column (plate + note) is
+     ~580px and the region card ~395px, so start-aligning left a 185px
+     hole under the card. Centred, the card sits against the middle of
+     the plate and the two halves read as a pair. */
+  .areas__grid { grid-template-columns: minmax(0, 0.86fr) minmax(0, 1.14fr); gap: clamp(2.5rem, 4vw, 3.5rem); align-items: center; }
   .footer__in { grid-template-columns: minmax(0, 1.4fr) repeat(3, minmax(0, 1fr)); }
   .rail { --rail-pad: max(var(--pad-x), calc((100vw - var(--container)) / 2 + var(--pad-x))); }
   .rail-sill { margin-inline: auto; max-width: calc(var(--container) - 2 * var(--pad-x)); }
@@ -2159,29 +2558,160 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
   .svc__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
+/* ============================================================
+   ⭐ THE REEL PANEL, SHARED LAYERS — ≥761 (P12 extends P11 down)
+   ============================================================
+   P11 shipped the panel at ≥1025 and left 641-1024 as full-bleed
+   cover, and its own handoff called that "the weakest band": 58.9%
+   of the frame at 1024, 1.42x upscale, under a 0.775 wash that had
+   to hold because the type spanned the whole picture. P11's note
+   said the panel "needs a type column plus a picture column and does
+   not fit below 1025". That was true of the ≥1025 panel's WIDTH, not
+   of the idea. The geometry re-run at tablet widths:
+
+     width  full-bleed            panel (40vw, clamped 272-430)
+            field / upscale       plane   field(v x h)   upscale
+     1024   58.9% / 1.42x   ->    410px   100% x 85.1%   0.67x
+      900   65.0% / 1.25x   ->    360px   100% x 73.5%   0.68x
+      768   70.3% / 1.07x   ->    307px   100% x 61.8%   0.69x
+
+   The band swaps a WIDE, MAGNIFIED horizontal slice for the WHOLE
+   vertical field of a downscaled frame — the same trade the ≥1025
+   panel makes and the same one the ≤640 hero has always made (390 is
+   100% x 67.7%). Nothing in the band is upscaled any more.
+
+   ⚠️ IT STARTS AT 761, NOT 641, AND THAT IS MEASURED. 641-760 is the
+   ONE band the full-bleed hero was already good in: 70-76% of the
+   frame at ≤1.07x, because a 641px stage over a 956px column is
+   nearly the clip's own aspect. Below 761 the type column left by a
+   40vw plane is ~320px, which forces the three-cell spec strip to set
+   "$150 / +GST" over two lines. The weak band was the WIDE end, and
+   that is exactly the part this block takes.
+
+   The second half of the win is contrast: with the type off the
+   footage, 641-1024 stops needing --scrim-hero-v's 0.775 floor and
+   moves to the panel's 0.07-0.20 seating wash, which is why the
+   picture is suddenly visible at tablet at all.
+
+   ⚠️ --reel-w IS THE ONE NUMBER. The plane's width, the type
+   column's bound and the feather's opaque run all derive from it, so
+   the guarantee "every glyph of hero type sits on solid --ink" is
+   structural at both bands instead of being two coincidences.
+   ============================================================ */
+@media (min-width: 761px) {
+  .hero { --hero-open: 0px; }
+  .hero__media { left: auto; right: 0; width: var(--reel-w); }
+  .hero__media::before { background: var(--reel-feather); }
+  .hero__media::after  { background: var(--reel-wash); }
+  /* the nav shade, FULL STAGE WIDTH — see --reel-top. Painted on the
+     plane it draws a hard-cornered box into the top right. */
+  .hero__stage::after {
+    content: ""; position: absolute; z-index: 1; pointer-events: none;
+    inset: 0 0 auto 0; height: calc(var(--nav-h) * 4);
+    background: var(--reel-top);
+  }
+  /* 44%: the take drifts upward through the reel (the camera lifts at
+     14.7s), so the band is set just above centre to hold the handle,
+     the hand and the leading stile through the whole 16s rather than
+     to flatter one frame of it. */
+  .hero__video { object-position: 50% 44%; }
+}
+
+/* 641-1024 — the narrow panel, plus the type bound that makes it
+   safe. The type column is capped at (stage - plane - 1.25rem), so
+   its ink stops 20px clear of the plane's left edge and the feather
+   is still fully opaque --ink for 6% beyond that. */
+@media (min-width: 761px) and (max-width: 1024px) {
+  .hero { --reel-w: clamp(272px, 40vw, 430px); }
+  .hero__type { max-width: calc(100% - var(--reel-w) + var(--pad-x) - 1.25rem); }
+  /* Archivo at 6.1vw is a 1440-width figure. In a 40-58% column it
+     sets 3 lines that run into the plane, so the display step is
+     re-clamped for the column it actually has. Measured, not guessed:
+     the widest H1 line is 344px at 768 and 452px at 1024, against
+     type bounds of 400 and 526. */
+  .hero h1 { font-size: clamp(2.35rem, 4.6vw, 3.35rem); }
+  .hero .lede, .hero .note { max-width: 42ch; }
+  /* ⚠️ THE SPEC STRIP HAD TO STOP BEING A FLEX ROW HERE, and this is
+     the one real cost of the panel at tablet. Its three cells measure
+     488px of natural content, which is more than the type column has
+     below ~900, so as a shrink-to-fit row it wrapped "QUOTES / Free by
+     text" onto a second line and broke the strip into an L.
+
+     As a 3-column grid it divides whatever it is given, and the only
+     thing that then goes wrong is that "WORKMANSHIP WARRANTY" sets two
+     lines while "FROM" sets one, which drops that cell's value off the
+     shared baseline. So the key reserves two lines — the same reserved
+     -row trick .svc__name already uses, for the same reason. */
+  .spec { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: none; }
+  .spec__i { padding: 0.8rem 0.9rem 0.8rem 0; margin-right: 0.9rem; }
+  /* line-height set explicitly, because the reserved height has to be
+     the SAME number the second line actually occupies: --lh-body (1.62)
+     made a wrapped key 35.6px against a 28.6px reservation and dropped
+     "12 months" 7px below the other two values. */
+  .spec__k { line-height: 1.3; min-height: calc(2em * 1.3); letter-spacing: 0.12em; }
+  .spec__v { font-size: clamp(1rem, 1.55vw, 1.3rem); }
+  /* Wrapped shrink-to-fit buttons left a ragged two-line stack. As an
+     auto-fit grid they are either two equal columns (≥~880, where both
+     labels fit at 228px) or one full-width column, and never ragged.
+     228 is the ghost button's own content width, measured, not chosen. */
+  .hero .cta { display: grid; grid-template-columns: repeat(auto-fit, minmax(228px, 1fr)); }
+  .hero .cta .btn { width: 100%; }
+}
+
 @media (min-width: 1025px) {
   .nav__links { display: flex; }
-  /* The scrim goes HORIZONTAL: the hero type's measured glyph ink
-     never passes 49.7% of the viewport at any width ≥1025, the wash
-     holds 0.78 out to 56%, and the frame then opens to 0.16 across
-     the right 40% where the leaf glides and no type ever goes. */
-  .hero__media::after {
-    background:
-      var(--scrim-hero-vig),
-      var(--scrim-hero-h);
-  }
-  .hero__video { object-position: 50% 24%; }
-  /* the clear window is a phone idea: at ≥1025 the open right-hand
-     40% of the frame does that job and the stage stays as it was. */
-  .hero { --hero-open: 0px; }
-  /* the work head: filters sit as the right payload, baseline-locked */
-  /* The chips are inside .work__chips now (A11Y-M6 radiogroup), so the
-     justification has to reach the element that actually lays them out
-     or the whole strip flips to the left of the column. Both, so the
-     group is pushed right AND its own rows are right-aligned when they
-     wrap — which is exactly how it read before the wrapper existed. */
-  .work__filters, .work__chips { justify-content: flex-end; }
-  .ba__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr); align-items: center; }
+  /* ============================================================
+     ⭐ THE REEL PANEL — P11, 2026-08-22
+     Client: "not so zoomed in, and if it can play more of the video
+     I think it will look better, and in normal colour."
+
+     THE GEOMETRY WAS THE WHOLE PROBLEM. A 720x1280 portrait clip
+     cover-cropped across a 1440px stage has to scale 2.00x and can
+     only ever show 1085 / 2560 = 42% of the frame — a magnified
+     horizontal slice, which is precisely "zoomed in". At 1920 it was
+     2.67x and 32%. No amount of object-position fixes that; only
+     the plane's WIDTH does.
+
+     So the plane is right-anchored and ~54vw instead of full-bleed.
+     It still bleeds to the top, right and bottom edges of the stage
+     and it is still full stage height — it is a FIELD, not an
+     object: no border, no radius, no shadow, no inset, and its left
+     edge is dissolved into --ink by --reel-feather, so there is no
+     seam to read as a frame. Measured at DPR1:
+
+       width  plane   video scaled   field shown   upscale
+       1025   512px   610 x 1085     100%          0.85x  (crops 16% of the width)
+       1280   640px   640 x 1138      95.4%        0.89x
+       1440   720px   720 x 1280      84.8%        1.00x  <- exactly native
+       1920   790px   790 x 1404      77.3%        1.10x
+
+     42% -> 85% of the frame at 1440, and the upscale falls 2.00x ->
+     1.00x, which is the sharpness half of "you can see the video".
+     At 1920 it was 32% and 2.67x.
+
+     WHERE THE TYPE IS, re-measured with Range.getClientRects() on
+     glyph ink (and this time EXCLUDING .visually-hidden, whose Range
+     rects are unclipped and faked a 1074px ink edge): 509.7px @1025,
+     700.4 @1440, 940.4 @1920. The panel's left edge is at 513 / 720 /
+     1130 and --reel-feather is OPAQUE --ink for its first 6% (to
+     544 / 763 / 1177), so every glyph of hero type sits on solid
+     --ink at every desktop width. The hero's type pairs are therefore
+     the plain opaque-ink pairs, not scrim pairs, and the 0.78 floor
+     is gone — which is most of why the footage can now be seen.
+     ============================================================ */
+  /* the plane's width, and the ONLY thing this band changes about the
+     panel: everything else (feather, wash, nav shade, framing) is in
+     the shared ≥641 block above. */
+  .hero { --reel-w: clamp(460px, 50vw, 790px); }
+  /* ⚠️ THE FILTERS' RIGHT-ALIGNMENT IS GONE (P12). It existed because the chips
+     were the head's right-hand payload. They are a full-width strip
+     under the head now, so they read left to right like everything
+     else, and the "Pet doors" orphan they used to produce cannot
+     happen: 684px of chips in 1280px of strip. */
+  /* `align-items: center` floated the caption in the vertical middle of
+     a 405px pair of photographs, with ~120px of nothing above it. It
+     reads as a caption when it starts where the pictures start. */
+  .ba__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr); align-items: start; }
 }
 
 @media (min-width: 1025px) and (hover: hover) and (pointer: fine) {
@@ -2244,8 +2774,11 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
 .ap-crumbs ol { display: flex; flex-wrap: wrap; align-items: center; }
 .ap-crumbs li { display: inline-flex; align-items: center; color: var(--on-ink-muted); }
 .ap-crumbs li + li::before { content: "/"; margin: 0 0.6rem; color: var(--line-ink-strong); }
+/* min-width as well as min-height: "Home" measured 36x44. Justified
+   centre so the crumb strip is pixel-identical; only the target grew. */
 .ap-crumbs a, .ap-crumbs span {
-  display: inline-flex; align-items: center; min-height: var(--tap-min);
+  display: inline-flex; align-items: center; justify-content: center;
+  min-height: var(--tap-min); min-width: var(--tap-min);
   color: var(--on-ink-body);
 }
 .ap-crumbs li:last-child span { color: var(--bronze-bright); }
@@ -2329,6 +2862,8 @@ a.area.is-lit .area__name { color: var(--bronze-deep); }
   box-shadow: var(--rim-ink), var(--rim-base-ink), var(--shadow-ink);
 }
 .ap-areas .area { border-bottom-color: var(--line-ink); }
+.ap-areas .area__mark { background: var(--bronze-bright); box-shadow: 0 0 0 3px var(--ink-3), 0 0 0 4px var(--halo-bright); }
+.ap-areas .area--here .area__mark { background: var(--on-ink-muted); box-shadow: 0 0 0 3px var(--ink-3), 0 0 0 4px var(--line-ink-strong); }
 .ap-areas .area__name { color: var(--on-ink); }
 .ap-areas .area__go { color: var(--bronze-bright); }
 .ap-areas .area--here .area__go { color: var(--on-ink-muted); }

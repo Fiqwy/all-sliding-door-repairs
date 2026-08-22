@@ -132,7 +132,7 @@
       <div class="wrap hero__in">
 
       <div class="hero__type">
-        <p class="eyebrow mono-label" id="heroEyebrow">Gold Coast &middot; Brisbane &middot; Logan &middot; Tweed &middot; Ipswich</p>
+        <p class="eyebrow mono-label" id="heroEyebrow">Gold Coast&nbsp;&middot; Brisbane&nbsp;&middot; Logan&nbsp;&middot; Tweed&nbsp;&middot; Ipswich</p>
 
         <h1 id="heroHeadline">
           <span class="s1">Your sliding door doesn't need replacing.</span>
@@ -236,9 +236,16 @@
   <!-- 7 · WORK — bone · the rail in a brass track -->
   <section class="band band--white sec" id="work" aria-labelledby="workHead">
     <div class="wrap">
-      <header class="sec__head sec__head--split">
+      <!-- ⚠️ NOT `sec__head--split` any more (P12). As the right-hand
+           payload the seven filter chips had a 580px column and needed
+           684px, so at 1440 "Pet doors" wrapped alone to a second line,
+           right-aligned, which read as a mistake rather than as a
+           layout. As a full-width strip under the head they fit on one
+           line with room to spare at every width from 1120 up, and the
+           control sits directly above the rail it controls. -->
+      <header class="sec__head">
         <div id="workHead"></div>
-        <div class="sec__head-payload work__filters" id="workFilters"></div>
+        <div class="work__filters" id="workFilters"></div>
       </header>
     </div>
     <!-- ⚠️ A11Y-B2 (2.4.7 Focus Visible · 2.1.1 Keyboard · 4.1.2).
@@ -254,7 +261,17 @@
          is exactly why this one measured zero changed pixels. -->
     <div class="rail" id="workRail"
          tabindex="0" role="region" aria-label="His work, photo by photo"></div>
-    <div class="wrap"><div class="rail-sill" aria-hidden="true"></div></div>
+    <!-- THE SILL IS THE RAIL'S READOUT NOW (P12). It was a decorative
+         brass track; it carries a roller that travels as the rail
+         scrolls, plus the 01 / 11 counter that renderWork() had been
+         writing into a `display: none` node since P6. On a site about
+         things that slide, the answer to "can you tell this scrolls?"
+         is a roller on a track. It is position, not animation:
+         document.getAnimations() stays 0 under reduced motion. -->
+    <div class="wrap rail-track">
+      <div class="rail-sill" id="railSill" aria-hidden="true"></div>
+      <span class="work__count mono" id="railCount" aria-hidden="true"></span>
+    </div>
     <div class="wrap">
       <div class="ba" id="beforeAfterMount"></div>
     </div>
@@ -286,6 +303,15 @@
     </div>
     <div class="rail rail--voices" id="voicesMount"
          tabindex="0" role="region" aria-label="Customer recommendations from hipages"></div>
+    <!-- P12: the same readout the work rail got. Two horizontal
+         scrollers on one page, one of which announced itself and one of
+         which did not, was the inconsistency; a hairline version of the
+         brass track keeps the language and stays quiet on a white
+         band. -->
+    <div class="wrap rail-track">
+      <div class="rail-sill rail-sill--hair" id="voicesSill" aria-hidden="true"></div>
+      <span class="work__count mono" id="voicesCount" aria-hidden="true"></span>
+    </div>
     <div class="wrap"><p class="voices__foot" id="voicesFoot"></p></div>
   </section>
 

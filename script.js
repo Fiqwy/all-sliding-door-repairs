@@ -84,9 +84,17 @@ function run(name, fn) {
 
 // --- NAV + DRAWER ------------------------------------------------
 // The drawer is a second sales surface, not a table of contents:
-// four links (Cost · Services · Work · FAQ) + the two conversion
-// rows (ELEVATION §3.15).
-const DRAWER_LINKS = ['#value', '#services', '#work', '#faq'];
+// links + the two conversion rows (ELEVATION §3.15).
+//
+// ⚠️ P12 ADDED #problem AND #areas, and that is a consequence of the
+// breakpoint fix, not a change of mind. The drawer used to be a phone
+// component only, where four links and two big CTAs is the right
+// density. Now it is the ONLY navigation between 641 and 1024 as well
+// (the burger used to switch off at 641 and the link strip does not
+// switch on until 1025 — see styles.css), so it has to carry the same
+// six destinations the desktop strip does. A11Y-A3 flagged the two
+// missing ones as "the two most conversion-relevant sections".
+const DRAWER_LINKS = ['#problem', '#value', '#services', '#work', '#areas', '#faq'];
 function renderNav() {
   $('#navLinks').innerHTML = content.nav
     .map(l => `<a href="${esc(l.href)}">${esc(l.label)}</a>`).join('');
@@ -283,13 +291,58 @@ function renderTrust() {
   $('#trust').setAttribute('data-reveal', '');
 }
 
+// ⚠️ THE RAIL READOUT (P12). Two horizontal scrollers, one shared
+// wiring: a roller that travels the sill as the rail scrolls, and an
+// "01 / 10" counter beside it. One PASSIVE listener on the rail itself,
+// so it owns no scroll and needs no rAF, no observer and no reduced-
+// motion branch — a position is not an animation, and
+// document.getAnimations() stays 0.
+function wireRail(rail, sill, count) {
+  if (!rail) return () => {};
+  const update = () => {
+    const items = $$('.rail__item:not([hidden]), .voice:not([hidden])', rail);
+    if (sill) {
+      const max = rail.scrollWidth - rail.clientWidth;
+      sill.style.setProperty('--rail-p', max > 1 ? String(rail.scrollLeft / max) : '0');
+      sill.classList.toggle('is-static', max <= 1);
+    }
+    if (!count) return;
+    if (!items.length) { count.textContent = ''; return; }
+    // The LEADING item, not the middle one: at scrollLeft 0 a midpoint
+    // test reports "03 / 10" beside a roller parked at the left end.
+    const lead = items.findIndex(it => it.offsetLeft + it.offsetWidth > rail.scrollLeft + 4);
+    const i = lead < 0 ? items.length - 1 : lead;
+    count.textContent = `${String(i + 1).padStart(2, '0')} / ${String(items.length).padStart(2, '0')}`;
+  };
+  rail.addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update, { passive: true });
+  update();
+  return update;
+}
+
+// ⚠️ NO-BREAK PHRASES (P12). A heading is copy, so it is escaped, so
+// it cannot carry markup — which is why "Every job carries a 12-month
+// workmanship warranty." was shipping broken across two lines AT THE
+// HYPHEN ("12-" / "month") at 1440. This is the escape hatch, and it is
+// deliberately dumb: a section may list `headingNb: ["12-month"]` and
+// each listed phrase is wrapped in a nowrap span AFTER escaping, so no
+// raw HTML ever enters from content.js. It cannot introduce a claim; it
+// can only stop a line break.
+function nbHtml(escaped, phrases) {
+  if (!Array.isArray(phrases)) return escaped;
+  return phrases.reduce((html, ph) => {
+    const e = esc(String(ph));
+    return e ? html.split(e).join(`<span class="nb">${e}</span>`) : html;
+  }, escaped);
+}
+
 // Shared section header. `headingEm` is the Direction-2 roman →
 // italic display device: heading + headingEm render as ONE sentence.
 function headHtml(o, h2id) {
-  const em = o.headingEm ? ` <span class="em">${esc(o.headingEm)}</span>` : '';
+  const em = o.headingEm ? ` <span class="em">${nbHtml(esc(o.headingEm), o.headingNb)}</span>` : '';
   const id = h2id ? ` id="${esc(h2id)}"` : '';
   return (o.eyebrow ? `<span class="eyebrow mono-label">${esc(o.eyebrow)}</span>` : '') +
-         `<h2${id}>${esc(o.heading)}${em}</h2>` +
+         `<h2${id}>${nbHtml(esc(o.heading), o.headingNb)}${em}</h2>` +
          `<div class="track-rule" aria-hidden="true"></div>` +
          (o.lede ? `<p class="lede">${esc(o.lede)}</p>` : '');
 }
@@ -516,17 +569,36 @@ function renderServices() {
 }
 
 // --- 6 · EMERGENCY — a REAL h2 (fixes D5) ------------------------
+// P12: the band was type plus a right-aligned button with a 45% dead
+// column between them, and it was flagged twice as "spec-correct but
+// plain". It is now copy + CTA in one column and a framed ink print in
+// the other. The CALL moved UNDER the argument it belongs to instead of
+// floating at the far right of the band, which is also the better
+// funnel position. The print is ≥761 only: at ≤760 the band stacks and
+// a 236px photo would buy 300px of phone scroll for a photograph that
+// already appears in the work rail two sections down.
 function renderEmergency() {
   const e = content.emergency;
+  const print = e.photo && e.photo.src
+    ? `<figure class="frame frame--ink emergency__frame">
+         <div class="frame__inner">${imgHtml(e.photo, 'frame__img')}</div>
+         <figcaption class="frame__cap"><span class="mono-label">${esc(e.photoCaption)}</span></figcaption>
+       </figure>`
+    : '';
   $('#emergencyMount').innerHTML =
-    `<div class="emergency__copy">
-       <span class="emergency__label">${esc(e.label)}</span>
-       <h2 class="emergency__heading" id="emergencyHead">${esc(e.heading)}</h2>
-       <p class="emergency__body">${esc(e.body)}</p>
+    `<div class="emergency__text">
+       <div class="emergency__copy">
+         <span class="emergency__label">${esc(e.label)}</span>
+         <h2 class="emergency__heading" id="emergencyHead">${esc(e.heading)}</h2>
+       </div>
+       <div class="emergency__act">
+         <p class="emergency__body">${esc(e.body)}</p>
+         <a class="btn btn--primary emergency__cta" href="${esc(content.booking.phoneHref)}">
+           ${esc(e.ctaLabel)} <span class="num">${esc(content.booking.phone)}</span>
+         </a>
+       </div>
      </div>
-     <a class="btn btn--primary" href="${esc(content.booking.phoneHref)}">
-       ${esc(e.ctaLabel)} <span class="num">${esc(content.booking.phone)}</span>
-     </a>`;
+     ${print}`;
 }
 
 // --- 7 · WORK ----------------------------------------------------
@@ -553,8 +625,9 @@ function renderWork() {
       w.categories.map((c, i) =>
         `<button class="filter-chip" type="button" role="radio" data-filter="${esc(c.id)}" aria-checked="${i === 0}">${esc(c.label)}</button>`
       ).join('')}</span>` +
-    `<span class="work__count mono" id="railCount" aria-hidden="true"></span>` +
     `<span class="visually-hidden" id="railStatus" role="status" aria-live="polite" aria-atomic="true"></span>`;
+    // #railCount lives in index.html, on the sill, since P12 — it is the
+    // rail's readout, not a filter.
 
   const reel = w.reel;
   const reelHtml = reel ? `
@@ -586,18 +659,7 @@ function renderWork() {
   const status = $('#railStatus');
   const total = $$('.rail__item', rail).length;
 
-  function updateCount() {
-    if (!count) return;
-    const items = $$('.rail__item:not([hidden])', rail);
-    if (!items.length) { count.textContent = ''; return; }
-    let active = 0;
-    const x = rail.scrollLeft + rail.clientWidth / 2;
-    items.forEach((it, i) => { if (it.offsetLeft <= x) active = i; });
-    const pad = n => String(n + 1).padStart(2, '0');
-    count.textContent = `${pad(active)} / ${String(items.length).padStart(2, '0')}`;
-  }
-  rail.addEventListener('scroll', updateCount, { passive: true });
-  updateCount();
+  const updateCount = wireRail(rail, $('#railSill'), count);
 
   $$('#workFilters .filter-chip').forEach(btn => {
     btn.addEventListener('click', () => {
@@ -684,7 +746,7 @@ function renderWarranty() {
        <span class="warranty__num figure-mega">${esc(w.figure)}<span class="suf">${esc(w.figureUnit)}</span></span>
      </div>
      <div>
-       <h2 class="warranty__heading" id="warrantyHead">${esc(w.heading)}</h2>
+       <h2 class="warranty__heading" id="warrantyHead">${nbHtml(esc(w.heading), w.headingNb)}</h2>
        <p class="warranty__italic em-serif">${esc(w.italicLine)}</p>
        <div class="warranty__points">
          ${w.points.map(p => `<div class="warranty__point"><span class="warranty__k">${esc(p.label)}</span><span class="warranty__v">${esc(p.value)}</span></div>`).join('')}
@@ -721,10 +783,13 @@ function renderStory() {
      <div class="story__body">
        <p>${esc(p1)}</p>
        ${rest.length ? `
-       <details class="story__more" data-macc open>
-         <summary>${esc(s.moreLabel)}${CHEV}</summary>
-         <div>${rest.map(p => `<p>${esc(p)}</p>`).join('')}</div>
-       </details>` : ''}
+       <div class="story__quoted">
+         <p class="story__attr mono-label">${esc(s.quoteAttr)}</p>
+         <details class="story__more" data-macc open>
+           <summary>${esc(s.moreLabel)}${CHEV}</summary>
+           <div>${rest.map(p => `<p>${esc(p)}</p>`).join('')}</div>
+         </details>
+       </div>` : ''}
        <p class="story__italic em-serif">${esc(s.italicLine)}</p>
        <p class="story__sig">${esc(s.signature)}</p>
      </div>`;
@@ -787,6 +852,7 @@ function renderVoices() {
      </figure>`).join('');
   rail.classList.add('reveal');
   rail.setAttribute('data-reveal', '');
+  wireRail(rail, $('#voicesSill'), $('#voicesCount'));   // P12: same readout as the work rail
 
   $('#voicesFoot').innerHTML =
     `<span>${esc(v.foot)}</span> ` +
@@ -811,54 +877,104 @@ const GO_CHEV = `<svg class="area__chev" viewBox="0 0 12 12" fill="none" stroke=
 // The map is a VENDORED SVG. Every path in content.areas.map.geo was
 // generated from the Natural Earth 10m coastline by
 // design/map-build/build_map.py; nothing is fetched, so the page's
-// zero-off-origin-requests invariant survives a map. There is no tile
+// off-origin request count is unchanged by a map. There is no tile
 // server, no Leaflet, and no second scroll owner.
+//
+// ⭐ P12 — THE LAYER STACK, and why it is in this order. The old map was
+// four flat shapes (sea, land, envelope, pins) and read as a beige blob
+// on navy. It is now nine layers, every one of them derived from the
+// same projection, painted back to front:
+//
+//   1  sea            --ink
+//   2  graticule      real quarter-degree lat/lon hairlines, 0.06 cream.
+//                     Painted UNDER the land, so it only shows in water.
+//   3  shelf          three strokes of the OPEN coastline at 34/18/7 and
+//                     0.035/0.045/0.07 cream. Under the land, so only the
+//                     seaward half survives: the coast glow of a chart.
+//   4  land           the unserved ground, --map-land
+//   5  envelope lift  a real feDropShadow, so the service area sits ON
+//                     the land instead of being painted into it
+//   6  envelope       --map-served, a WARMER, LIGHTER ground. The area he
+//                     covers is the lit part of the picture; everything
+//                     else steps back. This is what replaced a 0.20
+//                     bronze tint that was nearly invisible over cream.
+//   7  envelope glow  an 18-unit bronze stroke CLIPPED to the envelope,
+//                     i.e. an inner rim light, not an outline
+//   8  envelope edge  the 3-unit brass edge itself
+//   9  shore          a 1.4-unit --ink hairline on the coastline, which
+//                     is what stops the lit envelope from bleeding into
+//                     the bay at small sizes
+//
+// ⚠️ THE PINS AND LABELS ARE HTML, NOT SVG, AND THAT IS THE POINT.
+// SVG <text> in a viewBox scales with the plate, which is why the old
+// build needed a 30-unit label at desktop and a 42-unit one at ≤640 and
+// still could not give a pin a 44px tap target without an r=78 invisible
+// circle. As HTML the label is a real chip from the type system on a
+// real --card plate, it sets at one size at every plate width, the
+// anchor IS 44x44, and focus is a normal CSS ring. The geometry still
+// comes from the same generated data: each pin is placed at the
+// xPct/yPct the build script emits.
 //
 // Interaction is one idea used twice: a region is either hovered or
 // focused, in the list OR on the map, and both halves light up. It is
-// a colour change and a radius change, so reduced motion only has to
-// turn the transition off, not the feature.
+// colour, shadow and opacity only, so reduced motion only has to turn
+// the transition off, not the feature.
 function mapSvg(a) {
   const g = a.map.geo;
   const byslug = Object.fromEntries(a.regions.map(r => [r.slug, r]));
-  const pin = g.regions.map(m => {
+  const pins = g.regions.map(m => {
     const r = byslug[m.slug];
     if (!r) return '';
-    const east = m.side === 'e';
     return `<a class="map__pin" href="${esc(AREA_HREF(m.slug))}" data-region="${esc(m.slug)}"
+               data-side="${esc(m.side)}" style="--px:${m.xPct}%;--py:${m.yPct}%"
                aria-label="Sliding door repairs in ${esc(r.name)}">
-              <circle class="map__hit" cx="${m.x}" cy="${m.y}" r="78"></circle>
-              <circle class="map__halo" cx="${m.x}" cy="${m.y}" r="20"></circle>
-              <circle class="map__dot" cx="${m.x}" cy="${m.y}" r="9"></circle>
-              <text class="map__label" x="${east ? m.x + 22 : m.x - 22}" y="${m.y + 11}"
-                    text-anchor="${east ? 'start' : 'end'}">${esc(r.name)}</text>
+              <span class="map__dot" aria-hidden="true"></span>
+              <span class="map__tag" aria-hidden="true">${esc(r.name)}</span>
             </a>`;
   }).join('');
 
-  // ⚠️ A11Y-M1 (4.1.2 · 1.3.1). The <svg> carried `role="img"`, which
-  // makes its ENTIRE SUBTREE presentational by ARIA rule — and this
-  // subtree contains five focusable links. Chromium happens to expose
-  // them anyway; Firefox and VoiceOver are entitled to prune them, which
-  // would produce five tab stops that announce nothing. The role is
-  // gone. The description it carried is not lost: it is the
-  // <figcaption>'s first sentence now, which is real text every visitor
-  // gets, and the five links keep their own aria-labels.
-  // ⚠️ NOT aria-hidden on the <svg> either: it OWNS five focusable
-  // links, and focusable content inside aria-hidden is its own failure.
-  // The svg simply carries no role and no name; its decorative geometry
-  // is aria-hidden shape by shape, the five <a> pins keep their own
-  // labels, and the description lives in the caption.
-  const dead = ' aria-hidden="true"';
+  // ⚠️ A11Y-M1 (4.1.2 · 1.3.1) — the history, because it constrains this.
+  // The <svg> once carried `role="img"`, which makes its ENTIRE SUBTREE
+  // presentational by ARIA rule, and that subtree then held five
+  // focusable links. The fix at the time was to strip the role. Now that
+  // the links are HTML siblings the <svg> owns no focusable content at
+  // all, so it can simply be aria-hidden in one place. The description
+  // is unchanged: it is the <figcaption>'s first sentence, real text
+  // every visitor gets, and each pin keeps its own aria-label.
+  const grat = g.graticule.map(d => `<path d="${esc(d)}"></path>`).join('');
+  const shelf = [[34, '.035'], [18, '.045'], [7, '.07']]
+    .map(([w, o]) => `<path d="${esc(g.coast)}" stroke-width="${w}" stroke-opacity="${o}"></path>`).join('');
+  const islands = g.islands.map(d => `<path class="map__land" d="${esc(d)}"></path>`).join('');
   return `<figure class="map">
     <div class="map__plate">
-      <svg class="map__svg" viewBox="${esc(g.viewBox)}" focusable="false">
-        <rect class="map__sea" x="0" y="0" width="100%" height="100%"${dead}></rect>
-        <path class="map__land" d="${esc(g.land)}"${dead}></path>
-        ${g.islands.map(d => `<path class="map__land" d="${esc(d)}"${dead}></path>`).join('')}
-        <path class="map__area" d="${esc(g.envelope)}"${dead}></path>
-        ${pin}
-      </svg>
-      <p class="map__legend mono-label"><span class="map__swatch" aria-hidden="true"></span>${esc(a.map.legend)}</p>
+      <div class="map__field">
+        <svg class="map__svg" viewBox="${esc(g.viewBox)}" focusable="false" aria-hidden="true">
+          <defs>
+            <clipPath id="mapEnvClip"><path d="${esc(g.envelope)}"></path></clipPath>
+            <filter id="mapEnvLift" x="-15%" y="-15%" width="130%" height="130%">
+              <feDropShadow dx="0" dy="7" stdDeviation="10"
+                            flood-color="rgb(15,33,50)" flood-opacity="0.30"></feDropShadow>
+            </filter>
+          </defs>
+          <rect class="map__sea" x="0" y="0" width="100%" height="100%"></rect>
+          <g class="map__grat">${grat}</g>
+          <g class="map__shelf">${shelf}</g>
+          <path class="map__land" d="${esc(g.land)}"></path>
+          ${islands}
+          <g filter="url(#mapEnvLift)"><path class="map__area" d="${esc(g.envelope)}"></path></g>
+          <g clip-path="url(#mapEnvClip)"><path class="map__area-glow" d="${esc(g.envelope)}"></path></g>
+          <path class="map__area-edge" d="${esc(g.envelope)}"></path>
+          <path class="map__shore" d="${esc(g.coast)}"></path>
+        </svg>
+        <div class="map__pins">${pins}</div>
+      </div>
+      <div class="map__strip">
+        <p class="map__legend mono-label"><span class="map__swatch" aria-hidden="true"></span>${esc(a.map.legend)}</p>
+        <p class="map__key mono-label"><span class="map__keydot" aria-hidden="true"></span>${esc(a.map.keyLabel)}</p>
+        <p class="map__scale mono-label" aria-hidden="true">
+          <span class="map__bar" style="--sw:${g.scale.pct}"></span>${esc(g.scale.label)}
+        </p>
+      </div>
     </div>
     <figcaption class="map__note"><span class="visually-hidden">${esc(a.map.alt)}</span>${esc(a.map.note)}</figcaption>
   </figure>`;
@@ -877,8 +993,13 @@ function renderAreas() {
         // which is unusable in a links list. The link is named for where
         // it goes; the suburb strip is visible supporting text and is
         // hidden from the name. Nothing on screen changed.
+        // P12: the row carries the SAME marker as the map pin, so the
+        // list reads as the map's key rather than as a second, unrelated
+        // component. It is the one piece of drawing shared by both
+        // halves, which is what makes the cross-highlight legible.
         `<a class="area" href="${esc(AREA_HREF(r.slug))}" data-region="${esc(r.slug)}"
             aria-label="Sliding door repairs in ${esc(r.name)}">
+           <span class="area__mark" aria-hidden="true"></span>
            <span class="area__body" aria-hidden="true">
              <span class="area__name">${esc(r.name)}</span>
              <span class="area__subs">${r.suburbs.map(esc).join(' &middot; ')}</span>
@@ -1085,6 +1206,16 @@ function renderFooter() {
   $('#footerMount').innerHTML =
     `<div class="footer__col footer__col--blurb">
        <p class="footer__blurb">${esc(f.blurb)}</p>
+       <!-- P12: the blurb column was one paragraph and then ~330px of
+            nothing at 1440. The hours and the warranty are the two facts
+            people go to a footer to find, and both are already on the
+            page in the trust seam — this repeats them, it does not
+            invent them. content.trust[3] and [1], read by index so a
+            copy change in one place still moves both. -->
+       <dl class="footer__facts">
+         <div><dt>${esc(f.factLabels.hours)}</dt><dd>${esc(content.trust[3])}</dd></div>
+         <div><dt>${esc(f.factLabels.warranty)}</dt><dd>${esc(content.trust[1])}</dd></div>
+       </dl>
      </div>
      <div class="footer__col">
        <h3>${esc(f.columns.repairs)}</h3>

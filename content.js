@@ -235,7 +235,12 @@ const base = {
   // headline2 / lede / spec / the photo alt. If you edit them here you
   // MUST edit them there too.
   hero: {
-    eyebrow: "Gold Coast · Brisbane · Logan · Tweed · Ipswich",   // Redlands deliberately omitted, CONFIRM 4. Five regions nobody disputes.
+    // ⚠️ THE SPACES BEFORE THE SEPARATORS ARE NON-BREAKING (U+00A0), and
+    // that is the only difference from the plain string. At 641-768 this
+    // list wraps, and with ordinary spaces the second line began with a
+    // dangling "· IPSWICH". Bound to the word before it, the break can
+    // only fall AFTER a separator, so every line starts with a place.
+    eyebrow: "Gold Coast\u00a0· Brisbane\u00a0· Logan\u00a0· Tweed\u00a0· Ipswich",   // Redlands deliberately omitted, CONFIRM 4. Five regions nobody disputes.
     headline1: "Your sliding door doesn't need replacing.",
     headline2: "It needs rollers, a track, and someone who does this every day.", // the ONE hero italic (DESIGN.md §7)
     lede: "Rollers, tracks, locks, side frames, security screens and mesh, all repaired in your own doorway. <b>Send Lachlan a photo of the door</b> and he'll tell you what it needs.",
@@ -299,18 +304,21 @@ const base = {
     // that photograph (IMG_2757) already runs as the "Glass Sliding
     // Doors" services card and as a #work rail item.
     reel: {
-      // ⚠️ 2026-08-22: THIS IS NOW THE WHOLE TAKE, NOT A 3.5s PING-PONG.
-      // Client: "make sure you can see the video properly and everything
-      // looks amazing, as well as the whole video if it's best."
-      // 0.00 -> 14.60s of the 16.51s original (the tail is dropped: at
-      // 14.7 the camera lifts and a ceiling downlight enters the top of
-      // the frame, which lands inside the desktop cover band), regraded
-      // in ffmpeg, and looped by crossfading the last 0.40s into the
-      // first 0.40s so the frame at the end IS the frame at the start.
-      // 14.25s out. Full recipe and the A/B in HANDOFF P9.
-      mp4: "assets/video/hero-reel-720.mp4",       // 1.57MB, h264 crf34, silent, 14.25s
-      webm: "assets/video/hero-reel-720.webm",     // 1.14MB, VP9 crf56, silent — the file Chromium picks
-      poster: "assets/video/hero-reel-poster-480.webp", // frame 0 of the GRADED clip at 480x853 q58, 24KB — the LCP element
+      // ⚠️ 2026-08-22 (P11): THE WHOLE 16.51s TAKE, AND NO GRADE AT ALL.
+      // Client: "not so zoomed in, and if it can play more of the video
+      // I think it will look better, and in normal colour."
+      // The P9 cut at 14.60s existed because a ceiling downlight entered
+      // the top of the old TIGHT desktop cover band; the hero is a panel
+      // now (85% of the frame at 1440, not 42%) and that pull-back is the
+      // clearest view of the finished door in the reel, so it ships.
+      // Processing is stabilisation + denoise + a light unsharp — no
+      // curves, no saturation, no clamp, and CSS `filter: none`. Looped
+      // by crossfading the last 0.40s into the first 0.40s (no natural
+      // loop point exists; best MAE in the tail is 72.8/255).
+      // Full recipe: design/video-build/build_hero_reel.sh · HANDOFF P11.
+      mp4: "assets/video/hero-reel-720.mp4",       // 2.26MB, h264 crf32, silent, 16.17s
+      webm: "assets/video/hero-reel-720.webm",     // 2.03MB, VP9 crf52, silent — the file Chromium picks
+      poster: "assets/video/hero-reel-poster-480.webp", // frame 0 of the shipped clip at 480x853 q58, 26KB — the LCP element
       // ADVERSARIAL-M3: `posterJpg` was declared here and read by
       // nothing, so a 34KB jpg shipped to hold a key open. Both are
       // gone. Every browser that can play the reel can decode webp.
@@ -752,7 +760,34 @@ const base = {
     // second sentence is his own archived wording, moved to third
     // person and NOT rounded up into an availability promise.
     body: "A door that won't lock is a house that isn't locked. He works Monday to Friday, 8am to 4pm, and if it's urgent and it has to be done out of hours, he can help.",   // CONFIRM 12: still silent on an out-of-hours premium. If he charges one, this needs a line.
-    ctaLabel: "Call"
+    ctaLabel: "Call",
+
+    // ⭐ P12 — THE FRAMED PRINT. Deferred twice (HANDOFF P9, P10) and
+    // taken here. IMG_2779 is the sharpest photograph in the whole
+    // inventory and it was a 220px rail thumbnail; this band was
+    // type-only with a 45% dead column down its middle. The pairing is
+    // the strongest available on the page: "A door that won't lock is a
+    // house that isn't locked" beside the lock.
+    //
+    // ⚠️ THE HONESTY LINE, BECAUSE THIS BAND IS BADGED "AFTER HOURS".
+    // The photo is NOT presented as an out-of-hours callout and the
+    // caption does not say it is. It is the same lock repair, with the
+    // same wording, as work rail 02 — a lock he replaced, which is what
+    // the band is about and what #services already claims. P9's note
+    // "ZERO photos of emergency work exist, type-only by design" still
+    // holds: there is still no photo of emergency work on this site,
+    // and nothing here says otherwise.
+    //
+    // ⚠️ 900px native, so DPR2 tops out at a 450 CSS px box. The frame
+    // renders at 268 and capPx says so; 1.68x of headroom.
+    photo: {
+      src: "assets/hero/security-door-lock-450.webp",
+      srcset: "assets/hero/security-door-lock-450.webp 450w, assets/hero/security-door-lock-900.webp 900w",
+      sizes: "268px",
+      width: 900, height: 1199, capPx: 268,
+      alt: "A new black lever handle and key barrel in a black security screen door with diamond grille mesh."
+    },
+    photoCaption: "New lock \u00b7 diamond grille"    // the SAME caption this photograph carries in the work rail
   },
 
   // ==========================================================
@@ -941,6 +976,11 @@ const base = {
     figure: "12",
     figureUnit: "months",
     heading: "Every job carries a 12-month workmanship warranty.",   // ✓ his words, verbatim phrase
+    // ⚠️ NOT a copy change. At 1440 this heading broke at the HYPHEN,
+    // setting "12-" on one line and "month" on the next. `headingNb`
+    // wraps the listed phrase in a nowrap span at render time; the
+    // string is untouched.
+    headingNb: ["12-month"],
     // A DELIBERATE DOWNGRADE. The seed was "If it does not stay fixed,
     // he comes back." — a better sentence that asserts what the
     // warranty actually covers. A workmanship warranty covers labour;
@@ -1051,7 +1091,17 @@ const base = {
     // matches what actually opens AND marks the plural "We specialise…"
     // as HIS quoted words, so the one-tradesman voice elsewhere on the
     // page no longer argues with it.
-    moreLabel: "In his own words, from his About page",
+    // ⚠️ P12 SPLIT THIS IN TWO, AND THAT CLOSES ADVERSARIAL-H3 PROPERLY.
+    // The H3 fix put the attribution on the <details> SUMMARY — and the
+    // summary is `display: none` above 640px. So on every desktop and
+    // tablet the "We specialise…" paragraph still ran as unmarked site
+    // prose, in the first person plural, on a page that says "he"
+    // everywhere else. The mark was only ever visible on a phone.
+    // `quoteAttr` is now a real line of type above the quoted block at
+    // EVERY width, and `moreLabel` goes back to being what a mobile
+    // accordion trigger should say.
+    quoteAttr: "In his own words, from his About page",
+    moreLabel: "Read the rest",
     // P4b-HONESTY: body[0] is his ARCHIVED About paragraph
     // (assets/_source/social/wayback-old-site/copy/about-us.txt), cut
     // but never reworded — see the H1 note below. It is his own writing,
@@ -1352,6 +1402,7 @@ const base = {
   areas: {
     eyebrow: "Where he goes",
     heading: "South-east Queensland and the Tweed.",
+    headingNb: ["South-east"],   // same hyphen rule as #warranty — see there
     // Kills a real and rarely-answered objection: people do not know
     // whether a door repairer is a mobile trade or a workshop, and the
     // ones who assume workshop never call. His words underneath: "No
@@ -1384,56 +1435,89 @@ const base = {
       // The one-line reading of the picture, for anyone who cannot see it.
       alt: "Map of south-east Queensland and the northern rivers, with the area Lachlan covers shaded from Brisbane's north side down to the Tweed and west to Ipswich.",
       legend: "Where he works",
+      // The second key entry, added with the plate strip in P12. The five
+      // markers on the map and the five markers down the list are the same
+      // drawing, so the key names what tapping one does.
+      keyLabel: "Region pages",
       note: "The shaded area is the run he does. If you are near the edge of it, send him a photo anyway and he will tell you straight away.",
       geo: {
+      // map:start — GENERATED by `python3 design/map-build/build_map.py`.
       viewBox: "0 0 1000 1095",
+      // projection window, echoed from build_map.py so the numbers behind the
+      // picture are inspectable: 152.5..153.78E, -28.42..-27.18 lat, 126.0 km across.
+      bounds: {"lon": [152.5, 153.78], "lat": [-28.42, -27.18], "spanKm": 126.0},
       land:
-        "M551.7 -118.3 L554.9 -90.8 L540.4 -71.3 L511.4 -84.6 L481.7 -79.5 L454.8 -61.4 L433.9 " +
-        "-35.1 L428.0 -24.5 L420.6 -5.8 L420.5 11.9 L436.2 19.7 L453.1 20.7 L461.8 19.9 L468.3 " +
-        "16.7 L478.8 9.7 L482.4 15.0 L479.4 55.1 L471.8 65.5 L460.3 72.1 L446.9 83.6 L438.6 " +
-        "101.2 L441.4 115.2 L450.3 126.3 L460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 " +
-        "L529.3 178.8 L534.4 219.4 L540.4 237.9 L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 " +
-        "258.6 L594.0 268.5 L600.3 279.3 L610.4 303.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 " +
-        "L633.4 406.5 L637.1 419.4 L644.1 430.0 L660.5 447.5 L669.0 479.6 L673.4 487.6 L681.1 " +
-        "493.9 L703.1 517.7 L710.8 531.6 L709.3 543.2 L704.6 555.7 L712.1 561.4 L724.3 557.0 " +
-        "L733.6 540.0 L738.9 540.0 L738.7 556.8 L728.2 600.8 L726.7 616.9 L728.2 667.1 L717.4 " +
-        "643.7 L710.2 651.7 L704.8 666.8 L703.1 683.8 L706.3 697.8 L713.5 703.2 L720.4 696.8 " +
-        "L726.7 686.4 L733.6 679.2 L738.3 707.3 L741.8 788.8 L752.1 805.9 L767.4 821.8 L785.3 " +
-        "854.7 L806.2 881.3 L830.1 878.8 L836.4 895.4 L844.7 942.1 L852.4 961.3 L852.2 1005.5 " +
-        "L830.8 1131.2 L830.1 1169.8 L840.6 1245.0 L847.1 1261.3 L875.7 1293.4 L883.3 1308.5 " +
-        "L882.1 1313.5 L-30.0 1125.2 L-30.0 -30.0 Z",
+        "M551.7 -118.3 L554.9 -90.8 L540.4 -71.3 L511.4 -84.6 L481.7 -79.5 L454.8 -61.4 L433.9 -35.1 " +
+        "L428.0 -24.5 L420.6 -5.8 L420.5 11.9 L436.2 19.7 L453.1 20.7 L461.8 19.9 L468.3 16.7 L478.8 " +
+        "9.7 L482.4 15.0 L479.4 55.1 L471.8 65.5 L460.3 72.1 L446.9 83.6 L438.6 101.2 L441.4 115.2 " +
+        "L450.3 126.3 L460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 " +
+        "L540.4 237.9 L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 " +
+        "L610.4 303.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 406.5 L637.1 419.4 L644.1 430.0 " +
+        "L660.5 447.5 L669.0 479.6 L673.4 487.6 L681.1 493.9 L703.1 517.7 L710.8 531.6 L709.3 543.2 " +
+        "L704.6 555.7 L712.1 561.4 L724.3 557.0 L733.6 540.0 L738.9 540.0 L738.7 556.8 L728.2 600.8 " +
+        "L726.7 616.9 L728.2 667.1 L717.4 643.7 L710.2 651.7 L704.8 666.8 L703.1 683.8 L706.3 697.8 " +
+        "L713.5 703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 L738.3 707.3 L741.8 788.8 L752.1 805.9 " +
+        "L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 L836.4 895.4 L844.7 942.1 L852.4 961.3 " +
+        "L852.2 1005.5 L830.8 1131.2 L830.1 1169.8 L840.6 1245.0 L847.1 1261.3 L875.7 1293.4 L883.3 " +
+        "1308.5 L882.1 1313.5 L-30.0 1125.2 L-30.0 -30.0 Z",
+      coast:
+        "M551.7 -118.3 L554.9 -90.8 L540.4 -71.3 L511.4 -84.6 L481.7 -79.5 L454.8 -61.4 L433.9 -35.1 " +
+        "L428.0 -24.5 L420.6 -5.8 L420.5 11.9 L436.2 19.7 L453.1 20.7 L461.8 19.9 L468.3 16.7 L478.8 " +
+        "9.7 L482.4 15.0 L479.4 55.1 L471.8 65.5 L460.3 72.1 L446.9 83.6 L438.6 101.2 L441.4 115.2 " +
+        "L450.3 126.3 L460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 " +
+        "L540.4 237.9 L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 " +
+        "L610.4 303.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 406.5 L637.1 419.4 L644.1 430.0 " +
+        "L660.5 447.5 L669.0 479.6 L673.4 487.6 L681.1 493.9 L703.1 517.7 L710.8 531.6 L709.3 543.2 " +
+        "L704.6 555.7 L712.1 561.4 L724.3 557.0 L733.6 540.0 L738.9 540.0 L738.7 556.8 L728.2 600.8 " +
+        "L726.7 616.9 L728.2 667.1 L717.4 643.7 L710.2 651.7 L704.8 666.8 L703.1 683.8 L706.3 697.8 " +
+        "L713.5 703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 L738.3 707.3 L741.8 788.8 L752.1 805.9 " +
+        "L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 L836.4 895.4 L844.7 942.1 L852.4 961.3 " +
+        "L852.2 1005.5 L830.8 1131.2 L830.1 1169.8 L840.6 1245.0 L847.1 1261.3 L875.7 1293.4 L883.3 " +
+        "1308.5 L882.1 1313.5",
       islands: [
-        "M771.3 207.7 L763.5 201.8 L757.1 193.6 L748.8 186.2 L736.2 183.1 L729.8 188.1 L728.4 " +
-        "200.0 L728.2 225.9 L722.1 238.9 L705.1 263.4 L701.5 276.5 L710.5 310.8 L712.1 325.0 " +
-        "L710.3 337.5 L702.7 364.2 L701.5 376.6 L703.6 384.2 L710.7 396.0 L712.1 403.7 L710.5 " +
-        "410.8 L703.2 419.1 L701.5 422.1 L697.1 448.4 L696.4 460.9 L705.7 482.4 L712.0 483.7 " +
-        "L720.1 481.4 L730.9 479.6 L742.7 479.6 L746.8 477.6 L787.9 286.2 L802.7 243.5 L819.4 " +
-        "207.7 L782.1 209.9 L771.3 207.7 Z",
-        "M712.1 140.9 L721.1 157.4 L725.9 154.0 L727.9 140.5 L728.2 125.8 L726.7 113.7 L719.7 " +
-        "91.1 L717.4 80.6 L717.4 37.8 L723.3 0.4 L754.7 -105.8 L757.0 -126.3 L752.1 -140.8 " +
-        "L743.2 -143.9 L734.1 -139.1 L717.4 -125.5 L690.3 -120.0 L674.3 -110.2 L672.3 -100.7 " +
-        "L676.5 -87.9 L679.7 -68.3 L674.8 -14.7 L679.3 40.2 L684.7 59.9 L693.3 68.5 L701.1 78.7 " +
-        "L708.3 101.6 L712.6 126.0 L712.1 140.9 Z"
+        "M771.3 207.7 L763.5 201.8 L757.1 193.6 L748.8 186.2 L736.2 183.1 L729.8 188.1 L728.4 200.0 " +
+        "L728.2 225.9 L722.1 238.9 L705.1 263.4 L701.5 276.5 L710.5 310.8 L712.1 325.0 L710.3 337.5 " +
+        "L702.7 364.2 L701.5 376.6 L703.6 384.2 L710.7 396.0 L712.1 403.7 L710.5 410.8 L703.2 419.1 " +
+        "L701.5 422.1 L697.1 448.4 L696.4 460.9 L705.7 482.4 L712.0 483.7 L720.1 481.4 L730.9 479.6 " +
+        "L742.7 479.6 L746.8 477.6 L787.9 286.2 L802.7 243.5 L819.4 207.7 L782.1 209.9 L771.3 207.7 Z",
+        "M712.1 140.9 L721.1 157.4 L725.9 154.0 L727.9 140.5 L728.2 125.8 L726.7 113.7 L719.7 91.1 " +
+        "L717.4 80.6 L717.4 37.8 L723.3 0.4 L754.7 -105.8 L757.0 -126.3 L752.1 -140.8 L743.2 -143.9 " +
+        "L734.1 -139.1 L717.4 -125.5 L690.3 -120.0 L674.3 -110.2 L672.3 -100.7 L676.5 -87.9 L679.7 " +
+        "-68.3 L674.8 -14.7 L679.3 40.2 L684.7 59.9 L693.3 68.5 L701.1 78.7 L708.3 101.6 L712.6 126.0 " +
+        "L712.1 140.9 Z",
+      ],
+      graticule: [
+        "M195.3 0.0 L195.3 1095.2",
+        "M390.6 0.0 L390.6 1095.2",
+        "M585.9 0.0 L585.9 1095.2",
+        "M781.2 0.0 L781.2 1095.2",
+        "M976.6 0.0 L976.6 1095.2",
+        "M0.0 945.0 L1000.0 945.0",
+        "M0.0 724.2 L1000.0 724.2",
+        "M0.0 503.4 L1000.0 503.4",
+        "M0.0 282.6 L1000.0 282.6",
+        "M0.0 61.8 L1000.0 61.8",
       ],
       envelope:
-        "M460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 L540.4 " +
-        "237.9 L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 " +
-        "L610.4 303.7 L612.1 311.6 L612.5 317.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 " +
-        "406.5 L637.1 419.4 L644.1 430.0 L660.5 447.5 L664.4 460.1 L669.0 479.6 L673.4 487.6 " +
-        "L677.3 491.4 L681.1 493.9 L703.1 517.7 L710.8 531.6 L709.3 543.2 L704.6 555.7 L712.1 " +
-        "561.4 L724.3 557.0 L733.6 540.0 L738.9 540.0 L738.7 556.8 L728.2 600.8 L726.7 616.9 " +
-        "L728.2 667.1 L717.4 643.7 L710.2 651.7 L704.8 666.8 L703.1 683.8 L706.3 697.8 L713.5 " +
-        "703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 L738.3 707.3 L741.8 788.8 L752.1 805.9 " +
-        "L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 L836.4 895.4 L844.7 942.1 L852.4 " +
-        "961.3 L852.2 1005.5 L687.5 1077.5 L531.3 971.5 L375.0 812.5 L281.3 653.6 L187.5 512.2 " +
-        "L109.4 388.6 L156.2 265.0 L257.8 176.6 L343.7 132.5 Z",
+        "M460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 L540.4 237.9 " +
+        "L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 L610.4 303.7 " +
+        "L612.1 311.6 L612.5 317.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 406.5 L637.1 419.4 " +
+        "L644.1 430.0 L660.5 447.5 L664.4 460.1 L669.0 479.6 L673.4 487.6 L677.3 491.4 L681.1 493.9 " +
+        "L703.1 517.7 L710.8 531.6 L709.3 543.2 L704.6 555.7 L712.1 561.4 L724.3 557.0 L733.6 540.0 " +
+        "L738.9 540.0 L738.7 556.8 L728.2 600.8 L726.7 616.9 L728.2 667.1 L717.4 643.7 L710.2 651.7 " +
+        "L704.8 666.8 L703.1 683.8 L706.3 697.8 L713.5 703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 " +
+        "L738.3 707.3 L741.8 788.8 L752.1 805.9 L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 " +
+        "L836.4 895.4 L844.7 942.1 L852.4 961.3 L852.2 1005.5 L687.5 1077.5 L531.3 971.5 L375.0 812.5 " +
+        "L281.3 653.6 L187.5 512.2 L109.4 388.6 L156.2 265.0 L257.8 176.6 L343.7 132.5 Z",
+      scale: {"km": 20, "label": "20 km", "pct": 15.87},
       regions: [
-        { slug: "brisbane", x: 410.2, y: 255.9, side: "w" },
-        { slug: "ipswich", x: 203.6, y: 383.8, side: "w" },
-        { slug: "logan", x: 475.5, y: 405.6, side: "e" },
-        { slug: "gold-coast", x: 712.5, y: 696.0, side: "w" },
-        { slug: "tweed-heads", x: 816.6, y: 882.0, side: "w" },
+        { slug: "brisbane", x: 410.2, y: 255.9, xPct: 41.02, yPct: 23.37, side: "w" },
+        { slug: "ipswich", x: 203.6, y: 383.8, xPct: 20.36, yPct: 35.05, side: "s" },
+        { slug: "logan", x: 475.5, y: 405.6, xPct: 47.55, yPct: 37.03, side: "e" },
+        { slug: "gold-coast", x: 712.5, y: 696.0, xPct: 71.25, yPct: 63.55, side: "w" },
+        { slug: "tweed-heads", x: 816.6, y: 882.0, xPct: 81.66, yPct: 80.53, side: "w" },
       ]
+      // map:end
       }
     },
 
@@ -1807,6 +1891,10 @@ const base = {
       direct: "Direct"
     },
     directLabels: { phone: "Call or text", email: "Email", instagram: "Instagram" },   // ✓ his contact page: "Call or text Lachlan on 0410514774"
+    // P12 footer facts. LABELS ONLY — the values are read straight out
+    // of `trust`, so there is exactly one place to change either fact
+    // and the footer can never drift from the seam under the hero.
+    factLabels: { hours: "Hours", warranty: "Warranty" },
     builtBy: { label: "Site by Applied Intelligence", href: "https://appliedintelligence.biz/" },
     // ABN is deliberately ABSENT until confirmed. It renders NOTHING —
     // never the string "ABN: TBC". See brand.abn.
