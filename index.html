@@ -70,7 +70,7 @@
     <a class="brand" href="#main" aria-label="All Sliding Door Repairs, home">
       <!-- the mark is INLINED so fill="currentColor" actually inherits
            (--bronze via CSS). Referenced via <img src> it renders black. -->
-      <svg class="brand__glyph" viewBox="0 0 32 32" fill="currentColor" aria-hidden="true" focusable="false"><path d="M0 0h32v2H0z"/><path d="M0 28h32v4H0z"/><path fill-rule="evenodd" d="M4 6h10v18H4zM6 8v14h6V8z"/><path d="M16 4h12v22H16z"/></svg>
+      <svg class="brand__glyph" viewBox="0 0 32 32" fill="currentColor" shape-rendering="crispEdges" aria-hidden="true" focusable="false"><path d="M0 0h32v2H0z"/><path d="M0 28h32v4H0z"/><path fill-rule="evenodd" d="M4 6h10v18H4zM6 8v12h6V8z"/><path d="M16 4h12v22H16z"/></svg>
       <span class="brand__words">
         <span class="brand__n1">All Sliding Door</span>
         <span class="brand__n2">Repairs</span>
@@ -139,7 +139,7 @@
           <span class="s2">It needs rollers, a track, and someone who does this every day.</span>
         </h1>
 
-        <p class="lede" id="heroLede">Rollers, tracks, locks, side frames, security screens and mesh, all repaired in your own doorway. <b>Send Lachlan a photo of the door</b> and he'll tell you what it needs.</p>
+        <p class="lede" id="heroLede">Rollers, tracks, locks, side frames, security screens and mesh, all repaired in your own doorway. <b>Send me a photo of the door</b> and I'll tell you what it needs.</p>
 
         <div class="spec" id="heroSpec">
           <div class="spec__i"><span class="spec__k mono">FROM</span><span class="spec__v">$150 +GST</span></div>
@@ -150,7 +150,7 @@
         <div class="cta" id="heroCta">
           <a class="btn btn--primary" id="heroSms" href="sms:+61410514774">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h2l1.2-2h6.6L16.5 6h2A2.5 2.5 0 0 1 21 8.5v9A2.5 2.5 0 0 1 18.5 20h-13A2.5 2.5 0 0 1 3 17.5z"/><circle cx="12" cy="12.5" r="3.4"/></svg>
-            <span>Send Lachlan a photo</span>
+            <span>Send me a photo</span>
           </a>
           <a class="btn btn--ghost" href="tel:+61410514774">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 3.5h3.2l1.6 4-2 1.4a12.5 12.5 0 0 0 5.8 5.8l1.4-2 4 1.6V19a1.5 1.5 0 0 1-1.6 1.5C9.4 20 3.9 14.5 3.5 5.1A1.5 1.5 0 0 1 5 3.5z"/></svg>
@@ -158,7 +158,7 @@
           </a>
         </div>
 
-        <p class="note" id="heroNote">One tradesman, second generation. His dad started it in 2002, and he answers his own phone.</p>
+        <p class="note" id="heroNote">One tradesman, second generation. My dad started it in 2002, and I answer my own phone.</p>
 
         <!-- Provenance for the footage behind all of this. It is his
              own public post, re-hosted, trimmed and loop-treated, so it
@@ -321,18 +321,25 @@
 
   <!-- 11 · AREAS — bone-2 · wipe rtl. Client direction 2026-08-22:
        "add the map, like what we've done for Marcos, that map of the
-       area he services."
+       area he services." Then, P15: "make the map look like an actual
+       map... make it look like an actual map and nice."
 
-       The section now runs head-then-body instead of head-with-payload,
-       because the map needs a column of its own. It is a VENDORED SVG
-       built from Natural Earth coastline data (content.js →
-       areas.map.geo): no tile server, no Leaflet, and the MAP itself
-       adds ZERO network requests.
+       The section runs head-then-body instead of head-with-payload,
+       because the map needs a column of its own.
+
+       ⭐ P15: it is a REAL map now — Leaflet against CARTO's
+       OpenStreetMap raster tiles, after three drawn SVG plates were
+       rejected. ⛔ THERE IS DELIBERATELY NO <link> OR <script> FOR
+       LEAFLET IN THIS HEAD. Both are vendored in vendor/ and are
+       injected by script.js from the same IntersectionObserver that
+       fetches the first tile, so the first view of this page still
+       costs zero bytes for the map. Adding them here puts 158 kB on
+       the critical path for a section most visitors never reach.
        ⚠️ ADVERSARIAL-M6: this comment used to claim the PAGE makes zero
        off-origin requests. It does not, and never did — analytics.js
        POSTs a cookieless beacon to donny.appliedintelligence.biz on
-       every load. A comment a future maintainer would have trusted.
-       It is NOT hidden at ≤640 any more; it stacks. -->
+       every load. Since P15 the map adds a second, VISIBLE one.
+       It is NOT hidden at ≤640; it stacks. -->
   <section class="band band--surface-1 sec" id="areas" aria-labelledby="areasHead">
     <div class="wrap">
       <header class="sec__head sec__head--centre" id="areasHead"></header>

@@ -1512,6 +1512,27 @@ p, li, figcaption, dd { text-wrap: pretty; }
   border-radius: var(--r-sm); object-fit: cover;
   width: 140px; height: 186px;          /* 3:4 — door photography is portrait */
 }
+
+/* 🚨 P15 — A PHOTOGRAPH THAT HAS NOT ARRIVED SHOWS ITS MAT, NOT ITS
+   ALT STRING. The client's report was a work-rail slot reading
+   "Lachlan's tattooed arm sliding a security screen door open onto a
+   sunlit tiled balcony…" where a picture should be. script.js fixes
+   the CAUSE (see wakeRailImages(): Safari never fetched the cards far
+   down a horizontal rail). This is the floor under it: every content
+   photograph on this page sits in a small fixed box, and a browser
+   renders a not-yet-loaded or genuinely broken <img> by typesetting
+   its alt text into that box, which on a 156 x 208 card is a wall of
+   6px type. `font-size: 0` suppresses ONLY the visual rendering — the
+   alt attribute is untouched in the DOM, so every screen reader still
+   reads it, and the honesty rail that every photo carries a verified
+   alt is unaffected. The mat colour is the plate the photo sits on, so
+   a slow connection reads as a picture arriving.
+   ⛔ Do not add this to a photo that is allowed to size itself: it is
+   only correct where the box exists without the image. */
+.svc__figure img, .rail__item img, .ba__fig img, .frame__img {
+  font-size: 0; color: transparent; background-color: var(--bone-3);
+}
+.frame--ink .frame__img { background-color: var(--ink-3); }
 /* the type-only card: a DRAWN diagram in the same mount, same size,
    so the grid never breaks and no stock photo is ever published */
 .svc__drawn {
@@ -1877,6 +1898,12 @@ p, li, figcaption, dd { text-wrap: pretty; }
    and the block carries a brass rule so it reads as quoted before it is
    read at all. Marking his words as his is not restyling them. */
 .story__quoted { border-left: 2px solid var(--bronze-bright); padding-left: 1.15rem; }
+/* P15: the block holds BOTH of his About-page paragraphs now (the first
+   one used to sit outside it as unmarked prose — see renderStory). Two
+   <p>s inside one rule needed the paragraph space the outer body was
+   already giving the first one. */
+.story__quoted > p + p,
+.story__quoted > details p { margin-top: 0.75rem; }
 .story__attr {
   color: var(--bronze-bright); font-size: 0.625rem; margin-bottom: 0.5rem;
 }
@@ -1966,56 +1993,38 @@ p, li, figcaption, dd { text-wrap: pretty; }
    for Marcos, that map of the area he services."
    CLIENT DIRECTION 2026-08-22 (P12): "his map needs to be nicer,
    better."
-
-   ⚠️ IT IS A VENDORED SVG, NOT A TILE MAP, AND THAT IS THE POINT.
-   Marcos's build uses Leaflet against CARTO's tile CDN. This map
-   adds ZERO off-origin requests, and the coastline is real:
-   Natural Earth 10m, projected and simplified at build time
-   (design/map-build/build_map.py → content.js areas.map.geo).
-
-   ⭐ WHAT P13 CHANGED, AND WHY IT IS NOT DECORATION.
-   CLIENT, 2026-08-22, rejecting P12: "make the map under where he
+   CLIENT DIRECTION 2026-08-22 (P13): "make the map under where he
    goes look a lot better, it looks really bad right now."
+   CLIENT DIRECTION 2026-08-22 (P15): "make the map look like an
+   actual map... make it look like an actual map and nice."
 
-   P12 had inverted the grounds — the SERVED area was the lightest
-   thing on the plate and every other piece of land stepped DOWN
-   toward the sea — which spends the one contrast a map is read by,
-   LAND AGAINST WATER, on something that is not the geography. The
-   coastline stopped being legible and the plate read as an abstract
-   shape on dark rather than as south-east Queensland.
+   ⭐ P15 — IT IS A LEAFLET SLIPPY MAP. THREE DRAWN PLATES FAILED.
+   P12 and P13 each rebuilt a generated SVG chart of the Natural
+   Earth 10m coastline, and each was rejected. The diagnosis that
+   finally held: the test a visitor applies to a map is whether he
+   can find his own street on it, and a coastline with no suburbs,
+   no road network and no place names can never pass it, however
+   well it is coloured. Marcos's build — the client's own reference,
+   twice — is Leaflet against CARTO tiles, so this is that.
 
-   P13 is ordinary cartographic orientation:
+   ⚠️ THE OFF-ORIGIN DEPENDENCY IS REAL, DELIBERATE AND GATED.
+   Tiles come from basemaps.cartocdn.com (OpenStreetMap data, CARTO
+   Voyager raster). Leaflet and its stylesheet are VENDORED in
+   vendor/ and are injected by the same IntersectionObserver that
+   triggers the first tile, so the first view of the page still
+   costs zero bytes for the map. ⛔ Do not add a <link> or <script>
+   for Leaflet to index.html: that puts 158 kB on the critical path
+   for a section most visitors never reach. See script.js.
 
-     · ALL LAND IS LAND. One parchment (--map-land) for the
-       mainland AND the islands, and the ocean is the only dark
-       element on the plate, on the east where it belongs. Moreton
-       Bay reads as a bay and Moreton and Stradbroke as islands.
-     · the service area is a TERRITORY MARKED ON that land: the
-       same parchment brass-tinted (--map-served), an inner rim
-       light clipped to itself, and a 3.2-unit brass edge. No drop
-       shadow: a marked territory does not float above its map.
-     · its inland boundary is a SMOOTH curve now. The nine inland
-       vertices were emitted as straight chords, which is what made
-       a data-derived edge read as hand-drawn; build_map.py runs a
-       Catmull-Rom spline through them (it passes THROUGH every
-       vertex, so no coordinate moved). The coastal half stays
-       straight-segment, because smoothing there would cut the
-       boundary across bays the shoreline still draws.
-     · TWO CONTEXT LAYERS, both derived, both clipped to land: the
-       Brisbane River, which is what puts Brisbane where a Brisbane
-       reader expects it, and the M1 spine — one road line is what
-       makes a map read as a map.
-     · the water keeps P12's two derived textures (a quarter-degree
-       GRATICULE and a three-stop coastal SHELF glow), both painted
-       under the land so they can only ever appear in the sea.
-
-   ⚠️ THE PINS AND LABELS ARE HTML. SVG <text> scales with the
-   viewBox, which is why the old build carried a 30-unit label at
-   desktop, a 42-unit one at ≤640, and an invisible r=78 circle to
-   buy a 44px tap target. The HTML chip sets at ONE size at every
-   plate width, sits on a real --card plate so it can never be
-   ambiguous against land or water, is a 44x44 anchor by
-   construction, and takes an ordinary CSS focus ring.
+   ⚠️ WHAT DID NOT CHANGE, AND WHY THAT MATTERS.
+   The plate chrome is P12/P13's, unaltered: the same radius, the
+   same inset rim, the same ink key strip below the field, the same
+   caption under it. The pins are the same --card chip on the same
+   --bronze dot, 44 x 44 by construction. The row-to-pin
+   cross-highlight is the same delegated listener. The envelope is
+   the same ring of coordinates, inverse-projected. A map that
+   arrives wearing its own furniture reads as an embed; this one
+   wears the site's.
    ============================================================ */
 .areas__grid { display: grid; gap: var(--gap-inner); grid-template-columns: minmax(0, 1fr); }
 .areas__map { min-width: 0; }
@@ -2050,67 +2059,86 @@ p, li, figcaption, dd { text-wrap: pretty; }
    both markups. */
 .area__go { font-family: var(--font-mono); color: var(--bronze); font-size: var(--fs-micro); letter-spacing: var(--track-mono); text-transform: uppercase; flex: 0 0 auto; margin-left: auto; }
 
-/* --- the map plate --- */
+/* --- the map plate: P12/P13 CHROME, P15 CANVAS ---
+   Everything outside .map__field is unchanged — the rim, the radius,
+   the ink key strip below the field and the caption under that. What
+   changed is what is INSIDE the field: a Leaflet canvas instead of a
+   generated SVG. Keeping the chrome is what stops the map reading as
+   an embedded third-party widget dropped into the page. */
 .map { margin: 0; }
 .map__plate {
   position: relative; border-radius: var(--r-lg); overflow: hidden;
-  /* the container the scale bar measures against — see .map__bar */
-  container-type: inline-size;
-  /* ⚠️ THE EDGE IS AN INSET RIM, NOT A BORDER, AND THAT IS A
-     MEASUREMENT. --map-land is close enough to the band's own --bone-2
-     that at the plate's left edge the unserved hinterland ran straight
-     out into the page and the plate lost its corner, so it needs an
-     edge. It cannot be a `border`, because `container-type: inline-size`
-     measures the CONTENT box: a 1px border on each side made 1cqw 0.6%
-     short and the scale bar came out 15.78% long against the 15.87%
-     the projection says. Drawn inside, the container query and the
-     plate are the same 350px. */
+  /* ⚠️ THE EDGE IS AN INSET RIM, NOT A BORDER. --map-land is close
+     enough to the band's own --bone-2 that at the plate's left edge the
+     hinterland ran straight out into the page and the plate lost its
+     corner, so it needs an edge — drawn inside, so it can never take a
+     pixel off the canvas box Leaflet measures. */
   box-shadow: var(--rim-light), var(--shadow-2), inset 0 0 0 1px var(--line-strong);
-  background: var(--ink);
+  background: var(--map-land);
+  isolation: isolate;
 }
-/* The FIELD is exactly the SVG's box, and that is load-bearing: the
-   HTML pins are positioned inside it as percentages of the generated
-   viewBox, so anything else in the plate (the key strip) has to live
-   OUTSIDE it or every pin moves. */
-.map__field { position: relative; }
-.map__svg { display: block; width: 100%; height: auto; }
-.map__sea  { fill: var(--ink); }
-.map__land { fill: var(--map-land); }
-/* the water's two derived textures — both under the land by paint
-   order, so neither can ever appear on the ground */
-.map__grat  { fill: none; stroke: var(--on-ink); stroke-opacity: 0.085; stroke-width: 1; }
-.map__shelf { fill: none; stroke: var(--on-ink); stroke-linejoin: round; stroke-linecap: round; }
-/* the service envelope: a brass TINT on the land, and an edge you can
-   follow. No drop shadow — a territory marked on a map does not float
-   above it, and the one P12 gave it is part of why the plate read as a
-   diagram rather than a chart. */
-.map__area      { fill: var(--map-served); }
-.map__area-glow { fill: none; stroke: var(--bronze); stroke-opacity: 0.18; stroke-width: 8; }
-.map__area-edge { fill: none; stroke: var(--bronze); stroke-width: 3.2; stroke-linejoin: round; stroke-linecap: round; }
-/* the context layers, all clipped to land so none can run out to sea.
-   Quiet on purpose: they are what makes the plate read as a map, and
-   they must never compete with the boundary or the pins. The M1 gets a
-   step more weight than the other highways because it runs the whole
-   length of his patch; the rest are hinterland. */
-.map__road  { fill: none; stroke: var(--bronze); stroke-opacity: 0.38; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
-.map__road--minor { stroke-opacity: 0.20; stroke-width: 1.8; }
-.map__river { fill: none; stroke: var(--ink); stroke-opacity: 0.30; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
-.map__shore { fill: none; stroke: var(--ink); stroke-opacity: 0.35; stroke-width: 1.6; stroke-linejoin: round; }
-/* Moreton, Stradbroke and Bribie are 456 and 378 characters of real
-   coastline, and without an edge they read as smudges on a 350px plate. */
-.map__isle  { fill: none; stroke: var(--ink); stroke-opacity: 0.35; stroke-width: 1.2; stroke-linejoin: round; }
+/* THE FIELD IS A FIXED ASPECT, AND THAT IS LOAD-BEARING. Leaflet
+   measures its container once at construction and a zero-height div
+   makes a zero-tile map, so the box has to have a height before the
+   library ever runs. 1 / 1.08 is the shape the two-column #areas grid
+   was measured for at 1440 and the shape the stacked column wants at
+   390, which is why it is one number and not a breakpoint. */
+.map__field { position: relative; aspect-ratio: 1 / 1.08; }
+.map__canvas { position: absolute; inset: 0; }
 
-/* --- the pins: HTML over the field --- */
-.map__pins { position: absolute; inset: 0; }
-/* ⚠️ 44x44 BY CONSTRUCTION. The anchor's border box IS the tap target
-   at every plate width, so there is no invisible SVG circle to keep in
-   sync with the render size any more. --px/--py come straight from the
-   build script's xPct/yPct. */
+/* ⚠️ THE GROUND UNDER THE TILES IS PARCHMENT, NOT GREY. Leaflet's own
+   default is #ddd, and the moment between mount and first tile — or
+   any moment at all if CARTO is unreachable — is the whole difference
+   between "a map that is loading" and "a broken grey box".
+   🚨 THE DOUBLE CLASS IS LOAD-ORDER INSURANCE, NOT A TYPO.
+   vendor/leaflet.css is INJECTED AT RUNTIME by script.js, so it always
+   arrives after this stylesheet and a plain `.leaflet-container` rule
+   ties on specificity and LOSES. Verified: with the tile server
+   blocked, the single-class version rendered Leaflet's #ddd. Any rule
+   here that has to beat vendor CSS needs the same treatment. */
+.map__canvas.leaflet-container {
+  background: var(--map-land);
+  font-family: var(--font-body);
+  outline: none;
+}
+/* The basemap is a general-purpose light street map. One filter warms
+   it a step toward the parchment the rest of this page is printed on,
+   so his territory sits ON the site rather than in a window cut
+   through it. Kept deliberately mild: the point of a real map is that
+   the street names and suburb labels stay readable. */
+.map__tiles { filter: saturate(0.82) sepia(0.12) brightness(1.02); }
+
+/* Tile failure. The polygon and the pins are vector and survive, so
+   what is left is a legible basemap-less map of his patch on the same
+   parchment the drawn plate used, plus a faint graticule so the empty
+   ground reads as a chart rather than as a colour. */
+.map--notiles .map__tiles { display: none; }
+.map--notiles .map__canvas {
+  background-image:
+    linear-gradient(to right, var(--line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--line) 1px, transparent 1px);
+  background-size: 56px 56px;
+}
+/* Leaflet itself could not be fetched. One sentence, and the region
+   rows beside it carry the actual information. */
+.map__dead {
+  display: none;
+  position: absolute; inset: auto 1rem 1rem; margin: 0;
+  padding: 0.7rem 0.9rem; border-radius: var(--r-md);
+  background: var(--card); box-shadow: var(--shadow-2);
+  color: var(--text-body); font-size: var(--fs-micro); line-height: 1.5;
+}
+.map--dead .map__dead { display: block; }
+
+/* --- the pins. divIcon, so the dot and its chip are the site's own
+       components rather than Leaflet's blue teardrop, and the icon box
+       Leaflet positions IS 44 x 44, so the tap target needs no
+       invisible hit circle to keep in sync with anything. --- */
+.map__pinwrap { background: none; border: 0; }
 .map__pin {
-  position: absolute; left: var(--px); top: var(--py);
+  position: relative; display: block;
   width: var(--tap-min); height: var(--tap-min);
-  margin: calc(var(--tap-min) / -2) 0 0 calc(var(--tap-min) / -2);
-  display: block; cursor: pointer;
+  cursor: pointer;
 }
 .map__dot {
   position: absolute; left: 50%; top: 50%; width: 12px; height: 12px;
@@ -2120,10 +2148,11 @@ p, li, figcaption, dd { text-wrap: pretty; }
               background var(--dur-fast) var(--ease-soft);
 }
 /* The label is a PLATE, never bare type on geography: it is opaque, so
-   it reads the same over cream land, warm served ground and navy sea,
-   and it can never be mistaken for a place name printed on the map. */
+   it reads the same over a pale street grid, over green parkland and
+   over the bay, and it can never be mistaken for a place name printed
+   by the basemap itself. */
 .map__tag {
-  position: absolute; top: 50%; transform: translateY(-50%);
+  position: absolute;
   white-space: nowrap; padding: 0.24rem 0.5rem;
   background: var(--card); border-radius: var(--r-sm);
   box-shadow: inset 0 0 0 1px var(--line-strong), var(--shadow-1);
@@ -2132,12 +2161,22 @@ p, li, figcaption, dd { text-wrap: pretty; }
   transition: box-shadow var(--dur-fast) var(--ease-soft),
               opacity var(--dur-fast) var(--ease-soft);
 }
-.map__pin[data-side="e"] .map__tag { left: calc(50% + 13px); }
-.map__pin[data-side="w"] .map__tag { right: calc(50% + 13px); }
+/* ⚠️ THE CHIP HANGS ABOVE THE DOT, NOT BESIDE IT, AND THAT IS A P15
+   COLLISION FIX ON A REAL BASEMAP. The drawn plate had no type of its
+   own, so a chip could sit at the marker's own baseline. A tile server
+   prints its own place name AT that baseline — the first build put
+   "Brisbane" squarely over CARTO's own "BRISBANE", "Logan" over "Logan
+   City" and "Gold Coast" over "GOLD COAST", which is exactly the
+   careless-looking collision the opaque chip exists to avoid. Rising
+   clears the label band at every zoom, because a basemap label is
+   always horizontal and always centred on its point. `side` still
+   decides which way it leans, so none of them runs off a 350px plate. */
+.map__pin[data-side="e"] .map__tag { left: calc(50% - 4px); bottom: calc(50% + 13px); }
+.map__pin[data-side="w"] .map__tag { right: calc(50% - 4px); bottom: calc(50% + 13px); }
 /* 's' hangs the chip centred BELOW the dot. It exists for Ipswich,
-   which sits at 20.4% of the plate width: a west chip runs off the
-   left edge on a 350px plate and an east one collides with Logan.
-   The side is emitted by build_map.py beside the coordinates. */
+   which sits far enough west that a west chip runs off a 350px plate
+   and an east one collides with Logan. The side is emitted by
+   build_map.py beside the coordinates it depends on. */
 .map__pin[data-side="s"] .map__tag {
   top: calc(50% + 13px); left: 50%; transform: translateX(-50%);
 }
@@ -2155,54 +2194,102 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
 
 /* ⚠️ A11Y-H1 (1.4.11 Non-text Contrast). The original failure: focus
    was a translucent bronze halo, which over the bronze envelope
-   measured 1.66:1 against what it covered, so on the Gold Coast and
-   Tweed pins a sighted keyboard user could not tell which pin had
-   focus. The rule that fixes it for good is to ring the COMPONENT, not
-   the ground: an --ink ring hugging the --card tag is 16.11:1 against
-   the tag itself, and the tag is opaque, so the indicator's contrast is
-   independent of whatever geography lies beyond it. Same trick on the
-   dot, whose --card collar the ink ring sits against. */
-.map__pin:focus-visible { outline: none; }
-.map__pin:focus-visible .map__tag {
+   measured 1.66:1 against what it covered. The rule that fixes it for
+   good is to ring the COMPONENT, not the ground: an --ink ring hugging
+   the --card tag is 16.11:1 against the tag itself, and the tag is
+   opaque, so the indicator's contrast is independent of whatever
+   geography lies beyond it. That matters more on a real basemap than
+   it did on a drawn one, because now the ground can be anything.
+   Leaflet puts focus on the marker's own <a>, hence the parent rule. */
+.leaflet-marker-icon:focus { outline: none; }
+.leaflet-marker-icon:focus-visible .map__tag {
   box-shadow: inset 0 0 0 1px var(--line-strong), 0 0 0 3px var(--ink), var(--shadow-2);
 }
-.map__pin:focus-visible .map__dot {
+.leaflet-marker-icon:focus-visible .map__dot {
   box-shadow: 0 0 0 3px var(--card), 0 0 0 6px var(--ink);
 }
-
-/* --- the scale bar. Its length is a PERCENTAGE emitted by
-       build_map.py out of the projection itself (20 km = 15.87% of the
-       126.0 km window), so it is correct at 1440 and at 360 without a
-       second number anywhere in the build.
-
-       ⚠️ IT IS MEASURED IN cqw, NOT %. A percentage would resolve
-       against .map__scale, which is shrink-to-fit, and the bar came out
-       as a 6px stub. 1cqw is 1% of .map__plate, which is the box the
-       SVG fills, and that is the only box the figure is true against.
-
-       ⚠️ IT LIVES IN THE KEY STRIP, NOT OVER THE WATER. It was drawn
-       bottom-right inside the field first, which is where a chart puts
-       it — and at 350px the 15.87% bar reached back across the point
-       where the coast turns in at Pottsville, so half of it sat on
-       cream land with --on-ink-body type beside it. In the strip it can
-       never cover geography at any plate width, which is the same
-       reason the legend was moved out of the field. --- */
-.map__scale {
-  margin: 0 0 0 auto;
-  display: flex; align-items: center; gap: 0.45rem; white-space: nowrap;
-  color: var(--on-ink-body); font-size: 0.625rem; line-height: 1;
+/* --- Leaflet's own controls, in this site's language rather than its
+       own. 🚨 EVERY SELECTOR BELOW IS DELIBERATELY OVER-QUALIFIED WITH
+       `.map__canvas.leaflet-container`. vendor/leaflet.css is INJECTED
+       AT RUNTIME by script.js, so it always lands after this stylesheet
+       and wins every specificity TIE. Measured, not assumed: the first
+       version of this block used bare `.leaflet-*` selectors and
+       Leaflet kept its own 30 x 30 zoom buttons (a tap-gate FAILURE),
+       its own translucent-white attribution bar, and its own #ddd
+       ground. If you add a rule here, qualify it the same way. --- */
+.map__canvas.leaflet-container:focus-visible { box-shadow: inset 0 0 0 3px var(--ink); }
+.map__canvas.leaflet-container .leaflet-control-zoom {
+  border: 0; box-shadow: var(--shadow-2); border-radius: var(--r-md); overflow: hidden;
+  margin: 12px 0 0 12px;
 }
-.map__bar {
-  width: calc(var(--sw) * 1cqw); height: 5px; flex: 0 0 auto;
-  border: 1px solid var(--on-ink-body); border-top: 0;
-  opacity: 0.9;
+/* 44 x 44 is this site's tap rail, and a map you cannot zoom with a
+   thumb is a map you cannot read. Leaflet ships 26px, or 30px under
+   .leaflet-touch; both fail. */
+.map__canvas.leaflet-container .leaflet-control-zoom a {
+  width: 44px; height: 44px; line-height: 44px;
+  background: var(--card); color: var(--text-primary);
+  border: 0; border-bottom: 1px solid var(--line);
+  font-family: var(--font-body); font-weight: var(--wt-mid); font-size: 1.15rem;
 }
+.map__canvas.leaflet-container .leaflet-control-zoom a:last-child { border-bottom: 0; }
+.map__canvas.leaflet-container .leaflet-control-zoom a:hover { background: var(--bronze-soft); color: var(--bronze-deep); }
+.map__canvas.leaflet-container .leaflet-control-zoom a.leaflet-disabled { background: var(--bone-2); color: var(--text-faint); }
+.map__canvas.leaflet-container .leaflet-bar a:focus-visible { box-shadow: inset 0 0 0 3px var(--ink); }
+/* The scale bar. It was a generated percentage on the drawn plate;
+   Leaflet computes it from the live projection, which is the same
+   number arrived at more honestly. */
+.map__canvas.leaflet-container .leaflet-control-scale { margin: 0 0 10px 12px; }
+.map__canvas.leaflet-container .leaflet-control-scale-line {
+  background: var(--card); color: var(--text-body);
+  border: 1px solid var(--line-strong); border-top: 0;
+  border-radius: 0 0 var(--r-xs) var(--r-xs);
+  font-family: var(--font-mono); font-size: 0.625rem; line-height: 1.8;
+  padding: 0 6px; box-shadow: var(--shadow-1); text-shadow: none;
+}
+/* ⚠️ ATTRIBUTION IS NOT DECORATION AND IT IS NOT OPTIONAL. CARTO's
+   terms and OpenStreetMap's licence both require it. Style it, keep it
+   legible, never hide it. --text-muted on --card is 5.40:1 and
+   --bronze on --card is 5.88:1.
+   ⚠️ ITS TWO LINKS ARE THE ONLY TARGETS ON THIS SITE UNDER 44 x 44,
+   and that is a RECORDED EXEMPTION, not an oversight: they are inline
+   links inside a sentence, which WCAG 2.5.8 exempts in terms ("the
+   target is in a sentence or its size is otherwise constrained by the
+   line-height of non-target text"). The padding below still carries
+   them past the 24 CSS px AA floor. Making them 44 would lay a
+   44px-tall white bar across the bottom of the map to satisfy a rule
+   that does not apply to them. */
+.map__canvas.leaflet-container .leaflet-control-attribution {
+  background: var(--card); color: var(--text-muted);
+  font-family: var(--font-body); font-size: 0.625rem; line-height: 1.8;
+  padding: 3px 6px; border-radius: var(--r-xs) 0 0 0;
+  margin: 0; text-shadow: none;
+}
+.map__canvas.leaflet-container .leaflet-control-attribution a {
+  color: var(--bronze); text-decoration: underline; text-underline-offset: 2px;
+  display: inline-block; padding: 5px 0;
+}
+
+/* The touch affordance. It exists ONLY while the map is inert, which
+   is only on a coarse pointer and only until the first tap, so on a
+   phone a swipe over this section scrolls the page. */
+.map__hint {
+  /* clear of BOTH bottom controls: the scale sits bottom left and the
+     attribution bottom right, and at 350px they meet in the middle. */
+  position: absolute; left: 50%; bottom: 44px; transform: translateX(-50%);
+  margin: 0; z-index: 500; pointer-events: none;
+  padding: 0.4rem 0.85rem; border-radius: var(--r-pill);
+  background: var(--card); box-shadow: var(--shadow-2);
+  color: var(--text-body); font-size: var(--fs-micro); white-space: nowrap;
+  opacity: 0; transition: opacity var(--dur-base) var(--ease-soft);
+}
+.map--inert .map__hint { opacity: 1; }
 
 /* --- the key strip: BELOW the field, not floating over it. The old
        legend was an absolute chip at the plate's bottom left, which at
        390 sat squarely on the western edge of the service area and
        covered the thing it was labelling. --- */
 .map__strip {
+  position: relative; z-index: 1;
   display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.4rem;
   padding: 0.7rem 0.95rem;
   background: var(--ink-2); border-top: 1px solid var(--line-ink);
@@ -2538,24 +2625,19 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
      ("do you even come to me?") that stops people ringing. It stacks
      map-then-list.
 
-     ⚠️ P12: THE OLD SIZE HACKS ARE GONE, NOT LOST. The SVG label
-     had to jump 30 → 42 user units here because it scaled with the
-     viewBox and would otherwise have set at ~9px on a 350px plate.
-     The label is an HTML chip now: it sets at one size at every
-     plate width and this block has nothing to correct. What is left
-     is the two marks whose STROKE weight is in user units and does
-     genuinely go thin on a 350px plate. */
+     ⚠️ P15: EVERY STROKE-WIDTH CORRECTION THAT USED TO LIVE HERE IS
+     GONE, AND IT IS NOT LOST. Six rules re-weighted the drawn plate's
+     SVG marks because their widths were in viewBox user units and went
+     thin on a 350px plate. The basemap is raster tiles now: it is
+     rendered at the device's own resolution at every plate width and
+     has nothing to correct. The chip is the one thing left that is
+     genuinely tight at 350px, and the plate is a little taller here so
+     the tile labels have room to breathe. */
   .areas__grid { gap: 1.5rem; }
-  .map__area-edge { stroke-width: 4; }
-  .map__shore { stroke-width: 2; }
-  .map__isle { stroke-width: 1.7; }
-  .map__road { stroke-width: 3; }
-  .map__road--minor { stroke-width: 2.2; }
-  .map__river { stroke-width: 3.2; }
+  .map__field { aspect-ratio: 1 / 1.12; }
   .map__tag { font-size: 0.6875rem; padding: 0.2rem 0.42rem; }
-  /* the strip has room for the legend and the scale on one line at
-     350px, but not for all three. The pins are self-evidently tappable;
-     the scale is the one a map cannot do without. */
+  /* the strip has room for the legend on one line at 350px, but not
+     for both entries. The pins are self-evidently tappable. */
   .map__key { display: none; }
   .map__strip { padding: 0.65rem 0.8rem; gap: 0.4rem 1rem; }
   .area__subs { font-size: 0.625rem; }

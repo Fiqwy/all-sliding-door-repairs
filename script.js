@@ -43,29 +43,131 @@ function imgHtml(photo, extraClass = '', loading = 'lazy') {
          ` loading="${esc(loading)}" decoding="async" alt="${esc(photo.alt)}"${cap}>`;
 }
 
+// 🚨 P15 — THE FIX FOR THE DEFECT THE CLIENT REPORTED: A PHOTO SLOT
+// PAINTING ITS ALT TEXT INSTEAD OF A PICTURE. It is a LOADING failure,
+// not a 404 — every path returns 200.
+//
+// `loading="lazy"` is resolved against the VIEWPORT, and two of this
+// page's photo components defeat that:
+//
+//   · #work is a HORIZONTALLY scrolling rail. WebKit (Safari, i.e. the
+//     iPhone this was seen on) only treats a lazy candidate as near the
+//     viewport within a narrow HORIZONTAL margin, so cards more than
+//     about two viewport widths to the right are never fetched until
+//     the rail is dragged to them. Reproduced on the live site in
+//     headless WebKit at 390: three of nine rail images at
+//     naturalWidth 0 with the rail fully in view and the page settled.
+//     The same run in Chromium is clean, which is why every desktop
+//     check has passed for three phases.
+//   · #services is a two-row grid whose bottom row can be scrolled
+//     PAST faster than the lazy loader reacts, and once a lazy image is
+//     far above the viewport the browser will not fetch it until it
+//     comes back. Measured at 1440: cards 5 and 6 at naturalWidth 0
+//     after a fast pass down the page.
+//
+// Both are the same defect with the same cure: keep the band's images
+// free until the visitor actually reaches the band, then stop being
+// clever. `wakeImages()` promotes them all to eager in one go on the
+// FIRST intersection, so before that moment the band still costs zero
+// bytes and after it there is no positional heuristic left in the path.
+//
+// ⛔ Not conditional on Save-Data. A photograph that renders as a
+// paragraph of alt text is not a saving.
+// ⚠️ Each band gets its OWN observer. An earlier draft hung the rail's
+// wake-up off the reel's observer; if `work.reel` were ever pulled from
+// content.js, ten photographs would silently fall back to Safari's
+// heuristic with nothing in the diff to explain it.
+function wakeImages(root) {
+  if (!root) return;
+  const go = () => $$('img', root).forEach(im => {
+    if (im.naturalWidth) return;
+    im.setAttribute('fetchpriority', 'low');
+    im.loading = 'eager';
+  });
+  if (!('IntersectionObserver' in window)) { go(); return; }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      go();
+    });
+  }, { rootMargin: '250px 0px' });
+  io.observe(root);
+}
+
 // ============================================================
 // 1. SMS — the site's one repeated idea
 // ============================================================
 // ⚠️ ORDER MATTERS AND IT IS NOT COSMETIC.
-// details (what the CTA is about) → symptom (what they tapped)
-// → FILL-IN BLANKS, ALWAYS LAST. `data-sms-body` holds the DETAILS
-// ONLY and must never contain the blanks.
+// what the message is about → FILL-IN BLANKS, ALWAYS LAST.
+// `data-sms-body` holds the DETAILS ONLY and must never contain the
+// blanks: anything appended after them lands inside the visitor's own
+// half-typed answer and destroys every CTA on the page.
 const SMS_FILL_INS = content.booking.fillIns;
 
 let symptomPicks = [];
 
-function symptomSuffix() {
-  if (!symptomPicks.length) return '';
-  return symptomPicks.map(id => {
-    const s = content.symptoms.find(x => x.id === id);
-    return s ? s.smsBody : '';
-  }).filter(Boolean).join(' ');
+// ⭐ P15 — THE COMPOSER. This is the one piece of copy on the site the
+// VISITOR puts their own name to, and until now it read like a form
+// dump: each chip carried a whole sentence and they were concatenated
+// in tap order, so three chips produced "My sliding door is stuck and
+// hard to slide. My sliding door has jumped off its track. My sliding
+// door won't lock properly." — the same four words three times.
+//
+// Now the chips carry either a `clause` (a predicate that hangs off one
+// shared subject) or a `solo` (a lowercase independent clause with its
+// own subject). See the rules above content.symptoms.
+//
+//   greeting + first clause (lowercase) + "." + any further clauses as
+//   their own sentences + the photo line + the blanks
+//
+// ⚠️ ARRAY ORDER, NOT TAP ORDER. Tap order produced a different
+// sentence for the same three chips depending on which was pressed
+// first. The preview under the chips shows the exact string that will
+// open, so the ordering is never a surprise.
+const oxford = (parts) => parts.length < 2
+  ? (parts[0] || '')
+  // The comma before "and" is not a style tic: several predicates
+  // contain their own "and" ("sticks and is hard to slide"), and
+  // without it a two-item list reads as one run-on clause.
+  : `${parts.slice(0, -1).join(', ')}, and ${parts[parts.length - 1]}`;
+
+function symptomSentences() {
+  if (!symptomPicks.length) return [];
+  const picked = content.symptoms.filter(s => symptomPicks.includes(s.id));
+  const out = [];
+  const clauses = picked.filter(s => s.clause).map(s => s.clause);
+  if (clauses.length) out.push(`my sliding door ${oxford(clauses)}`);
+  picked.filter(s => s.solo).forEach(s => out.push(s.solo));
+  return out;
+}
+
+// The full body, exactly as the messages app will receive it. The
+// preview renders THIS, so what the visitor is shown and what opens can
+// never diverge.
+function composeSmsBody(details, fillIns = SMS_FILL_INS) {
+  const b = content.booking;
+  const sentences = symptomSentences();
+  let lead;
+  if (sentences.length) {
+    // First clause is lowercase because the greeting ends in a comma;
+    // every following clause becomes its own capitalised sentence.
+    const [first, ...rest] = sentences;
+    lead = b.smsGreeting + first + '.'
+         + rest.map(s => ' ' + s.charAt(0).toUpperCase() + s.slice(1) + '.').join('')
+         + ' ' + b.smsPhotoLine;
+  } else {
+    // NOTHING PICKED: the message is the CTA's own sentence, unchanged.
+    // Every `smsBody` in content.js is already a complete, natural text,
+    // so the zero-chip state of every button on the page is exactly
+    // what that button has always sent.
+    lead = String(details || '').trim();
+  }
+  return lead ? `${lead} ${fillIns}` : fillIns;      // blanks LAST, always
 }
 
 function buildSmsHref(details, fillIns = SMS_FILL_INS) {
-  const lead = [String(details || '').trim(), symptomSuffix()].filter(Boolean).join(' ');
-  const body = lead ? `${lead} ${fillIns}` : fillIns;   // blanks LAST, always
-  return `${content.booking.smsHref}?&body=${encodeURIComponent(body)}`;
+  return `${content.booking.smsHref}?&body=${encodeURIComponent(composeSmsBody(details, fillIns))}`;
 }
 
 function refreshSmsLinks() {
@@ -395,23 +497,32 @@ function renderProblem() {
   const preview = $('#symptomPreview');
   const sendBtn = $('#problemSms');
   function paint() {
-    const body = symptomSuffix();
+    const picked = symptomPicks.length > 0;
     // The label only says "that" once there IS a that. With nothing
     // picked the button is the same free-quote ask as every other CTA
     // on the page, and its body carries the photo sentence, so the
     // message is never a bare set of fill-in blanks.
-    sendBtn.textContent = body ? content.problem.ctaLabel : content.problem.ctaLabelEmpty;
-    // data-sms-body is the DETAILS ONLY. buildSmsHref appends the
-    // symptom suffix and then the fill-in blanks, in that order — put
-    // the suffix in here as well and every sentence ships twice.
+    sendBtn.textContent = picked ? content.problem.ctaLabel : content.problem.ctaLabelEmpty;
+    // data-sms-body is the DETAILS ONLY — it is what the message says
+    // when NO chip is pressed. composeSmsBody() replaces it entirely
+    // once there are picks, and appends the fill-in blanks either way.
     sendBtn.dataset.smsBody = content.problem.ctaSmsLead;
+    // ⭐ P15 — THE PREVIEW IS NOW THE MESSAGE, NOT A SUMMARY OF IT.
+    // It used to print the symptom sentences only, so the string on the
+    // page and the string that opened in the messages app were
+    // different objects and the blanks the visitor is asked to fill in
+    // appeared nowhere until the app opened. It renders composeSmsBody()
+    // verbatim now, so "Your message so far" is literally true and the
+    // risk-reversal line under it ("nothing sends until you press
+    // send") is checkable by the person reading it.
     // A11Y-M3: never toggle `hidden` on a live region. Emptying it is
     // enough — an empty element is still in the accessibility tree, so
     // the NEXT injection is announced, and clearing it announces the
     // removal. `.picker__preview:empty { display: none }` does the
     // visual half in CSS, so nothing on screen changed.
-    preview.innerHTML = body
-      ? `<span class="k">${esc(content.problem.previewLabel)}</span>` + esc(body)
+    preview.innerHTML = picked
+      ? `<span class="k">${esc(content.problem.previewLabel)}</span>` +
+        esc(composeSmsBody(content.problem.ctaSmsLead))
       : '';
     refreshSmsLinks();
   }
@@ -539,6 +650,8 @@ function renderServices() {
      </figure>`;
 
   const label = s.detailsLabel;
+  // see wakeImages(): the bottom row of this grid was measurably
+  // scrolled past unloaded at 1440.
 
   $('#servicesMount').innerHTML = s.items.map((it, i) => {
     const hasPhoto = !!(it.photo && it.photo.src);
@@ -566,6 +679,7 @@ function renderServices() {
       </details>
     </article>`;
   }).join('');
+  wakeImages($('#servicesMount'));
 
   // P14 — THE BAND'S NEXT STEP. Deliberately the mono go-link idiom the
   // area pages already use inside this same band, not a `.btn`: six
@@ -726,6 +840,8 @@ function renderWork() {
     }, { threshold: 0.25 });
     io.observe(rail);
   }
+
+  wakeImages(rail);
 }
 
 // --- 7b · THE ONE REAL BEFORE/AFTER ------------------------------
@@ -783,6 +899,25 @@ function renderStory() {
   const s = content.story;
   $('#storyHead').innerHTML = headHtml(s, 'storyHeadH2');   // A11Y-M2
   $('#story').setAttribute('aria-labelledby', 'storyHeadH2');
+  // ⭐ P15 — THE WHOLE VERBATIM RUN IS INSIDE THE ATTRIBUTED BLOCK NOW.
+  // `body[0]` and `body[1]` are BOTH his own About-page paragraphs,
+  // quoted and never reworded (see the note above `story.body`), but the
+  // renderer used to print `body[0]` as unmarked site prose and attribute
+  // only the rest. That was survivable while the site narrated in the
+  // third person. Since P15 the site speaks as Lachlan in the FIRST
+  // person, and `body[0]` is written in the third ("…was established in
+  // 2002 by Craig Board. Now his son, Lachlan has taken over…") — so
+  // unattributed it read as the page contradicting its own voice three
+  // lines under "I didn't pick this trade."
+  //
+  // It is not reworded to fix that, because the rails forbid rewording
+  // his sourced copy. It is ATTRIBUTED, which is what it always should
+  // have been: `quoteAttr` now heads both paragraphs, the third person
+  // is explained by the label above it, and the only words the page
+  // speaks in its own voice are first person.
+  // ⚠️ `moreLabel`'s <details> still wraps only the LATER paragraphs —
+  // the first one must never be collapsed behind a summary, because it
+  // is the one that settles the generation count at two.
   const [p1, ...rest] = s.body;
   $('#storyMount').innerHTML =
     `<div class="gens">
@@ -796,15 +931,15 @@ function renderStory() {
          </div>`).join('')}
      </div>
      <div class="story__body">
-       <p>${esc(p1)}</p>
-       ${rest.length ? `
        <div class="story__quoted">
          <p class="story__attr mono-label">${esc(s.quoteAttr)}</p>
+         <p>${esc(p1)}</p>
+         ${rest.length ? `
          <details class="story__more" data-macc open>
            <summary>${esc(s.moreLabel)}${CHEV}</summary>
            <div>${rest.map(p => `<p>${esc(p)}</p>`).join('')}</div>
-         </details>
-       </div>` : ''}
+         </details>` : ''}
+       </div>
        <p class="story__italic em-serif">${esc(s.italicLine)}</p>
        <p class="story__sig">${esc(s.signature)}</p>
      </div>`;
@@ -882,136 +1017,112 @@ function renderVoices() {
 const AREA_HREF = (slug) => `areas/${slug}.html`;
 const GO_CHEV = `<svg class="area__chev" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 2l4 4-4 4"/></svg>`;
 
-// The map is a VENDORED SVG. Every path in content.areas.map.geo was
-// generated from the Natural Earth 10m coastline by
-// design/map-build/build_map.py; nothing is fetched, so the page's
-// off-origin request count is unchanged by a map. There is no tile
-// server, no Leaflet, and no second scroll owner.
+// ============================================================
+// THE SERVICE-AREA MAP — A REAL SLIPPY MAP (P15)
+// ============================================================
+// CLIENT, 2026-08-22, after three rejections of the drawn plate:
+// "make the map look like an actual map... make it look like an actual
+// map and nice." His reference is the agency's Shocked Solar build
+// ("like what we've done for Marcos"), which is Leaflet against CARTO
+// tiles. This is that pattern.
 //
-// ⭐ P13 — THE LAYER STACK, and why it is in this order.
+// ⚠️ WHY THE DRAWN SVG PLATE IS GONE, IN ONE SENTENCE.
+// P12 and P13 both tried to make a hand-projected chart of Natural
+// Earth 10m data read as "where he works", and a chart of a coastline
+// with no suburbs, no street network and no place names cannot: the
+// visitor's test for a map is whether he can find his own street on
+// it. Three iterations of better colour did not change that, so the
+// basemap now comes from a tile server and the ONLY thing this build
+// still owns is HIS TERRITORY drawn on top of it.
 //
-// P12's plate was rejected: "make the map under where he goes look a lot
-// better, it looks really bad right now." It had inverted the grounds so
-// the SERVED area was the lightest thing on the plate and all other land
-// stepped down toward the sea — which spends the only contrast a map is
-// read by (land against water) on something that is not the geography.
-// The coastline went unreadable and the plate read as a beige blob.
+// ⚠️ THIS IS THE SITE'S ONE OFF-ORIGIN RUNTIME DEPENDENCY, AND IT IS
+// A DELIBERATE, CLIENT-CHOSEN EXCEPTION. Tiles are fetched from
+// basemaps.cartocdn.com (OpenStreetMap data, CARTO Voyager raster).
+// Attribution is mandatory and is set on the layer; do not remove it.
+// The page has never been fully off-origin anyway (analytics.js POSTs
+// a beacon on every load), but this is the first VISIBLE dependency:
+// if CARTO is unreachable the plate must still be a map, which is what
+// the `tileerror` fallback below is for.
 //
-// The rule now is ordinary cartographic orientation: ALL LAND IS LAND,
-// one parchment, and the ocean is the only dark element, on the east
-// where it belongs. The service area is a TERRITORY MARKED ON that
-// land. Eleven layers, every one derived from the same projection,
-// painted back to front:
-//
-//   1  sea            --ink, the only dark ground on the plate
-//   2  graticule      real quarter-degree lat/lon hairlines, cream 0.085.
-//                     Painted UNDER the land, so it only shows in water.
-//   3  shelf          three strokes of the OPEN coastline at 34/18/7 and
-//                     0.05/0.06/0.09 cream. Under the land, so only the
-//                     seaward half survives: the coast glow of a chart.
-//   4  land           --map-land, EVERY piece of land including the
-//                     islands, so Moreton Bay reads as a bay
-//   5  envelope       --map-served: the same parchment, brass-tinted.
-//                     No drop shadow — a territory drawn on a map does
-//                     not float above it (P12 gave it one, which is
-//                     part of why the plate read as a diagram).
-//   6  envelope rim   a 22-unit bronze stroke CLIPPED to the envelope,
-//                     i.e. an inner rim light, not a second outline
-//   7  motorway       the M1 spine, bronze 0.38 — one road line is what
-//                     makes a map read as a map. CLIPPED TO LAND.
-//   8  river          the Brisbane River, --ink 0.30, which is what
-//                     puts Brisbane where a Brisbane reader expects it.
-//                     Clipped to land for the same reason.
-//   9  envelope edge  the 3.2-unit brass edge itself, over both
-//  10  shore          a 1.6-unit --ink hairline on the coastline
-//  11  isle           the same hairline on the islands, without which
-//                     they read as smudges at a 350px plate
-//
-// ⚠️ THE PINS AND LABELS ARE HTML, NOT SVG, AND THAT IS THE POINT.
-// SVG <text> in a viewBox scales with the plate, which is why the old
-// build needed a 30-unit label at desktop and a 42-unit one at ≤640 and
-// still could not give a pin a 44px tap target without an r=78 invisible
-// circle. As HTML the label is a real chip from the type system on a
-// real --card plate, it sets at one size at every plate width, the
-// anchor IS 44x44, and focus is a normal CSS ring. The geometry still
-// comes from the same generated data: each pin is placed at the
-// xPct/yPct the build script emits.
-//
-// Interaction is one idea used twice: a region is either hovered or
-// focused, in the list OR on the map, and both halves light up. It is
-// colour, shadow and opacity only, so reduced motion only has to turn
-// the transition off, not the feature.
-function mapSvg(a) {
-  const g = a.map.geo;
-  const byslug = Object.fromEntries(a.regions.map(r => [r.slug, r]));
-  const pins = g.regions.map(m => {
-    const r = byslug[m.slug];
-    if (!r) return '';
-    return `<a class="map__pin" href="${esc(AREA_HREF(m.slug))}" data-region="${esc(m.slug)}"
-               data-side="${esc(m.side)}" style="--px:${m.xPct}%;--py:${m.yPct}%"
-               aria-label="Sliding door repairs in ${esc(r.name)}">
-              <span class="map__dot" aria-hidden="true"></span>
-              <span class="map__tag" aria-hidden="true">${esc(r.name)}</span>
-            </a>`;
-  }).join('');
+// ⚠️ NOTHING LOADS UNTIL #areas IS NEARLY ON SCREEN — NOT THE TILES,
+// NOT LEAFLET ITSELF. leaflet.js (144 kB) and leaflet.css (14 kB) are
+// vendored in vendor/ and injected by the SAME IntersectionObserver
+// that triggers the first tile request, so the first view of this page
+// costs exactly zero bytes for the map, exactly as the drawn plate
+// did. There is no <script> or <link> for Leaflet in index.html and
+// there must not be one: adding it puts 158 kB on the critical path
+// for a section most visitors never reach.
+const LEAFLET_CSS = 'vendor/leaflet.css';
+const LEAFLET_JS  = 'vendor/leaflet.js';
+const TILE_URL    = 'https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png';
+// CARTO's terms require BOTH credits, and OpenStreetMap's licence
+// requires the ODbL link. ⛔ Never trim this string.
+const TILE_ATTRIB = '&copy; <a href="https://www.openstreetmap.org/copyright" rel="noopener">OpenStreetMap</a> contributors, &copy; <a href="https://carto.com/attributions" rel="noopener">CARTO</a>';
 
-  // ⚠️ A11Y-M1 (4.1.2 · 1.3.1) — the history, because it constrains this.
-  // The <svg> once carried `role="img"`, which makes its ENTIRE SUBTREE
-  // presentational by ARIA rule, and that subtree then held five
-  // focusable links. The fix at the time was to strip the role. Now that
-  // the links are HTML siblings the <svg> owns no focusable content at
-  // all, so it can simply be aria-hidden in one place. The description
-  // is unchanged: it is the <figcaption>'s first sentence, real text
-  // every visitor gets, and each pin keeps its own aria-label.
-  const grat = g.graticule.map(d => `<path d="${esc(d)}"></path>`).join('');
-  const shelf = [[34, '.05'], [18, '.06'], [7, '.09']]
-    .map(([w, o]) => `<path d="${esc(g.coast)}" stroke-width="${w}" stroke-opacity="${o}"></path>`).join('');
-  const islands = g.islands.map(d => `<path class="map__land" d="${esc(d)}"></path>`).join('');
-  const isleEdge = g.islands.map(d => `<path class="map__isle" d="${esc(d)}"></path>`).join('');
+// 🚨 DO NOT SIMPLIFY THIS TO `if (window.L)`. THE MINIFIED GSAP BUNDLE
+// IN vendor/ LEAKS A GLOBAL CALLED `L` (one of its internal one-letter
+// variables escapes its UMD wrapper), so `window.L` is a function on
+// this page BEFORE Leaflet has been fetched at all. The first build of
+// this map resolved on that global and died on `L.map is not a
+// function` with the plate showing its offline message. Feature-detect
+// the API, never the name. ⚠️ The same latent trap exists in the
+// Shocked Solar build this pattern came from.
+const isLeaflet = (o) => !!(o && typeof o.map === 'function' && typeof o.tileLayer === 'function');
+
+let leafletPromise = null;
+function loadLeaflet() {
+  if (leafletPromise) return leafletPromise;
+  leafletPromise = new Promise((resolve, reject) => {
+    if (isLeaflet(window.L)) { resolve(window.L); return; }
+    const css = document.createElement('link');
+    css.rel = 'stylesheet';
+    css.href = LEAFLET_CSS;
+    document.head.appendChild(css);
+    const js = document.createElement('script');
+    js.src = LEAFLET_JS;
+    js.async = true;
+    js.onload = () => (isLeaflet(window.L) ? resolve(window.L) : reject(new Error('leaflet loaded but window.L is not Leaflet')));
+    js.onerror = () => reject(new Error('leaflet failed to load'));
+    document.head.appendChild(js);
+  });
+  return leafletPromise;
+}
+
+// Brand colours come out of :root, so the map can never drift from the
+// palette and no hex is duplicated between the stylesheet and here.
+function token(name, fallback) {
+  const v = getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+  return v || fallback;
+}
+
+// The plate's markup. The Leaflet canvas replaces the SVG field; every
+// other piece of chrome — the rim, the radius, the key strip below the
+// field and the caption under it — is P12/P13's and is unchanged, so
+// the component still reads as part of this site rather than as an
+// embedded widget.
+function mapFigure(a) {
   return `<figure class="map">
-    <div class="map__plate">
+    <div class="map__plate" id="areaMapPlate">
       <div class="map__field">
-        <svg class="map__svg" viewBox="${esc(g.viewBox)}" focusable="false" aria-hidden="true">
-          <defs>
-            <clipPath id="mapEnvClip"><path d="${esc(g.envelope)}"></path></clipPath>
-            <clipPath id="mapLandClip"><path d="${esc(g.land)}"></path></clipPath>
-          </defs>
-          <rect class="map__sea" x="0" y="0" width="100%" height="100%"></rect>
-          <g class="map__grat">${grat}</g>
-          <g class="map__shelf">${shelf}</g>
-          <path class="map__land" d="${esc(g.land)}"></path>
-          ${islands}
-          <path class="map__area" d="${esc(g.envelope)}"></path>
-          <g clip-path="url(#mapEnvClip)"><path class="map__area-glow" d="${esc(g.envelope)}"></path></g>
-          <g clip-path="url(#mapLandClip)">
-            ${g.roads.map(d => `<path class="map__road map__road--minor" d="${esc(d)}"></path>`).join('')}
-            <path class="map__road" d="${esc(g.motorway)}"></path>
-            ${g.rivers.map(d => `<path class="map__river" d="${esc(d)}"></path>`).join('')}
-          </g>
-          <path class="map__area-edge" d="${esc(g.envelope)}"></path>
-          <path class="map__shore" d="${esc(g.coast)}"></path>
-          ${isleEdge}
-        </svg>
-        <div class="map__pins">${pins}</div>
+        <div class="map__canvas" id="areaMapCanvas"></div>
+        <p class="map__hint" id="areaMapHint" aria-hidden="true">${esc(a.map.hint)}</p>
+        <p class="map__dead" id="areaMapDead" role="status">${esc(a.map.deadNote)}</p>
       </div>
       <div class="map__strip">
         <p class="map__legend mono-label"><span class="map__swatch" aria-hidden="true"></span>${esc(a.map.legend)}</p>
         <p class="map__key mono-label"><span class="map__keydot" aria-hidden="true"></span>${esc(a.map.keyLabel)}</p>
-        <p class="map__scale mono-label" aria-hidden="true">
-          <span class="map__bar" style="--sw:${g.scale.pct}"></span>${esc(g.scale.label)}
-        </p>
       </div>
     </div>
     <figcaption class="map__note"><span class="visually-hidden">${esc(a.map.alt)}</span>${esc(a.map.note)}</figcaption>
   </figure>`;
 }
 
-// ⚠️ P13 — THE SUBURB STRIP IS CAPPED AT SIX, IN THE RENDERER, NOT IN
-// THE DATA. Client: "not too much information where it doesn't need to
-// be." Gold Coast listed eleven suburbs, Logan and Ipswich eight; at
-// 1440 that wrapped every row to two lines and turned a five-item list
-// into a wall of place names nobody reads to the end of. Six is the
-// number that holds ONE line at 1440 for every region.
+// ⚠️ P13's SUBURB CAP IS UNCHANGED. Client: "not too much information
+// where it doesn't need to be." Gold Coast listed eleven suburbs,
+// Logan and Ipswich eight; at 1440 that wrapped every row to two lines
+// and turned a five-item list into a wall of place names nobody reads
+// to the end of. Six is the number that holds ONE line at 1440 for
+// every region.
 //   · the DATA is untouched — `suburbs` stays complete, because the
 //     region page's own intro prose names every one of them and the
 //     row links straight to it.
@@ -1029,7 +1140,7 @@ function renderAreas() {
   $('#areasHead').innerHTML = headHtml(a, 'areasHeadH2');
   $('#areas').setAttribute('aria-labelledby', 'areasHeadH2');
   $('#areasMount').innerHTML =
-    `<div class="areas__map reveal reveal--up" data-reveal>${mapSvg(a)}</div>
+    `<div class="areas__map reveal reveal--up" data-reveal>${mapFigure(a)}</div>
      <div class="areas__card reveal reveal--rtl" data-reveal>
       ${a.regions.map(r =>
         // A11Y-A4: the row's accessible name was the region PLUS its
@@ -1075,6 +1186,210 @@ function initAreaMap() {
   root.addEventListener('focusout', (e) => {
     if (!root.contains(e.relatedTarget)) set(null);
   });
+
+  mountMapWhenNear(set);
+}
+
+// ⚠️ THE GATE. Everything about the map — the library, the stylesheet,
+// the first tile — hangs off this one observer, and 320px of rootMargin
+// is the whole budget conversation: the map costs nothing until #areas
+// is about a third of a screen away, and by the time it is on screen the
+// tiles are painted. Same pattern the work reel uses, same reason.
+function mountMapWhenNear(setLit) {
+  const plate = $('#areaMapPlate');
+  if (!plate) return;
+  if (!('IntersectionObserver' in window)) { mountMap(setLit); return; }
+  const io = new IntersectionObserver(entries => {
+    entries.forEach(e => {
+      if (!e.isIntersecting) return;
+      io.disconnect();
+      mountMap(setLit);
+    });
+  }, { rootMargin: '320px 0px' });
+  io.observe(plate);
+}
+
+function mountMap(setLit) {
+  const el = $('#areaMapCanvas');
+  const plate = $('#areaMapPlate');
+  if (!el || !plate) return;
+
+  loadLeaflet().then(L => buildMap(L, el, plate, setLit)).catch((err) => {
+    console.warn('[map] not mounted —', err && err.message);
+    // Leaflet itself could not be fetched. The plate says so in one
+    // sentence rather than sitting there as an empty grey box, and the
+    // region list beside it — which is the actual information — is
+    // untouched. #areaMapDead is already in the DOM and already a
+    // status region; it only becomes visible.
+    plate.classList.add('map--dead');
+  });
+}
+
+function buildMap(L, el, plate, setLit) {
+  const a = content.areas;
+  const g = a.map.geo;
+  const INK    = token('--ink', '#0F2132');
+  const BRONZE = token('--bronze', '#8A5A24');
+
+  // ⚠️ INTERACTION DISCIPLINE — every one of these is a rail, not a
+  // preference, and each has a reason on the line above it.
+  const map = L.map(el, {
+    // The page owns the wheel. A map that eats a scroll gesture is the
+    // single worst thing an embedded map does, and this site's whole
+    // motion doctrine is that scrolling is never hijacked.
+    scrollWheelZoom: false,
+    // On a touch device the map starts INERT and the hint says so, so a
+    // thumb dragging past #areas scrolls the page instead of panning
+    // the map. One tap turns dragging on for the rest of the visit.
+    dragging: !NO_HOVER,
+    zoomControl: true,
+    attributionControl: true,
+    keyboard: true,
+    zoomSnap: 0.25,
+    minZoom: 7,
+    maxZoom: 14,
+    // Reduced motion gets the static frame it is entitled to: no zoom
+    // easing, no tile cross-fade, no marker travel. There is no fly-to
+    // anywhere in this component at any setting.
+    zoomAnimation: !REDUCED,
+    fadeAnimation: !REDUCED,
+    markerZoomAnimation: !REDUCED
+  });
+  map.attributionControl.setPrefix('');
+
+  const tiles = L.tileLayer(TILE_URL, {
+    attribution: TILE_ATTRIB,
+    subdomains: 'abcd',
+    maxZoom: 19,
+    className: 'map__tiles',
+    // Cross-origin images with no credentials, so a broken tile is a
+    // clean error we can count rather than a console mystery.
+    crossOrigin: true
+  });
+  // THE FALLBACK, AND IT IS NOT DECORATION. If CARTO is unreachable —
+  // offline, blocked, a corporate proxy — the plate must not be an
+  // empty grey void. `.map--notiles` gives the canvas the same
+  // parchment ground the drawn plate used, and the envelope and the
+  // five pins are already vector, so what is left is a legible
+  // basemap-less map of his patch rather than nothing at all.
+  let tileErrors = 0;
+  tiles.on('tileerror', () => {
+    if (++tileErrors >= 3) plate.classList.add('map--notiles');
+  });
+  tiles.on('tileload', () => { plate.classList.add('map--tiled'); });
+  tiles.addTo(map);
+
+  // HIS TERRITORY. `envLatLng` is the same ring the drawn plate used,
+  // inverse-projected by build_map.py: the east edge IS the Natural
+  // Earth coastline between Sandgate and Pottsville, the west and south
+  // are the nine named inland places. Two strokes, because one line on
+  // a busy basemap disappears: a wide brass casing underneath, then the
+  // navy boundary itself on top of it.
+  L.polygon(g.envLatLng, {
+    color: BRONZE, weight: 9, opacity: 0.28,
+    fill: false, interactive: false,
+    lineJoin: 'round', lineCap: 'round'
+  }).addTo(map);
+  const envelope = L.polygon(g.envLatLng, {
+    color: INK, weight: 2, opacity: 0.85,
+    fillColor: BRONZE, fillOpacity: 0.13,
+    interactive: false,
+    lineJoin: 'round', lineCap: 'round'
+  }).addTo(map);
+
+  // THE PINS ARE THE SAME DRAWING AS THE ROWS. divIcon, not an image
+  // marker, so the dot and its label chip are the site's own components
+  // (--card plate, --bronze dot, real type) and the anchor box is
+  // 44 x 44 by construction — Leaflet is told the icon is 44 x 44 and
+  // anchors it at its centre, so there is no invisible hit circle to
+  // keep in sync with anything.
+  //
+  // `data-region` on the icon root is what wires it into the EXISTING
+  // cross-highlight: initAreaMap()'s delegated listeners are on
+  // #areasMount, the map lives inside #areasMount, so hovering a pin
+  // lights its row and hovering a row lights its pin with no new code.
+  const bySlug = Object.fromEntries(a.regions.map(r => [r.slug, r]));
+  const SIDE_DIR = { w: 'left', e: 'right', s: 'bottom' };
+  g.regions.forEach(m => {
+    const r = bySlug[m.slug];
+    if (!r) return;
+    const icon = L.divIcon({
+      className: 'map__pinwrap',
+      html: `<span class="map__pin" data-region="${esc(m.slug)}" data-side="${esc(m.side)}">
+               <span class="map__dot" aria-hidden="true"></span>
+               <span class="map__tag">${esc(r.name)}</span>
+             </span>`,
+      iconSize: [44, 44],
+      iconAnchor: [22, 22]
+    });
+    const marker = L.marker([m.lat, m.lng], {
+      icon,
+      keyboard: true,
+      riseOnHover: true,
+      // The accessible name of the marker. The <figcaption> already
+      // gives every visitor the description of the whole plate; this is
+      // the one region.
+      alt: `Sliding door repairs in ${r.name}`,
+      title: r.name
+    }).addTo(map);
+    // Tapping a pin does what tapping the row does: it goes to that
+    // region's page. A popup would be a second, weaker copy of the row
+    // that is already beside it, on a device where the row is easier to
+    // hit. One destination, one behaviour.
+    marker.on('click', () => { window.location.href = AREA_HREF(m.slug); });
+    marker.on('mouseover', () => setLit(m.slug));
+    marker.on('mouseout',  () => setLit(null));
+    // Keyboard: Leaflet's markers are focusable, and Enter fires click.
+    marker.on('focus', () => setLit(m.slug));
+    marker.on('blur',  () => setLit(null));
+    // `side` is emitted by build_map.py beside the coordinates and is a
+    // LAYOUT fact: it keeps Brisbane, the Gold Coast and Tweed Heads
+    // hanging WEST, over his own ground, instead of printing an opaque
+    // place-name chip on Moreton Bay or on the Pacific.
+    marker.bindTooltip('', { permanent: false, opacity: 0, direction: SIDE_DIR[m.side] || 'left' });
+  });
+
+  // A STATIC FIRST FRAME. fitBounds to his patch with `animate: false`
+  // at every motion setting — the map is simply already showing the
+  // right place when it appears, which is also why there is no
+  // setView-then-flyTo anywhere.
+  map.fitBounds(envelope.getBounds(), { padding: [26, 26], animate: false });
+  // The visitor may pan, but never off into the Pacific or out to
+  // Longreach: the frame stays a frame around south-east Queensland.
+  map.setMaxBounds(envelope.getBounds().pad(0.55));
+  map.setMinZoom(Math.max(7, map.getZoom() - 1.5));
+
+  L.control.scale({ metric: true, imperial: false, position: 'bottomleft', maxWidth: 110 }).addTo(map);
+
+  // The tap-to-interact affordance, and it is only ever shown on a
+  // device that needs it: `dragging` was started disabled above for
+  // coarse pointers, so until the visitor opts in, a swipe over the map
+  // scrolls the page.
+  const hint = $('#areaMapHint');
+  if (NO_HOVER) {
+    plate.classList.add('map--inert');
+    const wake = () => {
+      map.dragging.enable();
+      plate.classList.remove('map--inert');
+      el.removeEventListener('click', wake);
+    };
+    el.addEventListener('click', wake);
+  } else if (hint) {
+    hint.remove();
+  }
+
+  // The canvas is inside a clip-path reveal and inside a grid column
+  // that resolves after fonts land; Leaflet measures once at
+  // construction, so it has to be told when the box it measured is no
+  // longer the box it is in.
+  if ('ResizeObserver' in window) {
+    let first = true;
+    new ResizeObserver(() => {
+      if (first) { first = false; return; }
+      map.invalidateSize({ animate: false });
+    }).observe(el);
+  }
+  setTimeout(() => map.invalidateSize({ animate: false }), 400);
 }
 
 // --- 12 · FAQ ----------------------------------------------------

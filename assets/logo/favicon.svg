@@ -1,8 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32"
-     fill="#8A5A24" shape-rendering="geometricPrecision"
+     fill="#8A5A24" shape-rendering="crispEdges"
      role="img" aria-label="All Sliding Door Repairs">
   <path d="M0 0h32v2H0z"/>
   <path d="M0 28h32v4H0z"/>
-  <path fill-rule="evenodd" d="M4 6h10v18H4zM6 8v14h6V8z"/>
+  <path fill-rule="evenodd" d="M4 6h10v18H4zM6 8v12h6V8z"/>
   <path d="M16 4h12v22H16z"/>
 </svg>

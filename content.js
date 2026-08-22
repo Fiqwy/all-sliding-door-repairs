@@ -243,7 +243,7 @@ const base = {
     eyebrow: "Gold Coast\u00a0· Brisbane\u00a0· Logan\u00a0· Tweed\u00a0· Ipswich",   // Redlands deliberately omitted, CONFIRM 4. Five regions nobody disputes.
     headline1: "Your sliding door doesn't need replacing.",
     headline2: "It needs rollers, a track, and someone who does this every day.", // the ONE hero italic (DESIGN.md §7)
-    lede: "Rollers, tracks, locks, side frames, security screens and mesh, all repaired in your own doorway. <b>Send Lachlan a photo of the door</b> and he'll tell you what it needs.",
+    lede: "Rollers, tracks, locks, side frames, security screens and mesh, all repaired in your own doorway. <b>Send me a photo of the door</b> and I'll tell you what it needs.",
     spec: [
       { key: "FROM", value: "$150 +GST" },                  // CONFIRM 9 on the scope. The "+GST" itself is substantiated: ABR shows him GST-registered from 01 Jul 2021.
       { key: "WORKMANSHIP WARRANTY", value: "12 months" },  // ✓ his words
@@ -271,13 +271,13 @@ const base = {
       // 1440 AND at 390.
       { key: "QUOTES", value: "Free by text" }
     ],
-    primaryCta: { label: "Send Lachlan a photo", smsBody: "Hi Lachlan, here's a photo of my door." },
+    primaryCta: { label: "Send me a photo", smsBody: "Hi Lachlan, here's a photo of my door." },
     secondaryCtaLabel: "Call",
     // P4b-HONESTY (was "One tradesman, three generations of it. He
     // answers his own phone."). Second generation, and the date is now
     // the proof: "established in 2002 by Craig Board. Now his son,
     // Lachlan has taken over." A name and a year beat a vague count.
-    note: "One tradesman, second generation. His dad started it in 2002, and he answers his own phone.",
+    note: "One tradesman, second generation. My dad started it in 2002, and I answer my own phone.",
 
     // ==========================================================
     // THE HERO REEL — full-bleed, behind everything.
@@ -396,7 +396,7 @@ const base = {
     // rendered visually — pickerLabel already says it on screen.
     chipGroupLabel: "What the door is doing",
     previewLabel: "Your message so far",
-    ctaLabel: "Send that to Lachlan",
+    ctaLabel: "Send that to me",
     // ⚠️ THE ZERO-CHIP STATE. renderProblem() used to write
     // data-sms-body="" and leave the button reading "Send that to
     // Lachlan", so pressing it with nothing selected composed a message
@@ -406,7 +406,7 @@ const base = {
     // mechanic. The lead sentence below is now the body floor, and the
     // label changes until a chip is pressed.
     ctaSmsLead: "Hi Lachlan, here's a photo of my door.",
-    ctaLabelEmpty: "Send Lachlan a photo",
+    ctaLabelEmpty: "Send me a photo",
     // The only mechanically TRUE urgency this business has, stated in
     // the one section built entirely out of the symptoms it produces.
     // Restates value.body and his own verbatim line from the glass-door
@@ -426,18 +426,62 @@ const base = {
     ctaHint: "The quote is free. It opens your own messages, already written, and nothing sends until you press send."
   },
 
-  // Bodies concatenate in TAP order, not array order, so no body may
-  // rely on a preceding sentence for its subject and none may begin
-  // with "It".
+  // ⭐ P15 — THE CHIPS NOW COMPOSE ONE SENTENCE, NOT A LIST OF THEM.
+  //
+  // What was wrong: every chip carried a complete stand-alone sentence
+  // and buildSmsHref() concatenated them in TAP order, so picking three
+  // chips produced "My sliding door is stuck and hard to slide. My
+  // sliding door has jumped off its track. My sliding door won't lock
+  // properly." — the same four words three times, in a message the
+  // customer is about to send to a tradesman from their own phone under
+  // their own name. Nobody writes like that, and this is the ONE piece
+  // of copy on the site that the visitor puts their name to.
+  //
+  // The model now has two shapes and script.js's composeSms() joins
+  // them:
+  //   · `clause`  — a PREDICATE that hangs off one shared subject,
+  //     "my sliding door ...". Six of the eight are faults of the door
+  //     itself, so they share it and the noun is said once.
+  //   · `solo`    — a lowercase INDEPENDENT clause with its own
+  //     subject, for the two that are not about the sliding door: the
+  //     mesh (which may be a window) and the wardrobe. Each becomes its
+  //     own sentence.
+  // Result, three chips: "Hi Lachlan, my sliding door sticks and is
+  // hard to slide, has jumped off its track, and won't lock properly.
+  // I'll send you a photo. My name: , Suburb: , Door type: "
+  //
+  // ⚠️ ORDER IS NO LONGER TAP ORDER, AND THAT IS DELIBERATE. The
+  // sentence is assembled in ARRAY order so the predicates always read
+  // in a fixed, grammatical sequence; tap order produced a different
+  // sentence for the same three chips depending on which was pressed
+  // first. The preview under the chips shows the exact string that will
+  // open, so nothing about the order is hidden from the visitor.
+  //
+  // ⛔ RULES FOR EDITING A CLAUSE. `clause` must be a bare predicate
+  // that reads correctly after "my sliding door" AND after a comma in a
+  // list of other predicates. It must not start with a capital, must
+  // not end with a full stop, and must not contain a full stop.
+  // `solo` must be a complete lowercase clause that stands alone with
+  // no antecedent — it can be sentence one or sentence three.
+  // `label` is what the chip says on screen and is unchanged.
   symptoms: [
-    { id: "sticks",   label: "It's stuck and hard to slide",   smsBody: "My sliding door is stuck and hard to slide." },   // "judders" is trade vocabulary. Sharon W (Southport) wrote "my stuck sliding door"; Ronald C (Reedy Creek) wrote "struggled closing the doors".
-    { id: "lift",     label: "I have to lift it to slide it", smsBody: "I have to lift my sliding door to make it slide." },
-    { id: "jumped",   label: "It's jumped the track",         smsBody: "My sliding door has jumped off its track." },
-    { id: "track",    label: "The bottom track looks worn out", smsBody: "The bottom track under my sliding door looks worn out." },  // "chewed" is HIS register and stays in value.body and faq[0], where it is his voice. A homeowner sees wear; they do not diagnose chewing.
-    { id: "lock",     label: "It won't lock",                 smsBody: "My sliding door won't lock properly." },                    // the security-fear chip, and the one that routes to #emergency
-    { id: "mesh",     label: "The fly screen is ripped",      smsBody: "The fly screen mesh in my door or window is ripped." },     // "fly screen" is the customer's word and his own
-    { id: "frame",    label: "The frame is pulling apart",    smsBody: "The side frame is pulling away from the glass." },
-    { id: "wardrobe", label: "A wardrobe or mirror door that won't run", smsBody: "My wardrobe sliding door won't run properly." }   // was "It's a wardrobe or mirror door" — the only chip that named a thing instead of a behaviour.
+    // "judders" is trade vocabulary. Sharon W (Southport) wrote "my stuck sliding door"; Ronald C (Reedy Creek) wrote "struggled closing the doors".
+    { id: "sticks",   label: "It's stuck and hard to slide",    clause: "sticks and is hard to slide" },
+    { id: "lift",     label: "I have to lift it to slide it",   clause: "only slides if I lift it" },
+    { id: "jumped",   label: "It's jumped the track",           clause: "has jumped off its track" },
+    // "chewed" is HIS register and stays in value.body and faq[0], where it is his voice. A homeowner sees wear; they do not diagnose chewing.
+    { id: "track",    label: "The bottom track looks worn out", clause: "is running on a bottom track that looks worn out" },
+    // the security-fear chip, and the one that routes to #emergency
+    { id: "lock",     label: "It won't lock",                   clause: "won't lock properly" },
+    // "fly screen" is the customer's word and his own. SOLO: the ripped
+    // mesh is as often a window as a door, so it cannot hang off "my
+    // sliding door".
+    { id: "mesh",     label: "The fly screen is ripped",        solo: "the fly screen mesh in my door or window is ripped" },
+    { id: "frame",    label: "The frame is pulling apart",      clause: "has a side frame pulling away from the glass" },
+    // was "It's a wardrobe or mirror door" — the only chip that named a
+    // thing instead of a behaviour. SOLO: a wardrobe door is a
+    // different door from the one the shared subject names.
+    { id: "wardrobe", label: "A wardrobe or mirror door that won't run", solo: "my wardrobe sliding door won't run properly" }
   ],
 
   // ==========================================================
@@ -519,7 +563,7 @@ const base = {
       trimmed: false,                // verbatim and COMPLETE, checked against _hipages-reviews.json[31]
       confirmPermission: false       // ✅ RESOLVED. Public review platform, attributed and linked. No permission needed.
     },
-    ctaLabel: "Send Lachlan a photo",
+    ctaLabel: "Send me a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
     // ⭐ THE PRICE ANCHOR. A figure with nothing beside it is a naked
     // price: $150 is only cheap against the thing it replaces. This is
@@ -537,12 +581,12 @@ const base = {
     // and its points panel, faq[7], the contact stack and the footer —
     // seven times — so a repair-against-replacement contrast buys far
     // more here than an eighth guarantee.
-    priceAnchor: "As he puts it, it's more effective to replace a roller assembly than to replace a whole door or window.",
+    priceAnchor: "It's more effective to replace a roller assembly than to replace a whole door or window.",
     // The free quote belongs AT the price. It is the one moment on the
     // page where the visitor is thinking about money, and it was the one
     // moment with no risk reversal on it. Sourced twice: his own site's
     // "Get A Free Quote" button and his IG caption.
-    priceNote: "The quote is free. Text him a photo and he'll tell you what it needs before he drives out.",
+    priceNote: "The quote is free. Text me a photo and I'll tell you what it needs before I drive out.",
     // A customer saying "great price" beats any adjective we could
     // write, and it does a DIFFERENT job from counterAnchor: Sarah
     // answers "do I need a new door?", Paul answers "is $150 fair?".
@@ -587,18 +631,18 @@ const base = {
   // Categories with no real job photo render type-only — a stock
   // product shot is never captioned as his photography.
   services: {
-    eyebrow: "What he repairs",
+    eyebrow: "What I repair",
     // The seed heading ("Six things that stop a door sliding.") promised
     // six causes and the cards deliver six types of door. This heading
     // promises exactly what the cards contain.
-    heading: "What he repairs, and what usually fails.",
+    heading: "What I repair, and what usually fails.",
     lede: "Same trade, whether it's a glass slider onto the deck, a security screen, a wardrobe or a window.",
     // NEW STRUCTURAL KEY (client direction 2026-08-21: "make it cleaner
     // on desktop so they line up nice and photos a little bigger, maybe
     // drop down info"). The detail rows now sit behind ONE drop-down
     // component at every breakpoint — this is its label. The item count
     // is appended by the renderer, so this string must not contain one.
-    detailsLabel: "What goes wrong, and what he does",   // was "What fails, and what he does": "fails" is the trade's word for it, "goes wrong" is the customer's
+    detailsLabel: "What goes wrong, and what I do",   // was "What fails, and what he does": "fails" is the trade's word for it, "goes wrong" is the customer's
     // ⭐ P14 — THE ONE BAND THAT DID NOT FUNNEL.
     // P13 flagged #services as the only band with no next step and
     // declined to guess at one ("the brief was to remove copy, not add
@@ -613,7 +657,7 @@ const base = {
     // (the defect P13 removed from #contact.italicLine).
     // ⛔ ctaLabel must stay the site's one five-word ask, verbatim.
     footLead: "Not sure which one it is? You don't need to be.",
-    ctaLabel: "Send Lachlan a photo",
+    ctaLabel: "Send me a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
     items: [
       {
@@ -649,7 +693,7 @@ const base = {
           { name: "Track replacements",  text: "When a broken door continues to be used the track can be severely damaged. Track repairs or replacements are necessary to ensure your new wheels last as long as possible." },
           { name: "Lock replacements",   text: "Brand new locks supplied and installed to suit your brand of door. Often comes with keys to lock the door from inside and out." },
           // HIS-FIXED, pronoun only. Every technical fact preserved.
-          { name: "Side frame repairs",  text: "When a door gets hard to slide it can sometimes cause the side frame to pull away from the glass. He pulls the door apart and puts it back together correctly with new screws, so it is secure to the glass again." }
+          { name: "Side frame repairs",  text: "When a door gets hard to slide it can sometimes cause the side frame to pull away from the glass. I pull the door apart and put it back together correctly with new screws, so it is secure to the glass again." }
         ]
       },
       {
@@ -674,7 +718,7 @@ const base = {
           { name: "Roller replacements",     text: "Full service including heavy duty rollers to ensure your screen door is sliding and locking with ease." },
           { name: "Track replacements",      text: "When a broken door continues to be used the track can be severely damaged. Track repairs or replacements are necessary to ensure your new wheels last as long as possible." },
           // HIS-FIXED, pronoun only.
-          { name: "Lock replacements",       text: "Brand new locks supplied and installed to suit your brand of door. He can install a new barrel with keys or reuse the one you have, depending on your situation." },
+          { name: "Lock replacements",       text: "Brand new locks supplied and installed to suit your brand of door. I can install a new barrel with keys or reuse the one you have, depending on your situation." },
           // HIS-FIXED. Fiberglass → Fibreglass (AU), flyscreen → fly
           // screen, "cat's and dog's claws" → "cats' and dogs' claws"
           // (possessive plural), "We offer 3 different types" → "Three
@@ -710,7 +754,7 @@ const base = {
           // HIS-FIXED. Pronoun, plus "glass" → "mirror or panel",
           // because on a wardrobe door it is a mirror. His own wardrobe
           // page says "glass", copied across from the glass-door page.
-          { name: "Side frame repairs",  text: "When a door gets hard to slide it can sometimes cause the side frame to pull away from the mirror or panel. He pulls the door apart and puts it back together correctly with new screws or rivets, so the frame is secured properly again." }
+          { name: "Side frame repairs",  text: "When a door gets hard to slide it can sometimes cause the side frame to pull away from the mirror or panel. I pull the door apart and put it back together correctly with new screws or rivets, so the frame is secured properly again." }
         ]
       },
       {
@@ -807,40 +851,39 @@ const base = {
   // sounds like a real tradesman rather than a call centre.
   emergency: {
     label: "AFTER HOURS",                                            // P4b-HONESTY (was "24/7")
-    heading: "Door won't shut, or won't lock? Tell him it's urgent.", // P4b-HONESTY (was "He does emergency callouts")
+    heading: "Door won't shut, or won't lock? Tell me it's urgent.", // P4b-HONESTY (was "He does emergency callouts")
     // Loss aversion at full strength, stopping exactly where honesty
     // says it should. The burglary version was drafted and cut. The
     // second sentence is his own archived wording, moved to third
     // person and NOT rounded up into an availability promise.
-    body: "A door that won't lock is a house that isn't locked. He works Monday to Friday, 8am to 4pm, and if it's urgent and it has to be done out of hours, he can help.",   // CONFIRM 12: still silent on an out-of-hours premium. If he charges one, this needs a line.
+    body: "A door that won't lock is a house that isn't locked. I work Monday to Friday, 8am to 4pm, and if it's urgent and it has to be done out of hours, I can help.",   // CONFIRM 12: still silent on an out-of-hours premium. If he charges one, this needs a line.
     ctaLabel: "Call",
 
-    // ⭐ P12 — THE FRAMED PRINT. Deferred twice (HANDOFF P9, P10) and
-    // taken here. IMG_2779 is the sharpest photograph in the whole
-    // inventory and it was a 220px rail thumbnail; this band was
-    // type-only with a 45% dead column down its middle. The pairing is
-    // the strongest available on the page: "A door that won't lock is a
-    // house that isn't locked" beside the lock.
+    // ⛔ P15 — THE FRAMED PRINT IS REMOVED, AND IT IS THE DE-DUPLICATION
+    // PASS, NOT A DESIGN REVERSAL. Client: "Make sure there's no
+    // duplicates."
     //
-    // ⚠️ THE HONESTY LINE, BECAUSE THIS BAND IS BADGED "AFTER HOURS".
-    // The photo is NOT presented as an out-of-hours callout and the
-    // caption does not say it is. It is the same lock repair, with the
-    // same wording, as work rail 02 — a lock he replaced, which is what
-    // the band is about and what #services already claims. P9's note
-    // "ZERO photos of emergency work exist, type-only by design" still
-    // holds: there is still no photo of emergency work on this site,
-    // and nothing here says otherwise.
+    // P12 put IMG_2779 (the black lock in the diamond grille) here to
+    // fill a dead column. Its own note admitted what that cost: "It is
+    // the same lock repair, with the same wording, as work rail 02."
+    // #emergency and #work are ADJACENT bands, so the sharpest
+    // photograph on the site was printed twice inside one screen of
+    // scrolling, at 268px and again at 220px, under the same six-word
+    // caption. That is the one repetition on this page a visitor could
+    // not miss.
     //
-    // ⚠️ 900px native, so DPR2 tops out at a 450 CSS px box. The frame
-    // renders at 268 and capPx says so; 1.68x of headroom.
-    photo: {
-      src: "assets/hero/security-door-lock-450.webp",
-      srcset: "assets/hero/security-door-lock-450.webp 450w, assets/hero/security-door-lock-900.webp 900w",
-      sizes: "268px",
-      width: 900, height: 1199, capPx: 268,
-      alt: "A new black lever handle and key barrel in a black security screen door with diamond grille mesh."
-    },
-    photoCaption: "New lock \u00b7 diamond grille"    // the SAME caption this photograph carries in the work rail
+    // It is removed HERE rather than from the rail because:
+    //   · the rail is the breadth section and that photograph leads it;
+    //   · this frame was hidden at ≤640 anyway (`.emergency__frame
+    //     { display: none }`), so on a phone the band has always been
+    //     type-only and nothing about the mobile page changes;
+    //   · P9's original note — "ZERO photos of emergency work exist,
+    //     type-only by design" — was right, and this restores it.
+    // ⛔ Do not put a photograph back in this band unless he sends one
+    // of an actual out-of-hours job. Any other photo here is either a
+    // duplicate or a claim the band cannot support.
+    photo: null,
+    photoCaption: null
   },
 
   // ==========================================================
@@ -849,7 +892,7 @@ const base = {
   // ⚠️ WHITE GROUND ONLY. The warm photos (track sill, cladding) go
   // dingy on the aluminium ramp — tokens.css photo caution.
   work: {
-    eyebrow: "His work",
+    eyebrow: "My work",
     heading: "Real doors, real doorways.",
     // ⚠️ THIS IS A LIVE CONSTRAINT, NOT A MARKETING LINE. It is
     // currently true: every published photo is graded R (a real job
@@ -866,12 +909,12 @@ const base = {
     // supplier product shots in assets/_source/wp/ makes THIS sentence
     // false, and it must be cut in the same commit if that ever
     // happens. See CONFIRM 6 and CLAUDE.md.
-    lede: "Every photo below is one of Lachlan's own jobs.",
+    lede: "Every photo below is one of my own jobs.",
     filterAllLabel: "All",
     // A11Y-M6: the NAME of the filter set. The chips are mutually
     // exclusive, so they are a radiogroup and a radiogroup needs a name.
     // Assistive tech only; the eyebrow says it on screen.
-    filterGroupLabel: "Filter his work by job type",
+    filterGroupLabel: "Filter my work by job type",
     // A11Y-H3: pressing a filter silently swapped the rail from ten
     // items to two. The only feedback on the page was the "03 / 10"
     // counter, which is deliberately aria-hidden because it is
@@ -914,17 +957,6 @@ const base = {
         width: 900, height: 1199, capPx: 450, cats: ["lock", "screen", "mesh"], slot: "l",
         alt: "A new black lever handle and key barrel in a black security screen door with diamond grille mesh.",
         railCaption: "New lock · diamond grille" },
-      // 2026-08-22: was mesh-window-after, the SAME frame as the
-      // before/after "After" two screens below and the same frame as
-      // the mesh services card above it — three appearances of one
-      // photograph, one of which has "After" printed across it. It now
-      // carries the old screen instead, which keeps the Mesh filter at
-      // four items and stops the rail giving away the pair's punchline.
-      { src: "assets/services/mesh-old-screen-320.webp",
-        srcset: "assets/services/mesh-old-screen-320.webp 320w, assets/services/mesh-old-screen-640.webp 640w",
-        width: 640, height: 926, capPx: 320, cats: ["mesh", "screen"], slot: "l",
-        alt: "An old diamond-grille security screen door lying face up on cream floor tiles with its fly screen mesh torn, stained and sagging.",
-        railCaption: "Old mesh out" },
       { src: "assets/work/wardrobe-head-track-447.webp",
         width: 447, height: 447, capPx: 223, cats: ["wardrobe", "track"], slot: "s",
         // slot "s": a 447px square in the "l" box renders at 1.53 and fails.
@@ -944,27 +976,33 @@ const base = {
         width: 1024, height: 1024, capPx: 512, cats: ["screen"], slot: "l",
         alt: "A black diamond-grille security screen door beside a glass sliding door, set into dark vertical cladding.",
         railCaption: "Security screen · glass slider" },
-      { src: "assets/services/pet-doors-447.webp",
-        width: 447, height: 447, capPx: 223, cats: ["pet"], slot: "s",
-        alt: "A white pet door with a paw print on the flap, fitted into a black security screen door, with a small fluffy dog sitting in front of it.",
-        railCaption: "Pet door in a security screen" },
-      // ⚠️ 2026-08-22 PHOTO AUDIT: THIS ITEM IS DELIBERATELY THE ONLY
-      // ONE LEFT FROM THIS JOB IN THE RAIL. The reel, the #services
-      // security-screen card, rail item 01 (the clip) and this still
-      // were all the same afternoon at the same house, and two of them
-      // sat in the same horizontally scrolling strip. The rail is the
-      // breadth section; four takes of one job is the opposite of
-      // breadth. `slot` moved to "s" so the repeated composition reads
-      // as a supporting plate rather than a second hero.
-      { src: "assets/services/security-screen-doors-320.webp",
-        srcset: "assets/services/security-screen-doors-320.webp 320w, assets/services/security-screen-doors-640.webp 640w",
-        width: 640, height: 1138, capPx: 320, cats: ["screen", "mesh"], slot: "s",
-        alt: "A security screen door with new heavy duty rollers and new mesh being slid open onto a sunlit tiled balcony.",
-        railCaption: "New rollers and fly screen",
-        // ✓ his IG caption, VERBATIM incl. the exclamation mark (a
-        // quote). Kept for provenance; the rail caption band is too
-        // small to carry it.
-        igCaption: "Brand new heavy duty rollers and fly screen in these doors today!" },
+      // ⛔ P15 — THREE RAIL SLOTS REMOVED IN THE DE-DUPLICATION PASS.
+      // Client: "Make sure there's no duplicates." Four photographs
+      // were each printed twice on this page. The rail lost three of
+      // them and #emergency lost the fourth (see emergency.photo), so
+      // no photograph now appears in two bands.
+      //
+      // Which copy went, and why the RAIL is the one that gave way:
+      //   · mesh-old-screen  — kept on the #services mesh card, whose
+      //     whole argument is "the card that sells mesh replacement
+      //     shows mesh that needs replacing".
+      //   · pet-doors-447    — kept on the #services pet-doors card.
+      //   · security-screen-doors — kept on the #services security
+      //     screen card. Its own removed note already conceded the
+      //     problem: the reel, that card and this still "were all the
+      //     same afternoon at the same house", so the rail keeps the
+      //     REEL as this job's single representative and the card
+      //     keeps the still. One job, two appearances, not four.
+      // In every case the services card is the photograph's SUBJECT
+      // and the rail slot was the repeat. The rail is the breadth
+      // section, and showing a picture the visitor scrolled past four
+      // bands ago is the opposite of breadth.
+      //
+      // ⚠️ THE FILTER SET SURVIVES THIS. Locks 2, Security screens 5,
+      // Mesh 2, Tracks 1, Wardrobes 1, Pet doors 1 — and Tracks and
+      // Wardrobes already returned exactly one item before this pass,
+      // so a one-item filter is the shipped norm here, not a new
+      // defect. Seven rail items, the reel first.
       { src: "assets/work/security-door-lock-white-387.webp",
         width: 387, height: 516, capPx: 193, cats: ["lock", "screen"], slot: "s",
         // CONFIRM 15: the barrel is visibly branded WHITCO — a lead,
@@ -981,8 +1019,8 @@ const base = {
       webm: "assets/video/work-glide-560.webm",
       poster: "assets/video/work-glide-poster-560.webp",
       width: 560, height: 738, capPx: 280, cats: ["screen", "mesh"], slot: "l",
-      ariaLabel: "Lachlan's own reel: a security screen door being slid open onto a sunlit balcony.",
-      railCaption: "His own reel · @allslidingdoorrepairs"
+      ariaLabel: "My own reel: a security screen door being slid open onto a sunlit balcony.",
+      railCaption: "My own reel · @allslidingdoorrepairs"
     }
     // CONFIRM 5 — IMG_2758 (a styled real-estate interior on his home
     // page) is NOT published here. It reads as stock. It stays out
@@ -1028,7 +1066,7 @@ const base = {
       alt: "After: the same window and the same grilles, with clean new fly screen mesh fitted behind them."
     },
     caption: "Tired of bugs getting into the house? Fly screens looking old or worn?",   // ✓ IG caption, verbatim opening
-    sourceLabel: "Posted on his Instagram",
+    sourceLabel: "Posted on my Instagram",
     permalink: "https://www.instagram.com/p/DcAy9RIkTxy/"
   },
 
@@ -1050,7 +1088,7 @@ const base = {
     // that line could be read as covering parts failure. This version
     // asserts nothing beyond the heading above it and still carries the
     // payload: one person, and the buck stops with him.
-    italicLine: "Twelve months, on his own work.",                   // CONFIRM 10: swap the fuller wording back only if he confirms it.
+    italicLine: "Twelve months, on my own work.",                   // CONFIRM 10: swap the fuller wording back only if he confirms it.
     // ⚠️ P4b-HONESTY: the third row WAS `Qualification · Bluecard
     // qualified`, taken from his live site. It is CUT, for two reasons.
     // A Blue Card in Queensland is a working-with-children check, NOT a
@@ -1080,7 +1118,7 @@ const base = {
     // services items, and "slides the way it did when it was new" is
     // lifted from value.body. No brand is named, so CONFIRM 15 is
     // untouched.
-    hardwareNote: "He fits heavy duty rollers, and the same door glides again.",
+    hardwareNote: "I fit heavy duty rollers, and the same door glides again.",
     // The guarantee is the strongest risk reversal on the site and it
     // had nothing to press: the nearest CTA was 2,170px above it at 390.
     // ⚠️ P13: EVERY CTA ON THE PAGE NOW READS THE SAME FIVE WORDS.
@@ -1090,7 +1128,7 @@ const base = {
     // name is easier to hold in the head than the same offer worded
     // three ways. "of the door" is not lost: hero.lede, contact.heading
     // and four FAQ answers all say which photo.
-    ctaLabel: "Send Lachlan a photo",
+    ctaLabel: "Send me a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
     ctaHint: "The quote is free. It opens your own messages, already written, and nothing sends until you press send."
   },
@@ -1124,8 +1162,8 @@ const base = {
     // Reframes a solo operator's biggest apparent weakness (no scale,
     // no fleet, no brand) as the source of his credibility. Now BETTER
     // supported than before: he was "trained for years by his father".
-    heading: "He didn't pick this trade.",
-    headingEm: "It was handed to him.",   // roman → italic split; words unchanged
+    heading: "I didn't pick this trade.",
+    headingEm: "It was handed to me.",   // roman → italic split; words unchanged
     // P4b-HONESTY: the three-rung ladder is replaced by the two facts
     // that are actually evidenced, and both are dated.
     //
@@ -1170,7 +1208,7 @@ const base = {
     // `quoteAttr` is now a real line of type above the quoted block at
     // EVERY width, and `moreLabel` goes back to being what a mobile
     // accordion trigger should say.
-    quoteAttr: "In his own words, from his About page",
+    quoteAttr: "From my old About page, word for word",
     moreLabel: "Read the rest",
     // P4b-HONESTY: body[0] is his ARCHIVED About paragraph
     // (assets/_source/social/wayback-old-site/copy/about-us.txt), cut
@@ -1206,7 +1244,7 @@ const base = {
     // is his archived sentence instead, verbatim, third person as he
     // wrote it. It is the emotional line (DESIGN.md §7) and it is the
     // father-and-son beat.
-    italicLine: "After being trained for years by his father, he knows everything there is to know about fixing sliding doors and windows.",
+    italicLine: "After being trained for years by my father, I know everything there is to know about fixing sliding doors and windows.",
     // ZERO standalone photographs of Lachlan exist. The only pictures of
     // him are composited inside two Canva flyers and one reel cover, and
     // none can be cropped out cleanly. Type-only until he sends one.
@@ -1280,7 +1318,7 @@ const base = {
     // verbatim, the two trimmed ones carry `trimmed: true` and a
     // RENDERED ellipsis at the cut — the ellipsis IS the disclosure.
     // Do not reintroduce a trim without one.
-    lede: "Public recommendations from his hipages profile, captured August 2026.",
+    lede: "Public recommendations from my hipages profile, captured August 2026.",
     // ⚠️ THE HONEST BANNER. Every figure is read straight off the
     // public profile (assets/_source/social/hipages/_hipages-reviews.json,
     // captured 2026-08-21) and NONE of it may be rounded, restated as
@@ -1329,12 +1367,12 @@ const base = {
     // twelve?") is answered better by the link beside it, which goes to
     // all sixty-one. The two counts stay exactly as they were, stated
     // separately, with no constructed join between them.
-    foot: "Sixty-one people have rated him. Forty-nine have written something about the job.",
+    foot: "Sixty-one people have rated me. Forty-nine have written something about the job.",
     // The rail's own next step. The hipages link stays, because the
     // attribution rail requires it, but it is no longer the ONLY way out
     // of the strongest section on the page: it was sending people at
     // peak conviction to a marketplace that lists his competitors.
-    ctaLabel: "Send Lachlan a photo",   // one wording for every CTA on the page — see warranty.ctaLabel
+    ctaLabel: "Send me a photo",   // one wording for every CTA on the page — see warranty.ctaLabel
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
     items: [
       {
@@ -1469,196 +1507,123 @@ const base = {
   // intro[]) for the six area pages that _generate-areas.py builds.
   // Nothing in `page` is rendered on the one-pager.
   areas: {
-    eyebrow: "Where he goes",
+    eyebrow: "Where I go",
     heading: "South-east Queensland and the Tweed.",
     headingNb: ["South-east"],   // same hyphen rule as #warranty — see there
     // Kills a real and rarely-answered objection: people do not know
     // whether a door repairer is a mobile trade or a workshop, and the
     // ones who assume workshop never call. His words underneath: "No
     // hassle, we come to you".
-    lede: "He comes to you. There's no shopfront and nothing to drop off.",
+    lede: "I come to you. There's no shopfront and nothing to drop off.",
 
     // ----------------------------------------------------------
     // THE SERVICE-AREA MAP (client direction 2026-08-22: "add the
     // map, like what we've done for Marcos, that map of the area he
-    // services").
+    // services"; then P15: "make the map look like an actual map...
+    // make it look like an actual map and nice").
     //
-    // ⚠️ THE GEOMETRY IS DATA, NOT DRAWING. Every coordinate in
-    // `geo` was generated by design/map-build/build_map.py from the
-    // NATURAL EARTH 10m physical coastline (public domain,
-    // naturalearthdata.com), projected equirectangular about
-    // -27.80 lat, clipped to lon 152.50..153.78 / lat -28.42..-27.18
-    // and simplified with Ramer-Douglas-Peucker. Do not hand-edit a
-    // path here: change the script's window or its INLAND list and
-    // re-run it.
+    // ⭐ P15 — IT IS A REAL MAP NOW. Three iterations of a drawn SVG
+    // plate were rejected. The diagnosis, finally: a hand-projected
+    // chart of Natural Earth 10m coastline has no suburbs, no street
+    // network and no place names, and the test a visitor applies to a
+    // map is whether he can find his own street on it. The basemap is
+    // OpenStreetMap data served as CARTO Voyager raster tiles through
+    // Leaflet (both vendored in vendor/, both loaded only when #areas
+    // is nearly on screen). See script.js for the gating and the
+    // tile-failure fallback.
     //
-    // The ENVELOPE's eastern edge IS the coastline, so the shaded
-    // area can never claim a square metre of ocean. Its inland
-    // vertices are named places with their real coordinates
-    // (Murwillumbah, Canungra, Ripley, Brassall, Ferny Grove,
-    // Aspley), chosen to sit just outside the outermost suburb named
-    // on each of the five area pages. It is a service area, not a
-    // guarantee about any one address, and `mapNote` says so.
+    // ⚠️ THE GEOMETRY IS STILL DATA, NOT DRAWING, AND IT IS THE SAME
+    // DATA. `geo.envLatLng` is generated by
+    // design/map-build/build_map.py and is the exact ring the drawn
+    // plate used, inverse-projected: its EASTERN EDGE IS the NATURAL
+    // EARTH 10m coastline (public domain, naturalearthdata.com)
+    // between Sandgate and Pottsville, so the shaded area can never
+    // claim a square metre of ocean. Its inland vertices are named
+    // places with their real coordinates (Murwillumbah, Canungra,
+    // Ripley, Brassall, Ferny Grove, Aspley), chosen to sit just
+    // outside the outermost suburb named on each of the five area
+    // pages. It is a service area, not a guarantee about any one
+    // address, and `note` says so. Do not hand-edit a coordinate
+    // here: change the script's INLAND list and re-run it.
     // ----------------------------------------------------------
     map: {
       // The one-line reading of the picture, for anyone who cannot see it.
-      alt: "Map of south-east Queensland and the northern rivers, with the area Lachlan covers shaded from Brisbane's north side down to the Tweed and west to Ipswich.",
-      legend: "Where he works",
+      alt: "Map of south-east Queensland, with the area Lachlan covers outlined and shaded from Brisbane's north side down to the Tweed and west to Ipswich.",
+      legend: "Where I work",
       // The second key entry, added with the plate strip in P12. The five
       // markers on the map and the five markers down the list are the same
       // drawing, so the key names what tapping one does.
       keyLabel: "Region pages",
+      // P15: shown only on a touch device, and only until the visitor
+      // taps once. The map starts INERT there so a thumb swiping past
+      // this section scrolls the page instead of panning the map.
+      hint: "Tap the map to move it",
+      // P15: the honest state when the tile server cannot be reached.
+      // It is never the answer to "where does he work" — the five rows
+      // beside it are — so it says one sentence and gets out of the way.
+      deadNote: "The map needs a connection. The regions are listed beside it.",
       // P13 TIGHTEN, 25 words to 12. The first sentence ("The shaded
       // area is the run he does.") is the plate's own legend printed
-      // twice — the key strip already says WHERE HE WORKS beside the
+      // twice — the key strip already says WHERE I WORK beside the
       // swatch. What only this caption can say is what to do if you are
       // on the line, so that is all it says now, action first.
-      note: "Near the edge of it? Send him a photo anyway and he'll tell you.",
+      note: "Near the edge of it? Send me a photo anyway and I'll tell you.",
       geo: {
       // map:start — GENERATED by `python3 design/map-build/build_map.py`.
-      viewBox: "0 0 1000 1080",
-      // projection window, echoed from build_map.py so the numbers behind the
-      // picture are inspectable: 152.32..153.9E, -28.56..-27.05 lat, 155.6 km across.
+      // The projection window this envelope was derived in, echoed from
+      // build_map.py so the numbers behind the picture stay inspectable:
+      // 152.32..153.9E, -28.56..-27.05 lat, 155.6 km across. Leaflet fits to the ring, not to this.
       bounds: {"lon": [152.32, 153.9], "lat": [-28.56, -27.05], "spanKm": 155.6},
-      land:
-        "M526.7 -174.6 L523.1 -161.8 L521.4 -147.0 L522.9 -113.2 L526.9 -89.5 L560.9 -2.8 L563.4 19.5 " +
-        "L551.7 35.3 L528.2 24.5 L504.1 28.6 L482.4 43.3 L465.4 64.6 L460.7 73.2 L454.7 88.3 L454.6 " +
-        "102.6 L467.3 109.0 L481.0 109.7 L488.0 109.2 L501.8 100.9 L504.7 105.1 L502.3 137.6 L496.1 " +
-        "146.1 L486.8 151.4 L476.0 160.8 L469.2 175.0 L471.5 186.4 L478.7 195.3 L486.9 201.9 L499.5 " +
-        "207.9 L526.0 216.3 L536.7 224.5 L542.7 237.9 L546.9 270.8 L551.7 285.8 L561.9 297.0 L572.0 " +
-        "299.2 L581.3 299.0 L588.9 302.5 L595.1 310.6 L600.2 319.3 L608.4 339.1 L611.1 355.3 L623.1 " +
-        "372.2 L625.1 377.8 L627.1 422.4 L630.0 432.8 L635.7 441.4 L649.0 455.6 L655.9 481.6 L659.5 " +
-        "488.1 L665.7 493.1 L683.5 512.5 L689.8 523.7 L688.5 533.1 L684.7 543.2 L690.8 547.8 L700.7 " +
-        "544.3 L708.2 530.5 L712.5 530.5 L712.4 544.1 L703.9 579.8 L702.6 592.8 L703.9 633.5 L695.1 " +
-        "614.5 L689.3 621.0 L684.9 633.2 L683.5 647.0 L686.1 658.4 L692.0 662.7 L697.5 657.6 L702.6 " +
-        "649.1 L708.2 643.2 L712.1 666.1 L714.9 732.1 L723.3 745.9 L735.6 758.8 L750.1 785.4 L767.1 " +
-        "807.0 L786.4 805.0 L791.5 818.4 L798.2 856.3 L804.5 871.9 L804.3 907.7 L787.0 1009.5 L786.4 " +
-        "1040.8 L794.9 1101.6 L800.2 1114.9 L823.4 1140.9 L829.5 1153.1 L820.9 1177.6 L822.6 1193.2 " +
-        "L822.6 1201.8 L811.0 1224.6 L810.2 1240.3 L-30.0 1110.4 L-30.0 -30.0 Z",
-      coast:
-        "M526.7 -174.6 L523.1 -161.8 L521.4 -147.0 L522.9 -113.2 L526.9 -89.5 L560.9 -2.8 L563.4 19.5 " +
-        "L551.7 35.3 L528.2 24.5 L504.1 28.6 L482.4 43.3 L465.4 64.6 L460.7 73.2 L454.7 88.3 L454.6 " +
-        "102.6 L467.3 109.0 L481.0 109.7 L488.0 109.2 L501.8 100.9 L504.7 105.1 L502.3 137.6 L496.1 " +
-        "146.1 L486.8 151.4 L476.0 160.8 L469.2 175.0 L471.5 186.4 L478.7 195.3 L486.9 201.9 L499.5 " +
-        "207.9 L526.0 216.3 L536.7 224.5 L542.7 237.9 L546.9 270.8 L551.7 285.8 L561.9 297.0 L572.0 " +
-        "299.2 L581.3 299.0 L588.9 302.5 L595.1 310.6 L600.2 319.3 L608.4 339.1 L611.1 355.3 L623.1 " +
-        "372.2 L625.1 377.8 L627.1 422.4 L630.0 432.8 L635.7 441.4 L649.0 455.6 L655.9 481.6 L659.5 " +
-        "488.1 L665.7 493.1 L683.5 512.5 L689.8 523.7 L688.5 533.1 L684.7 543.2 L690.8 547.8 L700.7 " +
-        "544.3 L708.2 530.5 L712.5 530.5 L712.4 544.1 L703.9 579.8 L702.6 592.8 L703.9 633.5 L695.1 " +
-        "614.5 L689.3 621.0 L684.9 633.2 L683.5 647.0 L686.1 658.4 L692.0 662.7 L697.5 657.6 L702.6 " +
-        "649.1 L708.2 643.2 L712.1 666.1 L714.9 732.1 L723.3 745.9 L735.6 758.8 L750.1 785.4 L767.1 " +
-        "807.0 L786.4 805.0 L791.5 818.4 L798.2 856.3 L804.5 871.9 L804.3 907.7 L787.0 1009.5 L786.4 " +
-        "1040.8 L794.9 1101.6 L800.2 1114.9 L823.4 1140.9 L829.5 1153.1 L820.9 1177.6 L822.6 1193.2 " +
-        "L822.6 1201.8 L811.0 1224.6 L810.2 1240.3",
-      islands: [
-        "M738.8 261.3 L732.5 256.5 L727.3 249.9 L720.6 243.9 L710.4 241.3 L705.1 245.4 L704.0 255.0 " +
-        "L703.9 276.0 L698.9 286.5 L685.1 306.4 L682.3 317.0 L689.5 344.8 L690.8 356.4 L689.4 366.4 " +
-        "L683.2 388.1 L682.3 398.1 L684.0 404.3 L689.7 413.8 L690.8 420.1 L689.5 425.8 L682.3 435.0 " +
-        "L678.6 456.3 L678.1 466.4 L685.7 483.9 L690.7 484.9 L706.0 481.6 L715.6 481.6 L718.9 480.0 " +
-        "L752.3 324.9 L764.3 290.3 L777.7 261.3 L747.6 263.1 L738.8 261.3 Z",
-        "M690.8 207.2 L698.1 220.5 L702.0 217.8 L703.6 206.8 L703.9 194.9 L702.6 185.1 L696.9 166.8 " +
-        "L695.1 158.3 L695.1 123.7 L699.9 93.3 L725.4 7.3 L727.2 -9.3 L723.3 -21.0 L716.0 -23.6 L708.6 " +
-        "-19.6 L695.1 -8.7 L673.2 -4.2 L660.2 3.8 L658.6 11.5 L662.0 21.8 L664.5 37.7 L660.6 81.1 " +
-        "L664.2 125.6 L668.7 141.5 L675.6 148.5 L681.9 156.8 L687.7 175.3 L691.2 195.1 L690.8 207.2 Z",
+      // The service envelope, [lat, lng], 135 vertices.
+      // EAST EDGE = the real Natural Earth coastline between Sandgate
+      // (-27.325) and Pottsville (-28.36). WEST + SOUTH = the nine named
+      // inland places in build_map.py INLAND, joined by the same
+      // Catmull-Rom arc the SVG plate used, sampled for Leaflet.
+      envLatLng: [
+        [-27.3321, 153.0894], [-27.3405, 153.1091], [-27.3522, 153.1511], [-27.3637, 153.168],
+        [-27.3825, 153.1775], [-27.4284, 153.1841], [-27.4494, 153.1917], [-27.465, 153.2078],
+        [-27.4682, 153.2238], [-27.4679, 153.2385], [-27.4728, 153.2505], [-27.4841, 153.2603],
+        [-27.4963, 153.2683], [-27.5239, 153.2813], [-27.5466, 153.2855], [-27.5702, 153.3045],
+        [-27.5781, 153.3076], [-27.6403, 153.3108], [-27.6549, 153.3154], [-27.6669, 153.3245],
+        [-27.6867, 153.3455], [-27.7231, 153.3563], [-27.7321, 153.362], [-27.7392, 153.3718],
+        [-27.7662, 153.3999], [-27.7819, 153.4098], [-27.7951, 153.4079], [-27.8092, 153.4019],
+        [-27.8156, 153.4115], [-27.8107, 153.4271], [-27.7914, 153.439], [-27.7914, 153.4458],
+        [-27.8105, 153.4456], [-27.8603, 153.4321], [-27.8785, 153.4302], [-27.9353, 153.4321],
+        [-27.9088, 153.4183], [-27.9179, 153.409], [-27.935, 153.4022], [-27.9542, 153.3999],
+        [-27.9701, 153.4041], [-27.9762, 153.4133], [-27.969, 153.422], [-27.9572, 153.4302],
+        [-27.949, 153.439], [-27.9809, 153.4451], [-28.0732, 153.4495], [-28.0925, 153.4627],
+        [-28.1105, 153.4823], [-28.1477, 153.5052], [-28.1779, 153.532], [-28.175, 153.5625],
+        [-28.1938, 153.5706], [-28.2468, 153.5812], [-28.2685, 153.5911], [-28.3185, 153.5908],
+        [-28.3286, 153.5745], [-28.3414, 153.5527], [-28.3556, 153.5267], [-28.3699, 153.4979],
+        [-28.3828, 153.4675], [-28.3931, 153.4369], [-28.3992, 153.4073], [-28.4, 153.38],
+        [-28.3951, 153.3545], [-28.3856, 153.3292], [-28.3724, 153.3042], [-28.3563, 153.2793],
+        [-28.3382, 153.2545], [-28.3189, 153.2297], [-28.2992, 153.2049], [-28.28, 153.18],
+        [-28.2604, 153.1545], [-28.2392, 153.1281], [-28.2169, 153.1015], [-28.1938, 153.075],
+        [-28.1701, 153.0491], [-28.1464, 153.0244], [-28.1229, 153.0012], [-28.1, 152.98],
+        [-28.0774, 152.9612], [-28.0545, 152.9444], [-28.0316, 152.9291], [-28.0088, 152.915],
+        [-27.986, 152.9015], [-27.9636, 152.8881], [-27.9415, 152.8745], [-27.92, 152.86],
+        [-27.8989, 152.8449], [-27.8781, 152.8295], [-27.8577, 152.8141], [-27.8375, 152.7988],
+        [-27.8177, 152.7835], [-27.7981, 152.7686], [-27.7789, 152.754], [-27.76, 152.74],
+        [-27.7415, 152.7254], [-27.7236, 152.7098], [-27.706, 152.694], [-27.6888, 152.6788],
+        [-27.6716, 152.6649], [-27.6545, 152.6533], [-27.6374, 152.6447], [-27.62, 152.64],
+        [-27.6022, 152.6394], [-27.5841, 152.6421], [-27.5657, 152.6477], [-27.5475, 152.6556],
+        [-27.5296, 152.6653], [-27.5122, 152.6763], [-27.4956, 152.6881], [-27.48, 152.7],
+        [-27.4652, 152.713], [-27.451, 152.728], [-27.4374, 152.7445], [-27.4244, 152.7619],
+        [-27.4121, 152.7796], [-27.4005, 152.7973], [-27.3898, 152.8142], [-27.38, 152.83],
+        [-27.371, 152.8444], [-27.3628, 152.858], [-27.3553, 152.871], [-27.3486, 152.8838],
+        [-27.3427, 152.8967], [-27.3377, 152.9102], [-27.3334, 152.9245], [-27.33, 152.94],
+        [-27.3277, 152.9577], [-27.3267, 152.9776], [-27.3267, 152.9988], [-27.3274, 153.0203],
+        [-27.3286, 153.0411], [-27.3299, 153.0602], [-27.3312, 153.0766],
       ],
-      graticule: [
-        "M113.9 0.0 L113.9 1080.4",
-        "M272.2 0.0 L272.2 1080.4",
-        "M430.4 0.0 L430.4 1080.4",
-        "M588.6 0.0 L588.6 1080.4",
-        "M746.8 0.0 L746.8 1080.4",
-        "M905.1 0.0 L905.1 1080.4",
-        "M0.0 1037.5 L1000.0 1037.5",
-        "M0.0 858.6 L1000.0 858.6",
-        "M0.0 679.7 L1000.0 679.7",
-        "M0.0 500.9 L1000.0 500.9",
-        "M0.0 322.0 L1000.0 322.0",
-        "M0.0 143.1 L1000.0 143.1",
-      ],
-      rivers: [
-        "M185.1 250.0 C184.8 250.9 183.4 252.2 182.8 255.5 C182.3 258.9 182.3 266.3 181.9 270.2 C181.5 " +
-        "274.0 181.1 275.9 180.6 278.7 C180.0 281.4 179.2 283.3 178.6 286.7 C178.0 290.2 176.4 297.0 " +
-        "176.9 299.4 C177.3 301.9 179.3 302.0 181.3 301.4 C183.3 300.7 186.7 297.7 189.0 295.6 C191.3 " +
-        "293.6 192.9 291.4 195.3 289.0 C197.7 286.6 200.3 282.9 203.3 281.0 C206.3 279.2 209.8 277.2 " +
-        "213.2 278.0 C216.6 278.8 221.0 283.4 223.7 285.8 C226.4 288.1 227.9 290.6 229.4 292.2 C230.8 " +
-        "293.8 230.9 294.1 232.6 295.6 C234.3 297.1 237.5 299.4 239.7 301.3 C241.8 303.2 245.1 304.9 " +
-        "245.6 306.9 C246.1 308.8 244.6 311.1 242.9 313.0 C241.2 314.9 236.1 316.2 235.3 318.3 C234.6 " +
-        "320.3 236.2 323.0 238.4 325.0 C240.6 327.1 245.4 329.4 248.5 330.4 C251.5 331.3 254.0 330.3 " +
-        "256.8 330.7 C259.7 331.1 263.2 331.1 265.6 332.9 C268.0 334.8 270.1 338.2 271.2 341.5 C272.2 " +
-        "344.8 271.8 350.0 271.8 352.8 C271.9 355.6 271.6 356.3 271.5 358.5 C271.5 360.7 270.6 364.2 " +
-        "271.6 365.7 C272.5 367.3 275.3 368.5 277.1 368.0 C279.0 367.6 281.1 364.5 282.6 363.1 C284.1 " +
-        "361.6 284.3 361.0 286.2 359.4 C288.1 357.8 291.5 354.5 294.2 353.5 C296.9 352.5 300.6 352.4 " +
-        "302.5 353.4 C304.4 354.3 305.0 357.2 305.5 359.2 C305.9 361.2 304.4 363.9 305.4 365.4 C306.3 " +
-        "366.9 308.5 368.0 311.0 368.2 C313.5 368.3 317.6 367.6 320.6 366.2 C323.6 364.9 326.6 362.1 " +
-        "329.1 360.3 C331.5 358.6 333.6 355.8 335.2 355.8 C336.7 355.7 337.7 358.4 338.4 360.0 C339.1 " +
-        "361.5 338.9 362.8 339.2 365.0 C339.4 367.2 339.2 369.6 339.9 373.2 C340.5 376.8 341.1 383.4 " +
-        "342.9 386.8 C344.8 390.1 347.7 392.2 350.7 393.4 C353.8 394.6 358.4 395.0 361.2 393.9 C364.0 " +
-        "392.8 366.2 389.0 367.4 386.7 C368.6 384.5 368.0 382.8 368.5 380.3 C369.0 377.9 369.0 375.9 " +
-        "370.5 372.3 C371.9 368.7 374.5 362.5 377.3 358.8 C380.1 355.1 383.9 352.0 387.4 350.1 C390.9 " +
-        "348.1 394.9 348.3 398.5 347.4 C402.0 346.4 405.6 345.9 408.9 344.2 C412.2 342.6 415.0 339.2 " +
-        "418.3 337.6 C421.7 336.1 425.9 336.1 428.9 335.0 C431.8 334.0 435.1 333.1 436.1 331.3 C437.2 " +
-        "329.6 436.1 326.6 435.1 324.8 C434.1 322.9 431.0 321.9 430.3 320.3 C429.6 318.7 429.6 317.0 " +
-        "431.0 315.0 C432.5 313.0 436.2 309.6 438.8 308.1 C441.5 306.6 445.0 306.1 446.8 305.9 C448.7 " +
-        "305.7 448.8 306.5 450.1 306.9 C451.5 307.3 452.7 308.1 455.0 308.3 C457.3 308.5 461.7 309.3 " +
-        "463.8 308.0 C466.0 306.7 466.3 303.5 467.9 300.6 C469.5 297.8 470.7 293.2 473.2 291.0 C475.7 " +
-        "288.8 480.4 288.0 482.8 287.5 C485.1 286.9 485.7 287.8 487.2 287.8 C488.7 287.8 489.4 288.1 " +
-        "491.7 287.7 C493.9 287.3 497.8 286.7 500.8 285.5 C503.9 284.3 506.9 282.4 509.9 280.5 C512.9 " +
-        "278.5 515.9 276.2 518.7 273.5 C521.5 270.9 524.3 267.7 526.7 264.5 C529.1 261.4 531.0 257.5 " +
-        "533.2 254.5 C535.4 251.5 538.0 248.4 539.8 246.6 C541.5 244.9 542.8 244.4 543.5 243.9",
-      ],
-      motorway:
-        "M416.5 23.3 C416.5 30.7 416.9 52.3 416.5 67.6 C416.0 82.8 413.4 102.0 413.9 114.8 C414.3 127.6 " +
-        "416.0 135.9 419.1 144.3 C422.1 152.6 426.9 155.1 432.1 164.9 C437.4 174.8 446.9 193.5 450.4 " +
-        "203.3 C453.9 213.1 451.7 215.1 453.0 224.0 C454.3 232.8 453.9 239.2 458.2 256.4 C462.6 273.6 " +
-        "473.5 310.5 479.1 327.3 C484.8 344.0 488.7 348.9 492.2 356.8 C495.7 364.6 494.4 366.1 500.0 " +
-        "374.5 C505.7 382.8 520.0 398.1 526.1 406.9 C532.2 415.8 531.8 419.7 536.6 427.6 C541.3 435.5 " +
-        "547.4 439.9 554.8 454.2 C562.2 468.4 572.7 496.5 580.9 513.2 C589.2 529.9 597.5 543.7 604.4 " +
-        "554.5 C611.4 565.3 617.5 570.7 622.7 578.1 C627.9 585.5 631.8 586.5 635.8 598.8 C639.7 611.1 " +
-        "644.0 632.2 646.2 651.9 C648.4 671.6 647.5 701.6 648.8 716.8 C650.1 732.1 650.5 735.0 654.0 " +
-        "743.4 C657.5 751.7 665.3 761.6 669.7 767.0 C674.0 772.4 673.6 771.4 680.1 775.8 C686.7 780.3 " +
-        "698.4 787.6 708.8 793.5 C719.3 799.4 734.5 805.8 742.8 811.2 C751.0 816.7 754.5 821.1 758.4 " +
-        "826.0 C762.4 830.9 765.0 834.4 766.3 840.8 C767.6 847.2 768.4 857.5 766.3 864.4 C764.1 871.2 " +
-        "757.6 877.2 753.2 882.1 C748.9 887.0 745.8 891.4 740.2 893.9 C734.5 896.3 725.4 895.3 719.3 " +
-        "896.8 C713.2 898.3 708.4 899.8 703.6 902.7 C698.8 905.7 693.6 910.1 690.6 914.5 C687.5 919.0 " +
-        "683.6 922.4 685.4 929.3 C687.1 936.2 693.6 946.0 701.0 955.8 C708.4 965.7 721.0 976.0 729.7 " +
-        "988.3 C738.4 1000.6 746.7 1014.9 753.2 1029.6 C759.7 1044.4 766.3 1069.0 768.9 1076.8",
-      roads: [
-        "M359.1 5.6 C362.1 7.1 367.8 11.5 377.3 14.4 C386.9 17.4 410.0 21.8 416.5 23.3",
-        "M343.4 398.1 C347.3 397.1 359.1 395.1 366.9 392.2 C374.7 389.2 380.4 388.3 390.4 380.4 C400.4 " +
-        "372.5 412.1 353.8 426.9 345.0 C441.7 336.1 470.4 330.2 479.1 327.3",
-        "M4.0 350.9 C9.3 353.3 28.0 361.7 35.4 365.6 C42.8 369.6 42.3 372.0 48.4 374.5 C54.5 376.9 63.6 " +
-        "379.4 71.9 380.4 C80.2 381.4 88.0 381.9 98.0 380.4 C108.0 378.9 121.9 373.0 131.9 371.5 C142.0 " +
-        "370.0 138.9 369.6 158.1 371.5 C177.2 373.5 222.9 379.4 246.8 383.3 C270.7 387.3 287.7 392.7 " +
-        "301.6 395.1 C315.5 397.6 323.4 397.6 330.3 398.1 C337.3 398.6 341.2 398.1 343.4 398.1",
-        "M343.4 398.1 C335.1 404.0 305.1 426.1 293.8 433.5 C282.5 440.9 283.4 438.4 275.5 442.4 C267.7 " +
-        "446.3 254.6 452.7 246.8 457.1 C239.0 461.5 233.3 464.0 228.5 468.9 C223.7 473.8 221.1 478.7 " +
-        "218.1 486.6 C215.0 494.5 213.7 509.2 210.3 516.1 C206.8 523.0 200.3 523.0 197.2 527.9 C194.2 " +
-        "532.9 193.7 538.3 192.0 545.6 C190.2 553.0 188.1 564.3 186.8 572.2 C185.5 580.1 185.9 584.5 " +
-        "184.2 592.9 C182.4 601.2 180.2 612.5 176.3 622.4 C172.4 632.2 166.3 643.0 160.7 651.9 C155.0 " +
-        "660.7 151.1 667.6 142.4 675.5 C133.7 683.4 117.2 694.7 108.5 699.1 C99.8 703.5 95.8 700.1 90.2 " +
-        "702.1 C84.5 704.0 81.9 707.0 74.5 710.9 C67.1 714.8 54.5 722.2 45.8 725.7 C37.1 729.1 26.2 " +
-        "730.6 22.3 731.6",
-      ],
-      envelope:
-        "M486.9 201.9 L499.5 207.9 L526.0 216.3 L536.7 224.5 L542.7 237.9 L546.9 270.8 L551.7 285.8 " +
-        "L561.9 297.0 L572.0 299.2 L581.3 299.0 L588.9 302.5 L595.1 310.6 L600.2 319.3 L608.4 339.1 " +
-        "L611.1 355.3 L623.1 372.2 L625.1 377.8 L627.1 422.4 L630.0 432.8 L635.7 441.4 L649.0 455.6 " +
-        "L655.9 481.6 L659.5 488.1 L665.7 493.1 L683.5 512.5 L689.8 523.7 L688.5 533.1 L684.7 543.2 " +
-        "L690.8 547.8 L700.7 544.3 L708.2 530.5 L712.5 530.5 L712.4 544.1 L703.9 579.8 L702.6 592.8 " +
-        "L703.9 633.5 L695.1 614.5 L689.3 621.0 L684.9 633.2 L683.5 647.0 L686.1 658.4 L692.0 662.7 " +
-        "L697.5 657.6 L702.6 649.1 L708.2 643.2 L712.1 666.1 L714.9 732.1 L723.3 745.9 L735.6 758.8 " +
-        "L750.1 785.4 L767.1 807.0 L786.4 805.0 L791.5 818.4 L798.2 856.3 L804.5 871.9 L804.3 907.7 " +
-        "C782.1 923.4 714.2 970.6 670.9 966.0 C627.5 961.4 586.5 915.9 544.3 880.1 C502.1 844.3 451.5 " +
-        "794.2 417.7 751.3 C384.0 708.4 367.1 663.1 341.8 622.5 C316.5 582.0 289.0 543.8 265.8 508.0 " +
-        "C242.6 472.2 206.8 441.2 202.5 407.8 C198.3 374.5 220.5 336.3 240.5 307.7 C260.5 279.1 297.5 " +
-        "254.0 322.8 236.1 C348.1 218.2 365.0 206.1 392.4 200.3 C419.8 194.6 469.1 200.6 486.9 201.9 Z",
-      scale: {"km": 20, "label": "20 km", "pct": 12.86},
+      // `side` is which way the marker label hangs, and it is a LAYOUT
+      // fact about the plate, not a geographic one: it lives beside the
+      // coordinates it depends on. w / e / s -> left / right / bottom.
       regions: [
-        { slug: "brisbane", x: 446.3, y: 300.4, xPct: 44.63, yPct: 27.8, side: "w" },
-        { slug: "ipswich", x: 278.9, y: 404.0, xPct: 27.89, yPct: 37.39, side: "s" },
-        { slug: "logan", x: 499.1, y: 421.6, xPct: 49.91, yPct: 39.02, side: "w" },
-        { slug: "gold-coast", x: 691.1, y: 656.9, xPct: 69.11, yPct: 60.79, side: "w" },
-        { slug: "tweed-heads", x: 775.5, y: 807.5, xPct: 77.55, yPct: 74.74, side: "w" },
+        { slug: "brisbane", lat: -27.4698, lng: 153.0251, side: "w" },
+        { slug: "ipswich", lat: -27.6146, lng: 152.7606, side: "s" },
+        { slug: "logan", lat: -27.6392, lng: 153.1086, side: "w" },
+        { slug: "gold-coast", lat: -27.968, lng: 153.412, side: "w" },
+        { slug: "tweed-heads", lat: -28.1786, lng: 153.5453, side: "w" },
       ]
       // map:end
       }
@@ -1683,8 +1648,8 @@ const base = {
     // sitewide (see voices.lede). Verbatim quotes + a rendered ellipsis
     // on every trim remain the disclosure, enforced by `trimmed: true`.
     pageCommon: {
-      voicesHeading: "What his customers say.",
-      voicesLede: "Public recommendations from his hipages profile, captured August 2026.",
+      voicesHeading: "What my customers say.",
+      voicesLede: "Public recommendations from my hipages profile, captured August 2026.",
       // The label on every link that goes back to a section of the home
       // page. Not a claim, just navigation.
       moreLabel: "See it all on the main page"
@@ -1716,7 +1681,7 @@ const base = {
           intro: [
             "The Gold Coast is a sliding door city. Most homes here are built to open onto something: a deck, a pool, a patio, a balcony six floors up. That means the door you use most in the house is the one running on a set of small rollers in an aluminium track, and it does not take long for sea air, sand and grit off the yard to work their way down into it.",
             "Once the rollers start to go, the door drops onto its track, and every time it gets dragged across it does a bit more damage. That is the difference between a repair and a bigger repair.",
-            "Lachlan covers the whole Gold Coast, from the Coomera and Helensvale end down through Southport, Surfers Paradise, Broadbeach, Robina and Burleigh to Palm Beach and Currumbin, and inland to Nerang and Mudgeeraba. The repair happens where the door hangs. Send him a photo of it on 0410 514 774."
+            "I cover the whole Gold Coast, from the Coomera and Helensvale end down through Southport, Surfers Paradise, Broadbeach, Robina and Burleigh to Palm Beach and Currumbin, and inland to Nerang and Mudgeeraba. The repair happens where the door hangs. Send me a photo of it on 0410 514 774."
           ]
         }
       },
@@ -1740,7 +1705,7 @@ const base = {
           intro: [
             "Brisbane houses are not all one thing, and neither are their doors. A post-war brick and tile in Chermside or Carindale usually has heavy old aluminium joinery that has been sliding on the same rollers since the day it was built. A Queenslander in Coorparoo or Wynnum has timber floors that walk every bit of grit straight into the bottom track. A newer place out at Rochedale or Bridgeman Downs has a big slider onto the deck that gets used more than any other door in the house.",
             "What they have in common is the way they fail. The rollers wear, the door drops, the track wears out underneath it, and eventually somebody in the house is lifting the door by the handle to get it to move.",
-            "Lachlan comes to you anywhere across Brisbane, north side or south side, and the work is done in the doorway. Nothing is taken away to a workshop. Text him a photo of the door on 0410 514 774 and he will tell you what it needs."
+            "I come to you anywhere across Brisbane, north side or south side, and the work is done in the doorway. Nothing is taken away to a workshop. Text me a photo of the door on 0410 514 774 and I will tell you what it needs."
           ]
         }
       },
@@ -1771,8 +1736,8 @@ const base = {
           h1: "Sliding door repairs across Logan",
           intro: [
             "Logan is estate country. Springwood, Shailer Park, Daisy Hill, Underwood, Browns Plains, Marsden, Loganholme and Beenleigh: street after street of brick and tile homes built to the same plans with the same aluminium joinery, and plenty of them are rented out rather than lived in by the owner.",
-            "That matters for two reasons. A door in a rental gets reported late, so by the time anyone rings a tradesman the rollers have usually been gone for months and the track has copped it. And whoever rings is often not the person paying for it, which is why Lachlan is happy to work the details out with an agent or an owner over a text message.",   // CONFIRM 11: does he take agent-managed and landlord-billed work, and will he invoice an agency? This paragraph and faq[6] both depend on it.
-            "He repairs rollers, tracks, locks and side frames, replaces fly screen and security screen mesh, and gets wardrobe doors running again. It all happens at the property. Send a photo of the door to 0410 514 774 and he will tell you what it needs."
+            "That matters for two reasons. A door in a rental gets reported late, so by the time anyone rings a tradesman the rollers have usually been gone for months and the track has copped it. And whoever rings is often not the person paying for it, which is why I am happy to work the details out with an agent or an owner over a text message.",   // CONFIRM 11: does he take agent-managed and landlord-billed work, and will he invoice an agency? This paragraph and faq[6] both depend on it.
+            "I repair rollers, tracks, locks and side frames, replace fly screen and security screen mesh, and get wardrobe doors running again. It all happens at the property. Send a photo of the door to 0410 514 774 and I will tell you what it needs."
           ]
         }
       },
@@ -1795,9 +1760,9 @@ const base = {
           description: "Sliding door repairs across the Tweed, from Tweed Heads to Pottsville and Murwillumbah. Rollers, tracks, locks, security screens and fly screen mesh.",   // 147 chars
           h1: "Sliding door repairs across the Tweed",
           intro: [
-            "The Tweed is the other side of the border, and Lachlan crosses it. Tweed Heads, Banora Point, Terranora, Kingscliff, Casuarina, Pottsville, Cabarita and back up the valley to Murwillumbah.",
+            "The Tweed is the other side of the border, and I cross it. Tweed Heads, Banora Point, Terranora, Kingscliff, Casuarina, Pottsville, Cabarita and back up the valley to Murwillumbah.",
             "It is coastal, and coastal is hard on hardware. Salt in the air and sand off the beach both end up in the bottom track of the door, and they grind away at the rollers every time it gets opened. There is a lot of holiday letting along this coast too, and a holiday let is exactly the kind of house where a sticking door gets used hard and mentioned last.",
-            "He repairs the rollers, the track, the lock and the side frame, and replaces fly screen and security mesh in doors and windows. Nothing gets taken away and there is no shopfront to visit. Text a photo of the door to 0410 514 774."
+            "I repair the rollers, the track, the lock and the side frame, and replace fly screen and security mesh in doors and windows. Nothing gets taken away and there is no shopfront to visit. Text a photo of the door to 0410 514 774."
           ]
         }
       },
@@ -1823,7 +1788,7 @@ const base = {
           intro: [
             "Ipswich has two kinds of house and both of them have sliding door trouble. There are the older homes through Booval, Bundamba, Brassall and North Ipswich, with aluminium doors and windows that have been in the wall for decades and rollers nobody has ever touched. And there are the newer estates out at Ripley, Springfield Lakes, Redbank Plains and Augustine Heights, where the doors are young but they open straight onto the yard and cop the dust and the grit every day of the week.",
             "Either way it is the same trade and the same fix. Worn rollers come out and heavy duty ones go in, a track that has been chewed out gets repaired or replaced, and the door slides properly again instead of being shouldered along.",
-            "Lachlan comes out to you anywhere across Ipswich and does the work in the doorway. Send him a photo of the door on 0410 514 774 and he will tell you what it needs before he drives out."
+            "I come out to you anywhere across Ipswich and do the work in the doorway. Send me a photo of the door on 0410 514 774 and I will tell you what it needs before I drive out."
           ]
         }
       }
@@ -1875,7 +1840,7 @@ const base = {
   // real objection.
   faqIntro: {
     eyebrow: "Questions",
-    heading: "What people ask him before they book.",
+    heading: "What people ask me before they book.",
     // The FAQ is the last objection-handler before the close and it
     // used to end on a paragraph about mesh types with nothing to
     // press: the nearest CTA was 1,224px further down at 390.
@@ -1883,8 +1848,8 @@ const base = {
     // the mesh question that used to sit directly above it and is now
     // cut. It points at the whole list instead, and it closes on the
     // free quote rather than on a hedge.
-    footLead: "Still not sure? Send him a photo of the door and the quote is free either way.",
-    ctaLabel: "Send Lachlan a photo",
+    footLead: "Still not sure? Send me a photo of the door and the quote is free either way.",
+    ctaLabel: "Send me a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?"
   },
   faq: [
@@ -1893,7 +1858,7 @@ const base = {
       // "one of the rare ones" are honest hedges, not weasel: a
       // tradesman who admits an exception is more believable.
       q: "Can it actually be fixed, or do I need a new door?",
-      a: "Nearly always fixed. A door that sticks, judders or has to be lifted is running on worn rollers in a track those rollers have chewed out. New rollers, a repaired or replaced track, and the same door slides properly again. Send him a photo and he'll tell you straight if it's one of the rare ones that can't be saved."
+      a: "Nearly always fixed. A door that sticks, judders or has to be lifted is running on worn rollers in a track those rollers have chewed out. New rollers, a repaired or replaced track, and the same door slides properly again. Send me a photo and I'll tell you straight if it's one of the rare ones that can't be saved."
     },
     {
       q: "What does it cost?",
@@ -1901,7 +1866,7 @@ const base = {
       // word "just" ("prices start from just $150"), which editorialises
       // a price whose scope nobody has confirmed and is the exact word
       // that makes a tradesman sound like an ad.
-      a: "Repairs start at $150 +GST. The exact figure depends on what's failed and how long it's been left, which is why he'd rather see a photo of the door than guess at it over the phone."
+      a: "Repairs start at $150 +GST. The exact figure depends on what's failed and how long it's been left, which is why I'd rather see a photo of the door than guess at it over the phone."
     },
     {
       q: "Do you charge for a quote?",
@@ -1909,7 +1874,7 @@ const base = {
       // Quote") and his IG caption ("Call us today for a free quote!").
       // ⚠️ "No call-out fee" is NOT said here and must never be added.
       // He has never stated it and the $150 might BE a callout.
-      a: "No. Text a photo of the door to 0410 514 774 and the quote is free. A photo of the bottom track and one of the handle is usually enough for him to know what he's walking into."
+      a: "No. Text a photo of the door to 0410 514 774 and the quote is free. A photo of the bottom track and one of the handle is usually enough for me to know what I'm walking into."
     },
     {
       q: "How soon can you get here?",
@@ -1920,19 +1885,19 @@ const base = {
       // P4b-HONESTY: the last clause was "because he does 24/7
       // emergency callouts". It now routes urgency without overstating
       // availability.
-      a: "That depends on the week, and he'd rather tell you straight than promise a day he can't make. Text him and he'll tell you what he's got. If the door won't lock, say so in the message, because he can come out after hours when it's urgent."
+      a: "That depends on the week, and I'd rather tell you straight than promise a day I can't make. Text me and I'll tell you what I've got. If the door won't lock, say so in the message, because I can come out after hours when it's urgent."
     },
     {
       q: "How long does it take, and do you take the door away?",
-      a: "It's done where the door hangs. Nothing goes to a workshop. Send a photo first and he'll tell you whether it's a one-visit job or whether a part has to be ordered in."   // CONFIRM 13: makes NO duration claim on purpose, but "one-visit job" implies he sometimes completes in one visit. Verify he carries common rollers and mesh on the van.
+      a: "It's done where the door hangs. Nothing goes to a workshop. Send a photo first and I'll tell you whether it's a one-visit job or whether a part has to be ordered in."   // CONFIRM 13: makes NO duration claim on purpose, but "one-visit job" implies he sometimes completes in one visit. Verify he carries common rollers and mesh on the van.
     },
     {
       q: "Do you come to me, and how far do you go?",
-      a: "He comes to you. Gold Coast, Brisbane, Logan, Tweed and Ipswich. There's no shopfront to visit, so the only thing you have to do is be there to let him in."   // CONFIRM 4: add Redlands to this list ONLY once he confirms it.
+      a: "I come to you. Gold Coast, Brisbane, Logan, Tweed and Ipswich. There's no shopfront to visit, so the only thing you have to do is be there to let me in."   // CONFIRM 4: add Redlands to this list ONLY once he confirms it.
     },
     {
       q: "It's a rental. Can you deal with the agent?",
-      a: "Yes. Text him the photo, tell him who's paying and who's letting him in, and he'll sort the rest out with them."   // CONFIRM 11: does he take agent-managed work and will he invoice a real estate agency? If he says no, CUT this FAQ and rewrite areas.regions[2].page.intro[1].
+      a: "Yes. Text me the photo, tell me who's paying and who's letting me in, and I'll sort the rest out with them."   // CONFIRM 11: does he take agent-managed work and will he invoice a real estate agency? If he says no, CUT this FAQ and rewrite areas.regions[2].page.intro[1].
     },
     {
       // Reworded from "Is the work guaranteed?". Nobody lies awake
@@ -1943,14 +1908,14 @@ const base = {
       // working-with-children check, not a trade credential, and
       // "qualified" in a sentence about guarantees reads as trade
       // accreditation. hipages verified his ABN only.
-      a: "Every job carries a 12-month workmanship warranty, and he is fully insured."   // CONFIRM 10 (what the warranty covers) + CONFIRM 18 (is the insurance current).
+      a: "Every job carries a 12-month workmanship warranty, and I am fully insured."   // CONFIRM 10 (what the warranty covers) + CONFIRM 18 (is the insurance current).
     },
     {
       q: "Can you come after hours?",
       // P4b-HONESTY: was "Yes. He does 24/7 emergency work…". His own
       // archived About page states Mon-Fri 8am-4pm with out-of-hours
       // help for urgent repairs, and Localsearch lists the same hours.
-      a: "His normal hours are Monday to Friday, 8am to 4pm. If it's urgent and it has to be done out of hours, he can help, and that is mostly doors that won't shut or won't lock."   // CONFIRM 12: still silent on an out-of-hours premium. If he charges one, this needs it.
+      a: "My normal hours are Monday to Friday, 8am to 4pm. If it's urgent and it has to be done out of hours, I can help, and that is mostly doors that won't shut or won't lock."   // CONFIRM 12: still silent on an out-of-hours premium. If he charges one, this needs it.
     }
     // ⛔ P13 CUT: "What kind of fly screen mesh do I need?" It was the
     // one entry in this list that was not an OBJECTION. Every other
@@ -1972,7 +1937,7 @@ const base = {
   // ==========================================================
   contact: {
     eyebrow: "Get it looked at",
-    heading: "Send Lachlan a photo of the door.",
+    heading: "Send me a photo of the door.",
     // ⚠️ ADVERSARIAL-H2 FIX 2026-08-22 · CONFIRM 14 CLOSED, NOT DEFERRED.
     // This read "Send me a photo of the door and I'll tell you what it
     // needs." — first person, unattributed, set in italics at the point
@@ -1993,7 +1958,7 @@ const base = {
     // Still third person, still no new claim: `priceNote` and faq[1]
     // already say he tells you before he drives out.
     // ⛔ Do not put first person back here without a sourced quote.
-    italicLine: "He'll tell you what it needs before he drives out.",
+    italicLine: "I'll tell you what it needs before I drive out.",
     // "Nothing sends until you press send" is the answer to the unspoken
     // fear at the exact moment it occurs.
     // Action first: the sentence opens on the literal tiny thing the
@@ -2002,7 +1967,7 @@ const base = {
     // phrase the retired `formOpenLabel` used to carry.
     lede: "Fill in the blanks and it writes the text for you. It opens your own messages, and nothing sends until you press send.",
     fields: {
-      name:    { label: "Your name",  placeholder: "So he knows who he's texting" },   // gives the reason instead of making a demand
+      name:    { label: "Your name",  placeholder: "So I know who I'm texting" },   // gives the reason instead of making a demand
       suburb:  { label: "Suburb",     placeholder: "Where the door is" },
       door:    { label: "Door type",  placeholder: "Glass slider, security screen, wardrobe, window" },   // an example list, not an instruction
       message: { label: "What's it doing?", placeholder: "Sticks, jumped the track, won't lock…" }
@@ -2026,7 +1991,7 @@ const base = {
     // no-callout-fee line or a response time. He has published none of
     // them.
     quoteFact: { label: "Quote", value: "Free, from a photo" },
-    fallbackLabel: "Rather talk? Call him",   // was "Or just call him": "or" plus "just" is a double hedge on the closing section's first row.
+    fallbackLabel: "Rather talk? Call me",   // was "Or just call him": "or" plus "just" is a double hedge on the closing section's first row.
     // ⭐ P14. This row's value used to be `booking.phone`, which put the
     // SAME ten digits directly under the text row's ten digits, 70px
     // apart, in the closing section. It read as a duplication bug. The
@@ -2036,7 +2001,7 @@ const base = {
     // and in the nav pill, and the tel: href is untouched.
     // ⛔ Do not put a second phone number here. There is only one.
     fallbackValue: "The same number",
-    emailNote: "Or email him",   // was "Prefer email?", which invited a sole trader's slowest channel with a question at the decision point; then "Email, if you'd rather", which repeated `fallbackLabel`'s "rather" 60px above it.
+    emailNote: "Or email me",   // was "Prefer email?", which invited a sole trader's slowest channel with a question at the decision point; then "Email, if you'd rather", which repeated `fallbackLabel`'s "rather" 60px above it.
     // The ONE real failure state on the site. On a desktop with no SMS
     // handler the sms: link does nothing at all and the visitor is left
     // staring at a form that appears broken. This is the single most
@@ -2056,7 +2021,7 @@ const base = {
     //      like. Until then it is `hidden`, not just transparent.
     // The wording is device-neutral, and `noteFailureTel` makes the
     // number a real tel: link instead of plain text a phone cannot dial.
-    noteFailure: "Nothing opened? This device has no messaging app set up. Call him instead on",
+    noteFailure: "Nothing opened? This device has no messaging app set up. Call me instead on",
     noteFailureTel: "0410 514 774"
   },
 
@@ -2065,10 +2030,10 @@ const base = {
   // ==========================================================
   footer: {
     // P4b-HONESTY: was "One tradesman, three generations of it."
-    blurb: "Sliding door, security screen, wardrobe and window repairs across south-east Queensland and the Tweed. A family business since 2002, now run by Lachlan.",
+    blurb: "Sliding door, security screen, wardrobe and window repairs across south-east Queensland and the Tweed. A family business since 2002. I'm Lachlan, and I run it.",
     columns: {
       repairs: "Repairs",
-      areas: "Where he goes",
+      areas: "Where I go",
       direct: "Direct"
     },
     directLabels: { phone: "Call or text", email: "Email", instagram: "Instagram" },   // ✓ his contact page: "Call or text Lachlan on 0410514774"
@@ -2096,7 +2061,20 @@ const base = {
     // visitor's own half-typed answer and destroys every CTA on the
     // page. See the warning above buildSmsHref in script.js.
     fillIns: "My name: , Suburb: , Door type: ",
-    responseNote: "He answers his own phone.",   // deliberately NOT a response-time claim. No SLA is stated anywhere on this site.
+    // ⭐ P15 — THE TWO HALVES OF A COMPOSED SYMPTOM MESSAGE.
+    // `smsGreeting` opens it and `smsPhotoLine` closes it, so the
+    // message a chip-picking visitor sends reads as one text a person
+    // would actually type: greeting, what the door is doing, the offer
+    // of a photo, then the blanks they fill in themselves.
+    // ⚠️ The greeting ends with a comma and a space on purpose — the
+    // first clause after it is lowercase by design. See content.symptoms.
+    // ⚠️ The voice here is the CUSTOMER'S, not Lachlan's. The rest of
+    // this file speaks as Lachlan in the first person; this string is
+    // written for someone texting him, which is why it still says
+    // "Hi Lachlan". ⛔ Do not "fix" it to match the page voice.
+    smsGreeting: "Hi Lachlan, ",
+    smsPhotoLine: "I'll send you a photo.",
+    responseNote: "I answer my own phone.",   // deliberately NOT a response-time claim. No SLA is stated anywhere on this site.
     // Replaces the hardcoded aria-label "Call All Sliding Door Repairs"
     // on #callFab in index.html: a screen reader user gets the number
     // spoken, and every surface on the site names the person rather than
