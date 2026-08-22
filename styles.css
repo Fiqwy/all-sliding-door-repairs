@@ -485,21 +485,24 @@
   --hero-type-w: 760px;
   --hero-open:   150px;   /* the ≤1024 clear window; 0 at ≥1025 */
 
-  /* THE SERVICE-AREA MAP'S TWO GROUNDS (P12). Both are OPAQUE fills
-     that carry no type — the pin labels sit on --card plates and the
-     key sits on --ink-2 — so neither is a contrast pair and neither
-     is in the audit. They exist because the first build tinted the
-     served area with bronze at 0.20 over a cream land, which over
-     cream is almost nothing: the one thing the map is for was its
-     faintest mark.
+  /* THE SERVICE-AREA MAP'S TWO GROUNDS. Both are OPAQUE fills that
+     carry no type — the pin labels sit on --card plates and the key
+     sits on --ink-2 — so neither is a contrast pair and neither is in
+     the audit.
 
-     The logic is inverted here. --map-served is LIGHTER and warmer
-     than the site's paper; --map-land is a step DOWN from --bone-3,
-     the same hue, so the ground he does not cover recedes. The
-     difference between them is 8.5 points of L*, which is a clear
-     read at 350px wide and still quiet at 500. */
-  --map-land:   #D9D0BE;   /* unserved ground — two steps under --bone-3 */
-  --map-served: #F1E4CE;   /* the run he does — warm, light, lifted */
+     P13 REVERSES P12, AND THE REASON IS CARTOGRAPHY, NOT TASTE. P12
+     made the SERVED area the lightest thing on the plate and stepped
+     every other piece of land DOWN toward the sea. That reads as a
+     designed diagram and not as a map, because the contrast a map is
+     read by is LAND AGAINST WATER, and P12 spent it on something else.
+     Here all land is one parchment and the ocean is the only dark
+     element on the plate, so the coastline is legible at a glance.
+     The service area is then what it actually is: a TERRITORY MARKED
+     ON the land, a brass tint over the same parchment. 9.1 points of
+     L* between them (90.8 / 81.7), warmer as well as darker, which is
+     a clear read at a 350px plate and still quiet at 580. */
+  --map-land:   #EDE4D1;   /* ALL land — parchment, one value everywhere */
+  --map-served: #E1C89E;   /* the run he does — the same paper, brass-tinted */
 }
 
 
@@ -832,6 +835,15 @@ p, li, figcaption, dd { text-wrap: pretty; }
   transform: translateX(calc(100cqw - 7px));
   transition: transform var(--dur-track) var(--ease-roll);
 }
+/* P14 — THE AREA PAGES LOAD NO script.js, so `.is-in` never lands and
+   the roller rested at translateX(0), i.e. parked at the START of its
+   own track on all five pages. Side by side with the home page, whose
+   roller always ends at the far end, the same component read as two
+   different states and the area page as the unfinished one. There is
+   nothing to animate without an observer, so park it where the travel
+   ends. No transition is declared here, so it is a position, not an
+   animation, and reduced motion is unaffected. */
+.ap .track-rule::after { transform: translateX(calc(100cqw - 7px)); }
 .track-rule { container-type: inline-size; }
 
 
@@ -1413,7 +1425,9 @@ p, li, figcaption, dd { text-wrap: pretty; }
 }
 .value__from { position: relative; display: block; color: var(--on-ink-muted); }
 .value__figure { position: relative; display: block; color: var(--bronze-bright); margin-top: 0.2rem; }
-.value__gst { position: relative; display: block; margin-top: 0.9rem; color: var(--bronze-bright); }
+/* P14: `.value__gst` retired. The area pages set +GST as a sibling
+   block under the figure; they now use `.figure-mega .suf` like
+   index.html, so there is one price treatment on the site. */
 .value__rule { position: relative; height: 1px; background: var(--line-ink); margin: 1.4rem 0 1.1rem; }
 .value__note { position: relative; font-size: var(--fs-small); color: var(--on-ink-body); }
 /* The free quote belongs AT the price: it is the only moment on the
@@ -1522,13 +1536,26 @@ p, li, figcaption, dd { text-wrap: pretty; }
   display: flex; align-items: center; gap: 0.7rem; min-height: 48px;
   margin-top: 1.1rem;
   font-family: var(--font-mono); font-size: var(--fs-micro); font-weight: var(--wt-mid);
-  letter-spacing: var(--track-mono); text-transform: uppercase; color: var(--bronze);
+  /* P14: --track-mono (0.15em) put the label 4px over its own column at
+     1440, so all six cards broke "…WHAT HE / DOES" and shipped a mono
+     widow six times in the most-scanned band. 0.10em is 19px of slack
+     at every column width from 1120 up and is indistinguishable at
+     12px. It does NOT affect the reserved-row alignment above: the
+     summary is min-height 48px whether the label sets one line or two,
+     so names, summaries and chevrons still land within 1px. The area
+     pages render this same string on one line already. */
+  letter-spacing: 0.10em; text-transform: uppercase; color: var(--bronze);
   border-top: 1px solid var(--line);
   transition: color var(--dur-fast) var(--ease-soft);
 }
 .svc__acc > summary::-webkit-details-marker { display: none; }
 .svc__acc > summary::marker { content: ""; }
-.svc__acc-label { min-width: 0; }
+/* P14: one line from 1120 up (see the tracking note above). Below that
+   the card is too narrow for 32 mono characters no matter what, so
+   `balance` breaks it at its own comma — "WHAT GOES WRONG, / AND WHAT
+   HE DOES" — instead of leaving a four-character widow. Same device
+   P12 put on the section h2s, and a no-op wherever it already fits. */
+.svc__acc-label { min-width: 0; text-wrap: balance; }
 .svc__acc-n {
   margin-left: auto; color: var(--text-faint); font-size: 0.6875rem;
   letter-spacing: 0.06em;
@@ -1540,6 +1567,25 @@ p, li, figcaption, dd { text-wrap: pretty; }
 .svc__acc[open] > summary .faq__chev { transform: rotate(-90deg); }
 @media (hover: hover) and (pointer: fine) {
   .svc__acc > summary:hover { color: var(--bronze-deep); }
+}
+
+/* THE BAND'S NEXT STEP (P14). #services was the one band with nothing
+   to press. It gets the go-link the area pages already use inside this
+   same band — same ground, same bronze, same chevron — and NOT a
+   button: #emergency's call sits one band below and #warranty's primary
+   two below, and a third heavy control between them would compete with
+   the ask rather than feed it. Centred because the grid it closes is
+   three columns wide and a left-hung link under 1,280px of cards reads
+   as a stray card. */
+.svc__foot { margin-top: var(--gap-inner); text-align: center; }
+.svc__foot-lead { color: var(--text-body); font-size: var(--fs-lead); max-width: 46ch; margin: 0 auto; }
+.svc__go {
+  margin-top: 0.5rem; color: var(--bronze);
+  display: inline-flex; align-items: center; gap: 0.55rem;
+  min-height: var(--tap-min); padding-inline: 0.35rem;
+}
+@media (hover: hover) and (pointer: fine) {
+  .svc__go:hover { color: var(--bronze-deep); }
 }
 
 /* the roller cross-section: the head payload, and the one rotation */
@@ -1927,24 +1973,41 @@ p, li, figcaption, dd { text-wrap: pretty; }
    Natural Earth 10m, projected and simplified at build time
    (design/map-build/build_map.py → content.js areas.map.geo).
 
-   ⭐ WHAT P12 CHANGED, AND WHY IT IS NOT DECORATION.
-   The first build was four flat shapes: navy sea, cream land, a
-   0.20 bronze wash for the service area, brass pins. Over a cream
-   land the 0.20 wash was almost invisible, so the one thing the
-   section exists to say — HERE IS WHERE HE GOES — was the weakest
-   mark on the plate. The rebuild inverts the logic:
+   ⭐ WHAT P13 CHANGED, AND WHY IT IS NOT DECORATION.
+   CLIENT, 2026-08-22, rejecting P12: "make the map under where he
+   goes look a lot better, it looks really bad right now."
 
-     · the SERVED ground is the light, warm one (--map-served) and
-       everything he does not cover steps back (--map-land). The
-       envelope is now read as light, not as tint.
-     · it is lifted off the land by a real drop shadow, rimmed by
-       an 18-unit bronze stroke CLIPPED to itself (an inner rim
-       light, not a second outline) and edged at 3 units.
-     · the water gained two derived textures: a quarter-degree
-       GRATICULE and a three-stop coastal SHELF glow, both painted
+   P12 had inverted the grounds — the SERVED area was the lightest
+   thing on the plate and every other piece of land stepped DOWN
+   toward the sea — which spends the one contrast a map is read by,
+   LAND AGAINST WATER, on something that is not the geography. The
+   coastline stopped being legible and the plate read as an abstract
+   shape on dark rather than as south-east Queensland.
+
+   P13 is ordinary cartographic orientation:
+
+     · ALL LAND IS LAND. One parchment (--map-land) for the
+       mainland AND the islands, and the ocean is the only dark
+       element on the plate, on the east where it belongs. Moreton
+       Bay reads as a bay and Moreton and Stradbroke as islands.
+     · the service area is a TERRITORY MARKED ON that land: the
+       same parchment brass-tinted (--map-served), an inner rim
+       light clipped to itself, and a 3.2-unit brass edge. No drop
+       shadow: a marked territory does not float above its map.
+     · its inland boundary is a SMOOTH curve now. The nine inland
+       vertices were emitted as straight chords, which is what made
+       a data-derived edge read as hand-drawn; build_map.py runs a
+       Catmull-Rom spline through them (it passes THROUGH every
+       vertex, so no coordinate moved). The coastal half stays
+       straight-segment, because smoothing there would cut the
+       boundary across bays the shoreline still draws.
+     · TWO CONTEXT LAYERS, both derived, both clipped to land: the
+       Brisbane River, which is what puts Brisbane where a Brisbane
+       reader expects it, and the M1 spine — one road line is what
+       makes a map read as a map.
+     · the water keeps P12's two derived textures (a quarter-degree
+       GRATICULE and a three-stop coastal SHELF glow), both painted
        under the land so they can only ever appear in the sea.
-     · a shoreline hairline in --ink, which is the fine coastline
-       treatment that stops the lit envelope bleeding into the bay.
 
    ⚠️ THE PINS AND LABELS ARE HTML. SVG <text> scales with the
    viewBox, which is why the old build carried a 30-unit label at
@@ -2017,11 +2080,25 @@ p, li, figcaption, dd { text-wrap: pretty; }
    order, so neither can ever appear on the ground */
 .map__grat  { fill: none; stroke: var(--on-ink); stroke-opacity: 0.085; stroke-width: 1; }
 .map__shelf { fill: none; stroke: var(--on-ink); stroke-linejoin: round; stroke-linecap: round; }
-/* the service envelope: LIGHT, not tint */
+/* the service envelope: a brass TINT on the land, and an edge you can
+   follow. No drop shadow — a territory marked on a map does not float
+   above it, and the one P12 gave it is part of why the plate read as a
+   diagram rather than a chart. */
 .map__area      { fill: var(--map-served); }
-.map__area-glow { fill: none; stroke: var(--bronze); stroke-opacity: 0.16; stroke-width: 18; }
-.map__area-edge { fill: none; stroke: var(--bronze); stroke-width: 3; stroke-linejoin: round; }
-.map__shore     { fill: none; stroke: var(--ink); stroke-opacity: 0.22; stroke-width: 1.4; stroke-linejoin: round; }
+.map__area-glow { fill: none; stroke: var(--bronze); stroke-opacity: 0.18; stroke-width: 8; }
+.map__area-edge { fill: none; stroke: var(--bronze); stroke-width: 3.2; stroke-linejoin: round; stroke-linecap: round; }
+/* the context layers, all clipped to land so none can run out to sea.
+   Quiet on purpose: they are what makes the plate read as a map, and
+   they must never compete with the boundary or the pins. The M1 gets a
+   step more weight than the other highways because it runs the whole
+   length of his patch; the rest are hinterland. */
+.map__road  { fill: none; stroke: var(--bronze); stroke-opacity: 0.38; stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round; }
+.map__road--minor { stroke-opacity: 0.20; stroke-width: 1.8; }
+.map__river { fill: none; stroke: var(--ink); stroke-opacity: 0.30; stroke-width: 2.6; stroke-linecap: round; stroke-linejoin: round; }
+.map__shore { fill: none; stroke: var(--ink); stroke-opacity: 0.35; stroke-width: 1.6; stroke-linejoin: round; }
+/* Moreton, Stradbroke and Bribie are 456 and 378 characters of real
+   coastline, and without an edge they read as smudges on a 350px plate. */
+.map__isle  { fill: none; stroke: var(--ink); stroke-opacity: 0.35; stroke-width: 1.2; stroke-linejoin: round; }
 
 /* --- the pins: HTML over the field --- */
 .map__pins { position: absolute; inset: 0; }
@@ -2237,8 +2314,9 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
    message someone has to read, not ambient small print. */
 .form__fail { color: var(--on-ink-body); font-size: var(--fs-micro); font-family: var(--font-mono); letter-spacing: 0.04em; }
 .form__fail .num { color: var(--bronze-bright); text-decoration: underline; text-underline-offset: 2px; }
-.contact__formwrap > summary { display: none; }
-.contact__formwrap > summary::-webkit-details-marker { display: none; }
+/* .contact__formwrap is a bare wrapper now (P13). It used to be a
+   <details> whose summary had to be hidden above 640; there is no
+   summary any more, at any width. */
 
 
 /* ============================================================
@@ -2470,6 +2548,10 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
   .areas__grid { gap: 1.5rem; }
   .map__area-edge { stroke-width: 4; }
   .map__shore { stroke-width: 2; }
+  .map__isle { stroke-width: 1.7; }
+  .map__road { stroke-width: 3; }
+  .map__road--minor { stroke-width: 2.2; }
+  .map__river { stroke-width: 3.2; }
   .map__tag { font-size: 0.6875rem; padding: 0.2rem 0.42rem; }
   /* the strip has room for the legend and the scale on one line at
      350px, but not for all three. The pins are self-evidently tappable;
@@ -2482,15 +2564,14 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
   .footer__callrow { display: block; }
   .footer__callrow .footer__call { display: inline-flex; width: 100%; min-height: 56px; }
 
-  /* contact: call first, then text, then the form behind a summary */
+  /* contact: call first, then text, then the WHOLE form.
+     ⚠️ P13 DELETED THE ≤640 DISCLOSURE. This block used to give
+     .contact__formwrap a summary and hide .contact__formcard until it
+     was pressed, so on a phone the four fields — which are the offer —
+     sat behind one more decision at the exact point of decision. The
+     form is a plain <div> now and is fully visible at every width.
+     ⛔ Do not put a disclosure back here. */
   .contact__direct { margin-top: 1rem; }
-  .contact__formwrap > summary {
-    display: flex; align-items: center; gap: 0.7rem; min-height: 52px;
-    cursor: pointer; color: var(--on-ink);
-    font-weight: var(--wt-mid);
-    border-top: 1px solid var(--line-ink); margin-top: 0.5rem;
-  }
-  .contact__formwrap:not([open]) .contact__formcard { display: none; }
 
   /* footer: 2-col rows */
   .footer__in { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1.5rem var(--gap-card); }
@@ -2535,7 +2616,13 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
   .trust__in { gap: 0.55rem 2.4rem; }
   .value__grid { grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr); gap: clamp(2.5rem, 5vw, 5rem); }
   .svc__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .warranty__grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2.5rem, 5vw, 5rem); }
+  /* P14: `align-items: center` (inherited from the base rule) left the
+     "12" hanging in the vertical middle of a column that holds nothing
+     else, with ~380px of nothing above it and a baseline shared with
+     no other element in the band. Start-aligned it sits level with the
+     H2 it is the figure for, which is what the mobile stack already
+     does and reads better than. */
+  .warranty__grid { grid-template-columns: minmax(0, 0.8fr) minmax(0, 1.2fr); gap: clamp(2.5rem, 5vw, 5rem); align-items: start; }
   .story__grid { grid-template-columns: minmax(0, 0.55fr) minmax(0, 1.45fr); gap: clamp(2.5rem, 5vw, 5rem); }
   .contact__grid { grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: clamp(2.5rem, 5vw, 5rem); }
   /* map left, the region spec sheet right. 0.86fr keeps the map plate
@@ -2711,7 +2798,21 @@ a.area.is-lit .area__mark { box-shadow: 0 0 0 3px var(--bronze-soft), 0 0 0 4px 
   /* `align-items: center` floated the caption in the vertical middle of
      a 405px pair of photographs, with ~120px of nothing above it. It
      reads as a caption when it starts where the pictures start. */
-  .ba__grid { grid-template-columns: minmax(0, 1.3fr) minmax(0, 0.7fr); align-items: start; }
+  /* ⚠️ P14 — 1.3fr WAS A COLUMN THE PICTURES COULD NOT FILL. Both
+     frames are capped at 320 CSS px (native 640 ÷ 2, and that ceiling
+     is a gate), so the pair is intrinsically ~672px no matter how wide
+     its column is. At 1440 a 1.3fr column is ~800px, which left 130px
+     of nothing between the "After" frame and a caption stranded on the
+     far side of it, and the band read as the emptiest on the page.
+     `max-content` sizes the column to the pair itself, so the caption
+     sits directly against the pictures it captions and the void closes
+     without touching the photographs or the cap. Still `align-items:
+     start` — P12's reason for that stands and is untouched. */
+  .ba__grid { grid-template-columns: max-content minmax(0, 1fr); align-items: start; }
+  /* 46ch set the whole caption on ONE 460px line beside a 410px-tall
+     pair, which reads as a banner rather than as a caption. 30ch sets
+     it as a two-line block against the pictures. */
+  .ba__aside { max-width: 30ch; }
 }
 
 @media (min-width: 1025px) and (hover: hover) and (pointer: fine) {

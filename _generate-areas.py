@@ -101,32 +101,10 @@ REGION_SUBURBS = {
 VOICES_PER_PAGE = 3
 
 
-def trim_caveat(voices, picked):
-    """The shortening disclosure, COUNTED from the quotes actually placed.
-
-    ⚠️ ADVERSARIAL-B1 2026-08-22. The home page's lede used to carry a TYPED
-    count ("two are shortened with an ellipsis and nothing else") and
-    `pageCommon.voicesLede` was the same sentence WITH THAT CLAUSE DELETED —
-    so all five area pages printed Miya's ellipsis-trimmed quote under a lede
-    that promised only "nothing is reworded". Five pages, one undisclosed
-    truncation each, and the home page's own number was wrong as well.
-
-    A typed count cannot survive a curation change. This counts the items on
-    THIS page and writes the matching sentence; a page that happens to draw
-    three untrimmed quotes prints no caveat at all. `script.js` carries the
-    identical function (`trimCaveat`) for the home page — if you change one,
-    change both, and re-run this generator.
-    """
-    n = sum(1 for it in picked if it.get("trimmed"))
-    if not n:
-        return ""
-    note = voices["trimNote"]
-    words = note["words"]
-    word = words[n] if n < len(words) else str(n)
-    tmpl = note["one"] if n == 1 else note["many"]
-    return " " + tmpl.replace("{N}", word)
-
-
+# CLIENT 2026-08-22: the computed trim caveat is removed sitewide at the
+# client's direction (see content.js voices.lede). Quotes stay verbatim and
+# every trimmed quote carries `trimmed: true` and a RENDERED ellipsis at the
+# cut — the ellipsis is the disclosure. Do not reintroduce a trim without one.
 def pick_voices(voices, slug, region_index, used):
     """Three cards per page: local matches first, then the freshest, then the best.
 
@@ -373,7 +351,7 @@ def build_page(c, region, region_index, used):
         </figure>''' % (esc(it["category"]), esc(it["quote"]), esc(it["name"]),
                         esc(it["suburb"]), esc(it["date"]), esc(v["sourceLabel"]))
         for it in picked_voices)
-    voices_lede_text = common["voicesLede"] + trim_caveat(v, picked_voices)
+    voices_lede_text = common["voicesLede"]
 
     faqs = "".join(
         '''<details class="faq__item">
@@ -553,8 +531,12 @@ def build_page(c, region, region_index, used):
            adds nothing to navigate past. -->
       <div class="value__price-card">
         <span class="value__from mono-label">{price_label}</span>
-        <span class="value__figure figure-mega"><span class="cur">$</span>{price_amount}</span>
-        <span class="value__gst mono">+GST</span>
+        <!-- P14: +GST was a sibling BLOCK here, so at 1440 it dropped
+             onto its own line ~60px under the numeral and read as a
+             wrap rather than a decision. index.html has always set it
+             as `.figure-mega .suf`, a mono superior tucked against the
+             figure. Same markup on both page types now. -->
+        <span class="value__figure figure-mega"><span class="cur">$</span>{price_amount}<span class="suf">+GST</span></span>
         <div class="value__rule"></div>
         <p class="value__note">{warranty_heading}</p>
       </div>

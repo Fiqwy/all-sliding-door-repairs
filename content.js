@@ -368,23 +368,29 @@ const base = {
   // never put them in here.
   problem: {
     eyebrow: "Start here",
-    // heading + headingEm render as ONE sentence; the split is a
-    // structural key for the Direction-2 roman → italic display
-    // device. The words are unchanged.
-    heading: "What's your door",
-    headingEm: "doing?",
-    lede: "Tap whatever it's doing. It writes the text message for you, so you don't have to find the words for it.",
-    // ⭐ SIGNATURE INTERACTION. It is a DEMONSTRATION of how a door
-    // behaves, never a before/after of one of his jobs — the caption
-    // below is load-bearing and must not be softened, shortened or
-    // moved.
-    demo: {
-      caption: "A demonstration of how a door behaves, not a photo of a job.",
-      stuckLabel: "Worn rollers",
-      fixedLabel: "New rollers",
-      hint: "Drag the door"                    // also the aria-label on the slider role
-    },
-    pickerLabel: "Tick as many as you like.",   // was "Tap everything that sounds like your door", which repeated the lede's instruction 44px below it. What actually needs saying is that it is multi-select.
+    // CLIENT 2026-08-22: "doing?" in the italic accent read as odd on
+    // this heading — it now renders in the display face like the rest
+    // of the sentence. headingEm stays as a key (the renderer skips an
+    // empty one) so the device can return if the call is ever reversed.
+    heading: "What's your door doing?",
+    headingEm: "",
+    // P13 TIGHTEN. Was "Tap whatever it's doing. It writes the text
+    // message for you, so you don't have to find the words for it." —
+    // 22 words to say one thing, and the second clause is said again by
+    // `ctaHint` 300px below and again by `contact.lede`. Effort is the
+    // denominator of the value equation, so the sentence about how
+    // little effort this takes should itself be short.
+    lede: "Tap whatever it's doing. The message writes itself.",
+    // ⛔ P13 DELETED THE DEAD `demo` BLOCK. The drag-the-door demo was
+    // CUT by client decision (script.js:12, "#problem is the symptom
+    // picker and nothing else"), but its four strings stayed here under
+    // a comment calling one of them "load-bearing and must not be
+    // softened". Nothing has read them since. A source-of-truth file
+    // that carries strings which do not ship, flagged as load-bearing,
+    // is how the next session ends up protecting a sentence no visitor
+    // can see. Verified unreferenced in script.js, _generate-areas.py
+    // and index.html before deleting.
+    pickerLabel: "Tap as many as you like.",   // "Tap", not "Tick": the lede says tap and the chips are tapped, so the section uses one verb. What this line has to say is that it is MULTI-select.
     // A11Y-M6: the NAME of the chip set, for assistive tech only. Eight
     // buttons in a row had nothing saying what they belonged to. Never
     // rendered visually — pickerLabel already says it on screen.
@@ -406,11 +412,18 @@ const base = {
     // Restates value.body and his own verbatim line from the glass-door
     // page ("When a broken door continues to be used the track can be
     // severely damaged"). No deadline, no price rise, no scarcity.
-    footNote: "Most of these are the same thing going wrong underneath. The rollers wear, the door drops onto the track, and the longer it gets used like that, the more track has to be replaced.",
+    // P13 TIGHTEN. This used to run the WHOLE causal chain — rollers
+    // wear, door drops, track grinds out, more track to replace — and
+    // `value.body` runs the same chain again in the very next band,
+    // 39 words and 66 words saying one mechanism twice. The mechanism
+    // and the cost of delay belong in #value, where they justify the
+    // price. Here the job is one line: all eight of those symptoms are
+    // one fault, which is what makes the next section believable.
+    footNote: "Most of these are the same thing underneath: worn rollers.",
     // The risk reversal sits at the exact point of doubt: the unspoken
     // fear is that tapping a button fires off a message you cannot
     // take back.
-    ctaHint: "The quote is free. It opens your own messages with the details already written, and nothing sends until you press send."
+    ctaHint: "The quote is free. It opens your own messages, already written, and nothing sends until you press send."
   },
 
   // Bodies concatenate in TAP order, not array order, so no body may
@@ -450,7 +463,14 @@ const base = {
     // door or window." Only the pronoun moved (we -> he), per the
     // one-means-one rule. This is the commercial argument of the entire
     // business in one sentence, in his voice, and it belongs here.
-    body: "A sliding door runs on rollers. When they wear out the door drops onto the track and starts grinding it out, and the longer it gets used like that, the more track has to be replaced. New rollers, a clean track, and it slides the way it did when it was new. As he puts it, it's more effective to replace a roller assembly than to replace a whole door or window.",
+    // ⭐ P13 MOVED THE LAST SENTENCE, IT IS NOT CUT. See `priceAnchor`
+    // below: his commercial argument (a roller assembly against a whole
+    // door) is the CONTRAST that stops $150 from standing on its own,
+    // and it was 700px away from the price at 1440, in the left column.
+    // It is now the first line under the figure. The paragraph is
+    // better for it too: it ends on the outcome instead of on a
+    // comparison.
+    body: "A sliding door runs on rollers. When they wear out the door drops onto the track and starts grinding it out, and the longer it gets used like that, the more track has to be replaced. New rollers, a clean track, and it slides the way it did when it was new.",
     priceFrom: {
       amount: 150,                   // CONFIRM 9: verbatim from ig-DcLSNRYxThX.jpg ("FROM $150 +GST"), scope unknown.
       gst: true,                     // displayed as "+GST", never as an inc-GST figure
@@ -501,11 +521,28 @@ const base = {
     },
     ctaLabel: "Send Lachlan a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
+    // ⭐ THE PRICE ANCHOR. A figure with nothing beside it is a naked
+    // price: $150 is only cheap against the thing it replaces. This is
+    // HIS OWN sentence, recovered verbatim from his archived home page
+    // ("We'll save you money as it's more effective to replace a roller
+    // assembly than to replace a whole door or window"), with the
+    // pronoun moved per the one-means-one rule. It used to close
+    // `value.body` in the left-hand column, 700px from the figure at
+    // 1440; it now prints directly under it.
+    // ⛔ IT NAMES NO REPLACEMENT PRICE, and none may ever be added. We
+    // do not have one from him, and an invented "a new door costs
+    // $1,500" is exactly the kind of anchor this site does not use.
+    // THIS SLOT USED TO PRINT `warranty.heading`. That sentence already
+    // appears in the hero spec strip, the trust seam, the #warranty H2
+    // and its points panel, faq[7], the contact stack and the footer —
+    // seven times — so a repair-against-replacement contrast buys far
+    // more here than an eighth guarantee.
+    priceAnchor: "As he puts it, it's more effective to replace a roller assembly than to replace a whole door or window.",
     // The free quote belongs AT the price. It is the one moment on the
     // page where the visitor is thinking about money, and it was the one
     // moment with no risk reversal on it. Sourced twice: his own site's
     // "Get A Free Quote" button and his IG caption.
-    priceNote: "The quote itself is free. Text him a photo of the door and he'll tell you what it needs before he drives out.",
+    priceNote: "The quote is free. Text him a photo and he'll tell you what it needs before he drives out.",
     // A customer saying "great price" beats any adjective we could
     // write, and it does a DIFFERENT job from counterAnchor: Sarah
     // answers "do I need a new door?", Paul answers "is $150 fair?".
@@ -562,6 +599,22 @@ const base = {
     // component at every breakpoint — this is its label. The item count
     // is appended by the renderer, so this string must not contain one.
     detailsLabel: "What goes wrong, and what he does",   // was "What fails, and what he does": "fails" is the trade's word for it, "goes wrong" is the customer's
+    // ⭐ P14 — THE ONE BAND THAT DID NOT FUNNEL.
+    // P13 flagged #services as the only band with no next step and
+    // declined to guess at one ("the brief was to remove copy, not add
+    // a seventh button"). This is the answer, and it is deliberately
+    // NOT a seventh button: it is the same mono go-link the area pages
+    // already use inside this band, so the component is not new either.
+    //
+    // The lede DISSOLVES the objection the catalogue creates rather than
+    // repeating the ask — six cards have just invited the visitor to
+    // self-diagnose, and most of them cannot. The ask itself lives only
+    // in the link, so the instruction is never printed twice 40px apart
+    // (the defect P13 removed from #contact.italicLine).
+    // ⛔ ctaLabel must stay the site's one five-word ask, verbatim.
+    footLead: "Not sure which one it is? You don't need to be.",
+    ctaLabel: "Send Lachlan a photo",
+    ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
     items: [
       {
         id: "glass-sliding-doors",
@@ -803,7 +856,17 @@ const base = {
     // photo) in _source-urls.json. Seven supplier product shots exist
     // in assets/_source/wp/ and NONE are published. Publishing any one
     // of them makes this sentence false. See CONFIRM 6.
-    lede: "Every photo below is one of Lachlan's own jobs. There is no stock photography anywhere on this site.",
+    // P13: the second sentence ("There is no stock photography anywhere
+    // on this site.") is CUT. It was meta-commentary about the website
+    // rather than about the work — the same species as the "Nothing
+    // below is written by us…" line the client had removed from
+    // #voices, and it argued with the site's own reader rather than
+    // with the door. ⚠️ THE CONSTRAINT IT GUARDED IS UNCHANGED and the
+    // remaining sentence still carries it: publishing any of the seven
+    // supplier product shots in assets/_source/wp/ makes THIS sentence
+    // false, and it must be cut in the same commit if that ever
+    // happens. See CONFIRM 6 and CLAUDE.md.
+    lede: "Every photo below is one of Lachlan's own jobs.",
     filterAllLabel: "All",
     // A11Y-M6: the NAME of the filter set. The chips are mutually
     // exclusive, so they are a radiogroup and a radiogroup needs a name.
@@ -1020,9 +1083,16 @@ const base = {
     hardwareNote: "He fits heavy duty rollers, and the same door glides again.",
     // The guarantee is the strongest risk reversal on the site and it
     // had nothing to press: the nearest CTA was 2,170px above it at 390.
-    ctaLabel: "Send Lachlan a photo of the door",
+    // ⚠️ P13: EVERY CTA ON THE PAGE NOW READS THE SAME FIVE WORDS.
+    // This one said "…a photo of the door" and #voices said "…a photo of
+    // your door", so the one thing the whole site asks for had three
+    // different names. The ask IS the offer here, and an offer with one
+    // name is easier to hold in the head than the same offer worded
+    // three ways. "of the door" is not lost: hero.lede, contact.heading
+    // and four FAQ answers all say which photo.
+    ctaLabel: "Send Lachlan a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
-    ctaHint: "The quote is free. It opens your own messages with the details already written, and nothing sends until you press send."
+    ctaHint: "The quote is free. It opens your own messages, already written, and nothing sends until you press send."
   },
 
   // ==========================================================
@@ -1203,23 +1273,14 @@ const base = {
     // AREA pages printed a trimmed quote under a lede with no caveat at
     // all.
     //
-    // The caveat is now COMPUTED, never typed. `lede` is the part that
-    // is always true; script.js (home) and _generate-areas.py (areas)
-    // each count the items with `trimmed === true` ON THE PAGE THEY ARE
-    // RENDERING and append the matching sentence from `trimNote`. A page
-    // with no trimmed quote prints no caveat. The count cannot go stale,
-    // and no page can print a trimmed quote without the disclosure.
-    lede: "These are public recommendations from his hipages profile, captured August 2026. Nothing below is written by us and nothing is reworded.",
-    // The computed caveat. `words` is index-addressed 0..12 (twelve is
-    // the most quotes any page carries); `one` and `many` are the two
-    // grammatical forms. Spelled out, because every other figure in this
-    // section's prose is spelled out.
-    trimNote: {
-      words: ["", "One", "Two", "Three", "Four", "Five", "Six", "Seven",
-              "Eight", "Nine", "Ten", "Eleven", "Twelve"],
-      one:  "{N} is shortened with an ellipsis at the cut and nothing else.",
-      many: "{N} are shortened with an ellipsis at the cut and nothing else."
-    },
+    // CLIENT 2026-08-22: the meta-sentences about rewording and trims
+    // ("Nothing below is written by us…", "Two are shortened…") are
+    // REMOVED at the client's direction. The honesty position is
+    // unchanged and still enforced at the data layer: quotes are
+    // verbatim, the two trimmed ones carry `trimmed: true` and a
+    // RENDERED ellipsis at the cut — the ellipsis IS the disclosure.
+    // Do not reintroduce a trim without one.
+    lede: "Public recommendations from his hipages profile, captured August 2026.",
     // ⚠️ THE HONEST BANNER. Every figure is read straight off the
     // public profile (assets/_source/social/hipages/_hipages-reviews.json,
     // captured 2026-08-21) and NONE of it may be rounded, restated as
@@ -1260,12 +1321,20 @@ const base = {
     // stars" is an inference, not a fact. The banner prints the average
     // the way hipages prints it and this line prints the counts. Neither
     // one guesses.
-    foot: "Sixty-one people have rated him. Forty-nine have written something about the job. The twelve above were chosen because they say what he actually did.",
+    // ⚠️ P13 CUT THE THIRD SENTENCE ("The twelve above were chosen
+    // because they say what he actually did."), NOT THE FIGURES. It was
+    // us explaining our own editorial process — meta-commentary about
+    // the site, the same species the client had removed from
+    // `voices.lede` — and the question it pre-empted ("why only
+    // twelve?") is answered better by the link beside it, which goes to
+    // all sixty-one. The two counts stay exactly as they were, stated
+    // separately, with no constructed join between them.
+    foot: "Sixty-one people have rated him. Forty-nine have written something about the job.",
     // The rail's own next step. The hipages link stays, because the
     // attribution rail requires it, but it is no longer the ONLY way out
     // of the strongest section on the page: it was sending people at
     // peak conviction to a marketplace that lists his competitors.
-    ctaLabel: "Send Lachlan a photo of your door",
+    ctaLabel: "Send Lachlan a photo",   // one wording for every CTA on the page — see warranty.ctaLabel
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?",
     items: [
       {
@@ -1439,83 +1508,157 @@ const base = {
       // markers on the map and the five markers down the list are the same
       // drawing, so the key names what tapping one does.
       keyLabel: "Region pages",
-      note: "The shaded area is the run he does. If you are near the edge of it, send him a photo anyway and he will tell you straight away.",
+      // P13 TIGHTEN, 25 words to 12. The first sentence ("The shaded
+      // area is the run he does.") is the plate's own legend printed
+      // twice — the key strip already says WHERE HE WORKS beside the
+      // swatch. What only this caption can say is what to do if you are
+      // on the line, so that is all it says now, action first.
+      note: "Near the edge of it? Send him a photo anyway and he'll tell you.",
       geo: {
       // map:start — GENERATED by `python3 design/map-build/build_map.py`.
-      viewBox: "0 0 1000 1095",
+      viewBox: "0 0 1000 1080",
       // projection window, echoed from build_map.py so the numbers behind the
-      // picture are inspectable: 152.5..153.78E, -28.42..-27.18 lat, 126.0 km across.
-      bounds: {"lon": [152.5, 153.78], "lat": [-28.42, -27.18], "spanKm": 126.0},
+      // picture are inspectable: 152.32..153.9E, -28.56..-27.05 lat, 155.6 km across.
+      bounds: {"lon": [152.32, 153.9], "lat": [-28.56, -27.05], "spanKm": 155.6},
       land:
-        "M551.7 -118.3 L554.9 -90.8 L540.4 -71.3 L511.4 -84.6 L481.7 -79.5 L454.8 -61.4 L433.9 -35.1 " +
-        "L428.0 -24.5 L420.6 -5.8 L420.5 11.9 L436.2 19.7 L453.1 20.7 L461.8 19.9 L468.3 16.7 L478.8 " +
-        "9.7 L482.4 15.0 L479.4 55.1 L471.8 65.5 L460.3 72.1 L446.9 83.6 L438.6 101.2 L441.4 115.2 " +
-        "L450.3 126.3 L460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 " +
-        "L540.4 237.9 L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 " +
-        "L610.4 303.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 406.5 L637.1 419.4 L644.1 430.0 " +
-        "L660.5 447.5 L669.0 479.6 L673.4 487.6 L681.1 493.9 L703.1 517.7 L710.8 531.6 L709.3 543.2 " +
-        "L704.6 555.7 L712.1 561.4 L724.3 557.0 L733.6 540.0 L738.9 540.0 L738.7 556.8 L728.2 600.8 " +
-        "L726.7 616.9 L728.2 667.1 L717.4 643.7 L710.2 651.7 L704.8 666.8 L703.1 683.8 L706.3 697.8 " +
-        "L713.5 703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 L738.3 707.3 L741.8 788.8 L752.1 805.9 " +
-        "L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 L836.4 895.4 L844.7 942.1 L852.4 961.3 " +
-        "L852.2 1005.5 L830.8 1131.2 L830.1 1169.8 L840.6 1245.0 L847.1 1261.3 L875.7 1293.4 L883.3 " +
-        "1308.5 L882.1 1313.5 L-30.0 1125.2 L-30.0 -30.0 Z",
+        "M526.7 -174.6 L523.1 -161.8 L521.4 -147.0 L522.9 -113.2 L526.9 -89.5 L560.9 -2.8 L563.4 19.5 " +
+        "L551.7 35.3 L528.2 24.5 L504.1 28.6 L482.4 43.3 L465.4 64.6 L460.7 73.2 L454.7 88.3 L454.6 " +
+        "102.6 L467.3 109.0 L481.0 109.7 L488.0 109.2 L501.8 100.9 L504.7 105.1 L502.3 137.6 L496.1 " +
+        "146.1 L486.8 151.4 L476.0 160.8 L469.2 175.0 L471.5 186.4 L478.7 195.3 L486.9 201.9 L499.5 " +
+        "207.9 L526.0 216.3 L536.7 224.5 L542.7 237.9 L546.9 270.8 L551.7 285.8 L561.9 297.0 L572.0 " +
+        "299.2 L581.3 299.0 L588.9 302.5 L595.1 310.6 L600.2 319.3 L608.4 339.1 L611.1 355.3 L623.1 " +
+        "372.2 L625.1 377.8 L627.1 422.4 L630.0 432.8 L635.7 441.4 L649.0 455.6 L655.9 481.6 L659.5 " +
+        "488.1 L665.7 493.1 L683.5 512.5 L689.8 523.7 L688.5 533.1 L684.7 543.2 L690.8 547.8 L700.7 " +
+        "544.3 L708.2 530.5 L712.5 530.5 L712.4 544.1 L703.9 579.8 L702.6 592.8 L703.9 633.5 L695.1 " +
+        "614.5 L689.3 621.0 L684.9 633.2 L683.5 647.0 L686.1 658.4 L692.0 662.7 L697.5 657.6 L702.6 " +
+        "649.1 L708.2 643.2 L712.1 666.1 L714.9 732.1 L723.3 745.9 L735.6 758.8 L750.1 785.4 L767.1 " +
+        "807.0 L786.4 805.0 L791.5 818.4 L798.2 856.3 L804.5 871.9 L804.3 907.7 L787.0 1009.5 L786.4 " +
+        "1040.8 L794.9 1101.6 L800.2 1114.9 L823.4 1140.9 L829.5 1153.1 L820.9 1177.6 L822.6 1193.2 " +
+        "L822.6 1201.8 L811.0 1224.6 L810.2 1240.3 L-30.0 1110.4 L-30.0 -30.0 Z",
       coast:
-        "M551.7 -118.3 L554.9 -90.8 L540.4 -71.3 L511.4 -84.6 L481.7 -79.5 L454.8 -61.4 L433.9 -35.1 " +
-        "L428.0 -24.5 L420.6 -5.8 L420.5 11.9 L436.2 19.7 L453.1 20.7 L461.8 19.9 L468.3 16.7 L478.8 " +
-        "9.7 L482.4 15.0 L479.4 55.1 L471.8 65.5 L460.3 72.1 L446.9 83.6 L438.6 101.2 L441.4 115.2 " +
-        "L450.3 126.3 L460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 " +
-        "L540.4 237.9 L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 " +
-        "L610.4 303.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 406.5 L637.1 419.4 L644.1 430.0 " +
-        "L660.5 447.5 L669.0 479.6 L673.4 487.6 L681.1 493.9 L703.1 517.7 L710.8 531.6 L709.3 543.2 " +
-        "L704.6 555.7 L712.1 561.4 L724.3 557.0 L733.6 540.0 L738.9 540.0 L738.7 556.8 L728.2 600.8 " +
-        "L726.7 616.9 L728.2 667.1 L717.4 643.7 L710.2 651.7 L704.8 666.8 L703.1 683.8 L706.3 697.8 " +
-        "L713.5 703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 L738.3 707.3 L741.8 788.8 L752.1 805.9 " +
-        "L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 L836.4 895.4 L844.7 942.1 L852.4 961.3 " +
-        "L852.2 1005.5 L830.8 1131.2 L830.1 1169.8 L840.6 1245.0 L847.1 1261.3 L875.7 1293.4 L883.3 " +
-        "1308.5 L882.1 1313.5",
+        "M526.7 -174.6 L523.1 -161.8 L521.4 -147.0 L522.9 -113.2 L526.9 -89.5 L560.9 -2.8 L563.4 19.5 " +
+        "L551.7 35.3 L528.2 24.5 L504.1 28.6 L482.4 43.3 L465.4 64.6 L460.7 73.2 L454.7 88.3 L454.6 " +
+        "102.6 L467.3 109.0 L481.0 109.7 L488.0 109.2 L501.8 100.9 L504.7 105.1 L502.3 137.6 L496.1 " +
+        "146.1 L486.8 151.4 L476.0 160.8 L469.2 175.0 L471.5 186.4 L478.7 195.3 L486.9 201.9 L499.5 " +
+        "207.9 L526.0 216.3 L536.7 224.5 L542.7 237.9 L546.9 270.8 L551.7 285.8 L561.9 297.0 L572.0 " +
+        "299.2 L581.3 299.0 L588.9 302.5 L595.1 310.6 L600.2 319.3 L608.4 339.1 L611.1 355.3 L623.1 " +
+        "372.2 L625.1 377.8 L627.1 422.4 L630.0 432.8 L635.7 441.4 L649.0 455.6 L655.9 481.6 L659.5 " +
+        "488.1 L665.7 493.1 L683.5 512.5 L689.8 523.7 L688.5 533.1 L684.7 543.2 L690.8 547.8 L700.7 " +
+        "544.3 L708.2 530.5 L712.5 530.5 L712.4 544.1 L703.9 579.8 L702.6 592.8 L703.9 633.5 L695.1 " +
+        "614.5 L689.3 621.0 L684.9 633.2 L683.5 647.0 L686.1 658.4 L692.0 662.7 L697.5 657.6 L702.6 " +
+        "649.1 L708.2 643.2 L712.1 666.1 L714.9 732.1 L723.3 745.9 L735.6 758.8 L750.1 785.4 L767.1 " +
+        "807.0 L786.4 805.0 L791.5 818.4 L798.2 856.3 L804.5 871.9 L804.3 907.7 L787.0 1009.5 L786.4 " +
+        "1040.8 L794.9 1101.6 L800.2 1114.9 L823.4 1140.9 L829.5 1153.1 L820.9 1177.6 L822.6 1193.2 " +
+        "L822.6 1201.8 L811.0 1224.6 L810.2 1240.3",
       islands: [
-        "M771.3 207.7 L763.5 201.8 L757.1 193.6 L748.8 186.2 L736.2 183.1 L729.8 188.1 L728.4 200.0 " +
-        "L728.2 225.9 L722.1 238.9 L705.1 263.4 L701.5 276.5 L710.5 310.8 L712.1 325.0 L710.3 337.5 " +
-        "L702.7 364.2 L701.5 376.6 L703.6 384.2 L710.7 396.0 L712.1 403.7 L710.5 410.8 L703.2 419.1 " +
-        "L701.5 422.1 L697.1 448.4 L696.4 460.9 L705.7 482.4 L712.0 483.7 L720.1 481.4 L730.9 479.6 " +
-        "L742.7 479.6 L746.8 477.6 L787.9 286.2 L802.7 243.5 L819.4 207.7 L782.1 209.9 L771.3 207.7 Z",
-        "M712.1 140.9 L721.1 157.4 L725.9 154.0 L727.9 140.5 L728.2 125.8 L726.7 113.7 L719.7 91.1 " +
-        "L717.4 80.6 L717.4 37.8 L723.3 0.4 L754.7 -105.8 L757.0 -126.3 L752.1 -140.8 L743.2 -143.9 " +
-        "L734.1 -139.1 L717.4 -125.5 L690.3 -120.0 L674.3 -110.2 L672.3 -100.7 L676.5 -87.9 L679.7 " +
-        "-68.3 L674.8 -14.7 L679.3 40.2 L684.7 59.9 L693.3 68.5 L701.1 78.7 L708.3 101.6 L712.6 126.0 " +
-        "L712.1 140.9 Z",
+        "M738.8 261.3 L732.5 256.5 L727.3 249.9 L720.6 243.9 L710.4 241.3 L705.1 245.4 L704.0 255.0 " +
+        "L703.9 276.0 L698.9 286.5 L685.1 306.4 L682.3 317.0 L689.5 344.8 L690.8 356.4 L689.4 366.4 " +
+        "L683.2 388.1 L682.3 398.1 L684.0 404.3 L689.7 413.8 L690.8 420.1 L689.5 425.8 L682.3 435.0 " +
+        "L678.6 456.3 L678.1 466.4 L685.7 483.9 L690.7 484.9 L706.0 481.6 L715.6 481.6 L718.9 480.0 " +
+        "L752.3 324.9 L764.3 290.3 L777.7 261.3 L747.6 263.1 L738.8 261.3 Z",
+        "M690.8 207.2 L698.1 220.5 L702.0 217.8 L703.6 206.8 L703.9 194.9 L702.6 185.1 L696.9 166.8 " +
+        "L695.1 158.3 L695.1 123.7 L699.9 93.3 L725.4 7.3 L727.2 -9.3 L723.3 -21.0 L716.0 -23.6 L708.6 " +
+        "-19.6 L695.1 -8.7 L673.2 -4.2 L660.2 3.8 L658.6 11.5 L662.0 21.8 L664.5 37.7 L660.6 81.1 " +
+        "L664.2 125.6 L668.7 141.5 L675.6 148.5 L681.9 156.8 L687.7 175.3 L691.2 195.1 L690.8 207.2 Z",
       ],
       graticule: [
-        "M195.3 0.0 L195.3 1095.2",
-        "M390.6 0.0 L390.6 1095.2",
-        "M585.9 0.0 L585.9 1095.2",
-        "M781.2 0.0 L781.2 1095.2",
-        "M976.6 0.0 L976.6 1095.2",
-        "M0.0 945.0 L1000.0 945.0",
-        "M0.0 724.2 L1000.0 724.2",
-        "M0.0 503.4 L1000.0 503.4",
-        "M0.0 282.6 L1000.0 282.6",
-        "M0.0 61.8 L1000.0 61.8",
+        "M113.9 0.0 L113.9 1080.4",
+        "M272.2 0.0 L272.2 1080.4",
+        "M430.4 0.0 L430.4 1080.4",
+        "M588.6 0.0 L588.6 1080.4",
+        "M746.8 0.0 L746.8 1080.4",
+        "M905.1 0.0 L905.1 1080.4",
+        "M0.0 1037.5 L1000.0 1037.5",
+        "M0.0 858.6 L1000.0 858.6",
+        "M0.0 679.7 L1000.0 679.7",
+        "M0.0 500.9 L1000.0 500.9",
+        "M0.0 322.0 L1000.0 322.0",
+        "M0.0 143.1 L1000.0 143.1",
+      ],
+      rivers: [
+        "M185.1 250.0 C184.8 250.9 183.4 252.2 182.8 255.5 C182.3 258.9 182.3 266.3 181.9 270.2 C181.5 " +
+        "274.0 181.1 275.9 180.6 278.7 C180.0 281.4 179.2 283.3 178.6 286.7 C178.0 290.2 176.4 297.0 " +
+        "176.9 299.4 C177.3 301.9 179.3 302.0 181.3 301.4 C183.3 300.7 186.7 297.7 189.0 295.6 C191.3 " +
+        "293.6 192.9 291.4 195.3 289.0 C197.7 286.6 200.3 282.9 203.3 281.0 C206.3 279.2 209.8 277.2 " +
+        "213.2 278.0 C216.6 278.8 221.0 283.4 223.7 285.8 C226.4 288.1 227.9 290.6 229.4 292.2 C230.8 " +
+        "293.8 230.9 294.1 232.6 295.6 C234.3 297.1 237.5 299.4 239.7 301.3 C241.8 303.2 245.1 304.9 " +
+        "245.6 306.9 C246.1 308.8 244.6 311.1 242.9 313.0 C241.2 314.9 236.1 316.2 235.3 318.3 C234.6 " +
+        "320.3 236.2 323.0 238.4 325.0 C240.6 327.1 245.4 329.4 248.5 330.4 C251.5 331.3 254.0 330.3 " +
+        "256.8 330.7 C259.7 331.1 263.2 331.1 265.6 332.9 C268.0 334.8 270.1 338.2 271.2 341.5 C272.2 " +
+        "344.8 271.8 350.0 271.8 352.8 C271.9 355.6 271.6 356.3 271.5 358.5 C271.5 360.7 270.6 364.2 " +
+        "271.6 365.7 C272.5 367.3 275.3 368.5 277.1 368.0 C279.0 367.6 281.1 364.5 282.6 363.1 C284.1 " +
+        "361.6 284.3 361.0 286.2 359.4 C288.1 357.8 291.5 354.5 294.2 353.5 C296.9 352.5 300.6 352.4 " +
+        "302.5 353.4 C304.4 354.3 305.0 357.2 305.5 359.2 C305.9 361.2 304.4 363.9 305.4 365.4 C306.3 " +
+        "366.9 308.5 368.0 311.0 368.2 C313.5 368.3 317.6 367.6 320.6 366.2 C323.6 364.9 326.6 362.1 " +
+        "329.1 360.3 C331.5 358.6 333.6 355.8 335.2 355.8 C336.7 355.7 337.7 358.4 338.4 360.0 C339.1 " +
+        "361.5 338.9 362.8 339.2 365.0 C339.4 367.2 339.2 369.6 339.9 373.2 C340.5 376.8 341.1 383.4 " +
+        "342.9 386.8 C344.8 390.1 347.7 392.2 350.7 393.4 C353.8 394.6 358.4 395.0 361.2 393.9 C364.0 " +
+        "392.8 366.2 389.0 367.4 386.7 C368.6 384.5 368.0 382.8 368.5 380.3 C369.0 377.9 369.0 375.9 " +
+        "370.5 372.3 C371.9 368.7 374.5 362.5 377.3 358.8 C380.1 355.1 383.9 352.0 387.4 350.1 C390.9 " +
+        "348.1 394.9 348.3 398.5 347.4 C402.0 346.4 405.6 345.9 408.9 344.2 C412.2 342.6 415.0 339.2 " +
+        "418.3 337.6 C421.7 336.1 425.9 336.1 428.9 335.0 C431.8 334.0 435.1 333.1 436.1 331.3 C437.2 " +
+        "329.6 436.1 326.6 435.1 324.8 C434.1 322.9 431.0 321.9 430.3 320.3 C429.6 318.7 429.6 317.0 " +
+        "431.0 315.0 C432.5 313.0 436.2 309.6 438.8 308.1 C441.5 306.6 445.0 306.1 446.8 305.9 C448.7 " +
+        "305.7 448.8 306.5 450.1 306.9 C451.5 307.3 452.7 308.1 455.0 308.3 C457.3 308.5 461.7 309.3 " +
+        "463.8 308.0 C466.0 306.7 466.3 303.5 467.9 300.6 C469.5 297.8 470.7 293.2 473.2 291.0 C475.7 " +
+        "288.8 480.4 288.0 482.8 287.5 C485.1 286.9 485.7 287.8 487.2 287.8 C488.7 287.8 489.4 288.1 " +
+        "491.7 287.7 C493.9 287.3 497.8 286.7 500.8 285.5 C503.9 284.3 506.9 282.4 509.9 280.5 C512.9 " +
+        "278.5 515.9 276.2 518.7 273.5 C521.5 270.9 524.3 267.7 526.7 264.5 C529.1 261.4 531.0 257.5 " +
+        "533.2 254.5 C535.4 251.5 538.0 248.4 539.8 246.6 C541.5 244.9 542.8 244.4 543.5 243.9",
+      ],
+      motorway:
+        "M416.5 23.3 C416.5 30.7 416.9 52.3 416.5 67.6 C416.0 82.8 413.4 102.0 413.9 114.8 C414.3 127.6 " +
+        "416.0 135.9 419.1 144.3 C422.1 152.6 426.9 155.1 432.1 164.9 C437.4 174.8 446.9 193.5 450.4 " +
+        "203.3 C453.9 213.1 451.7 215.1 453.0 224.0 C454.3 232.8 453.9 239.2 458.2 256.4 C462.6 273.6 " +
+        "473.5 310.5 479.1 327.3 C484.8 344.0 488.7 348.9 492.2 356.8 C495.7 364.6 494.4 366.1 500.0 " +
+        "374.5 C505.7 382.8 520.0 398.1 526.1 406.9 C532.2 415.8 531.8 419.7 536.6 427.6 C541.3 435.5 " +
+        "547.4 439.9 554.8 454.2 C562.2 468.4 572.7 496.5 580.9 513.2 C589.2 529.9 597.5 543.7 604.4 " +
+        "554.5 C611.4 565.3 617.5 570.7 622.7 578.1 C627.9 585.5 631.8 586.5 635.8 598.8 C639.7 611.1 " +
+        "644.0 632.2 646.2 651.9 C648.4 671.6 647.5 701.6 648.8 716.8 C650.1 732.1 650.5 735.0 654.0 " +
+        "743.4 C657.5 751.7 665.3 761.6 669.7 767.0 C674.0 772.4 673.6 771.4 680.1 775.8 C686.7 780.3 " +
+        "698.4 787.6 708.8 793.5 C719.3 799.4 734.5 805.8 742.8 811.2 C751.0 816.7 754.5 821.1 758.4 " +
+        "826.0 C762.4 830.9 765.0 834.4 766.3 840.8 C767.6 847.2 768.4 857.5 766.3 864.4 C764.1 871.2 " +
+        "757.6 877.2 753.2 882.1 C748.9 887.0 745.8 891.4 740.2 893.9 C734.5 896.3 725.4 895.3 719.3 " +
+        "896.8 C713.2 898.3 708.4 899.8 703.6 902.7 C698.8 905.7 693.6 910.1 690.6 914.5 C687.5 919.0 " +
+        "683.6 922.4 685.4 929.3 C687.1 936.2 693.6 946.0 701.0 955.8 C708.4 965.7 721.0 976.0 729.7 " +
+        "988.3 C738.4 1000.6 746.7 1014.9 753.2 1029.6 C759.7 1044.4 766.3 1069.0 768.9 1076.8",
+      roads: [
+        "M359.1 5.6 C362.1 7.1 367.8 11.5 377.3 14.4 C386.9 17.4 410.0 21.8 416.5 23.3",
+        "M343.4 398.1 C347.3 397.1 359.1 395.1 366.9 392.2 C374.7 389.2 380.4 388.3 390.4 380.4 C400.4 " +
+        "372.5 412.1 353.8 426.9 345.0 C441.7 336.1 470.4 330.2 479.1 327.3",
+        "M4.0 350.9 C9.3 353.3 28.0 361.7 35.4 365.6 C42.8 369.6 42.3 372.0 48.4 374.5 C54.5 376.9 63.6 " +
+        "379.4 71.9 380.4 C80.2 381.4 88.0 381.9 98.0 380.4 C108.0 378.9 121.9 373.0 131.9 371.5 C142.0 " +
+        "370.0 138.9 369.6 158.1 371.5 C177.2 373.5 222.9 379.4 246.8 383.3 C270.7 387.3 287.7 392.7 " +
+        "301.6 395.1 C315.5 397.6 323.4 397.6 330.3 398.1 C337.3 398.6 341.2 398.1 343.4 398.1",
+        "M343.4 398.1 C335.1 404.0 305.1 426.1 293.8 433.5 C282.5 440.9 283.4 438.4 275.5 442.4 C267.7 " +
+        "446.3 254.6 452.7 246.8 457.1 C239.0 461.5 233.3 464.0 228.5 468.9 C223.7 473.8 221.1 478.7 " +
+        "218.1 486.6 C215.0 494.5 213.7 509.2 210.3 516.1 C206.8 523.0 200.3 523.0 197.2 527.9 C194.2 " +
+        "532.9 193.7 538.3 192.0 545.6 C190.2 553.0 188.1 564.3 186.8 572.2 C185.5 580.1 185.9 584.5 " +
+        "184.2 592.9 C182.4 601.2 180.2 612.5 176.3 622.4 C172.4 632.2 166.3 643.0 160.7 651.9 C155.0 " +
+        "660.7 151.1 667.6 142.4 675.5 C133.7 683.4 117.2 694.7 108.5 699.1 C99.8 703.5 95.8 700.1 90.2 " +
+        "702.1 C84.5 704.0 81.9 707.0 74.5 710.9 C67.1 714.8 54.5 722.2 45.8 725.7 C37.1 729.1 26.2 " +
+        "730.6 22.3 731.6",
       ],
       envelope:
-        "M460.4 134.4 L475.9 141.8 L508.7 152.1 L521.9 162.2 L529.3 178.8 L534.4 219.4 L540.4 237.9 " +
-        "L552.9 251.7 L565.5 254.5 L576.9 254.2 L586.3 258.6 L594.0 268.5 L600.3 279.3 L610.4 303.7 " +
-        "L612.1 311.6 L612.5 317.7 L613.7 323.7 L628.5 344.7 L631.0 351.6 L633.4 406.5 L637.1 419.4 " +
-        "L644.1 430.0 L660.5 447.5 L664.4 460.1 L669.0 479.6 L673.4 487.6 L677.3 491.4 L681.1 493.9 " +
-        "L703.1 517.7 L710.8 531.6 L709.3 543.2 L704.6 555.7 L712.1 561.4 L724.3 557.0 L733.6 540.0 " +
-        "L738.9 540.0 L738.7 556.8 L728.2 600.8 L726.7 616.9 L728.2 667.1 L717.4 643.7 L710.2 651.7 " +
-        "L704.8 666.8 L703.1 683.8 L706.3 697.8 L713.5 703.2 L720.4 696.8 L726.7 686.4 L733.6 679.2 " +
-        "L738.3 707.3 L741.8 788.8 L752.1 805.9 L767.4 821.8 L785.3 854.7 L806.2 881.3 L830.1 878.8 " +
-        "L836.4 895.4 L844.7 942.1 L852.4 961.3 L852.2 1005.5 L687.5 1077.5 L531.3 971.5 L375.0 812.5 " +
-        "L281.3 653.6 L187.5 512.2 L109.4 388.6 L156.2 265.0 L257.8 176.6 L343.7 132.5 Z",
-      scale: {"km": 20, "label": "20 km", "pct": 15.87},
+        "M486.9 201.9 L499.5 207.9 L526.0 216.3 L536.7 224.5 L542.7 237.9 L546.9 270.8 L551.7 285.8 " +
+        "L561.9 297.0 L572.0 299.2 L581.3 299.0 L588.9 302.5 L595.1 310.6 L600.2 319.3 L608.4 339.1 " +
+        "L611.1 355.3 L623.1 372.2 L625.1 377.8 L627.1 422.4 L630.0 432.8 L635.7 441.4 L649.0 455.6 " +
+        "L655.9 481.6 L659.5 488.1 L665.7 493.1 L683.5 512.5 L689.8 523.7 L688.5 533.1 L684.7 543.2 " +
+        "L690.8 547.8 L700.7 544.3 L708.2 530.5 L712.5 530.5 L712.4 544.1 L703.9 579.8 L702.6 592.8 " +
+        "L703.9 633.5 L695.1 614.5 L689.3 621.0 L684.9 633.2 L683.5 647.0 L686.1 658.4 L692.0 662.7 " +
+        "L697.5 657.6 L702.6 649.1 L708.2 643.2 L712.1 666.1 L714.9 732.1 L723.3 745.9 L735.6 758.8 " +
+        "L750.1 785.4 L767.1 807.0 L786.4 805.0 L791.5 818.4 L798.2 856.3 L804.5 871.9 L804.3 907.7 " +
+        "C782.1 923.4 714.2 970.6 670.9 966.0 C627.5 961.4 586.5 915.9 544.3 880.1 C502.1 844.3 451.5 " +
+        "794.2 417.7 751.3 C384.0 708.4 367.1 663.1 341.8 622.5 C316.5 582.0 289.0 543.8 265.8 508.0 " +
+        "C242.6 472.2 206.8 441.2 202.5 407.8 C198.3 374.5 220.5 336.3 240.5 307.7 C260.5 279.1 297.5 " +
+        "254.0 322.8 236.1 C348.1 218.2 365.0 206.1 392.4 200.3 C419.8 194.6 469.1 200.6 486.9 201.9 Z",
+      scale: {"km": 20, "label": "20 km", "pct": 12.86},
       regions: [
-        { slug: "brisbane", x: 410.2, y: 255.9, xPct: 41.02, yPct: 23.37, side: "w" },
-        { slug: "ipswich", x: 203.6, y: 383.8, xPct: 20.36, yPct: 35.05, side: "s" },
-        { slug: "logan", x: 475.5, y: 405.6, xPct: 47.55, yPct: 37.03, side: "e" },
-        { slug: "gold-coast", x: 712.5, y: 696.0, xPct: 71.25, yPct: 63.55, side: "w" },
-        { slug: "tweed-heads", x: 816.6, y: 882.0, xPct: 81.66, yPct: 80.53, side: "w" },
+        { slug: "brisbane", x: 446.3, y: 300.4, xPct: 44.63, yPct: 27.8, side: "w" },
+        { slug: "ipswich", x: 278.9, y: 404.0, xPct: 27.89, yPct: 37.39, side: "s" },
+        { slug: "logan", x: 499.1, y: 421.6, xPct: 49.91, yPct: 39.02, side: "w" },
+        { slug: "gold-coast", x: 691.1, y: 656.9, xPct: 69.11, yPct: 60.79, side: "w" },
+        { slug: "tweed-heads", x: 775.5, y: 807.5, xPct: 77.55, yPct: 74.74, side: "w" },
       ]
       // map:end
       }
@@ -1536,19 +1679,12 @@ const base = {
     // CLAIMED — the wording is the same promise minus the number.
     // ⚠️ If the area pages ever show all twelve, delete these and reuse
     // the originals rather than editing the count in two places.
-    // ⚠️ ADVERSARIAL-B1 FIX 2026-08-22. `voicesLede` below is the base
-    // sentence ONLY. It used to be the whole lede, and because it had
-    // the home page's shortening caveat deleted from it, five area pages
-    // printed a trimmed quote (Miya's) under a lede that said only
-    // "nothing is reworded" — five undisclosed truncations.
-    // _generate-areas.py now COUNTS the trimmed quotes it actually
-    // placed on each page and appends voices.trimNote to this sentence,
-    // exactly as script.js does on the home page. Neither page can print
-    // a trimmed quote without the disclosure, and neither can print a
-    // count that is wrong.
+    // CLIENT 2026-08-22: the rewording/trim meta-sentences are removed
+    // sitewide (see voices.lede). Verbatim quotes + a rendered ellipsis
+    // on every trim remain the disclosure, enforced by `trimmed: true`.
     pageCommon: {
       voicesHeading: "What his customers say.",
-      voicesLede: "Public recommendations from his hipages profile, captured August 2026. Nothing below is written by us and nothing is reworded.",
+      voicesLede: "Public recommendations from his hipages profile, captured August 2026.",
       // The label on every link that goes back to a section of the home
       // page. Not a claim, just navigation.
       moreLabel: "See it all on the main page"
@@ -1743,7 +1879,11 @@ const base = {
     // The FAQ is the last objection-handler before the close and it
     // used to end on a paragraph about mesh types with nothing to
     // press: the nearest CTA was 1,224px further down at 390.
-    footLead: "Still not sure which one yours is? Send him a photo of the door and he'll tell you.",
+    // P13: was "Still not sure which one yours is?", which pointed at
+    // the mesh question that used to sit directly above it and is now
+    // cut. It points at the whole list instead, and it closes on the
+    // free quote rather than on a hedge.
+    footLead: "Still not sure? Send him a photo of the door and the quote is free either way.",
     ctaLabel: "Send Lachlan a photo",
     ctaSmsBody: "Hi Lachlan, here's a photo of my door. Can it be repaired?"
   },
@@ -1784,7 +1924,7 @@ const base = {
     },
     {
       q: "How long does it take, and do you take the door away?",
-      a: "It's done where the door hangs. Nothing gets taken away and nothing goes to a workshop. Send a photo first and he'll tell you whether it's a one-visit job or whether a part has to be ordered in before he comes."   // CONFIRM 13: makes NO duration claim on purpose, but "one-visit job" implies he sometimes completes in one visit. Verify he carries common rollers and mesh on the van.
+      a: "It's done where the door hangs. Nothing goes to a workshop. Send a photo first and he'll tell you whether it's a one-visit job or whether a part has to be ordered in."   // CONFIRM 13: makes NO duration claim on purpose, but "one-visit job" implies he sometimes completes in one visit. Verify he carries common rollers and mesh on the van.
     },
     {
       q: "Do you come to me, and how far do you go?",
@@ -1811,14 +1951,20 @@ const base = {
       // archived About page states Mon-Fri 8am-4pm with out-of-hours
       // help for urgent repairs, and Localsearch lists the same hours.
       a: "His normal hours are Monday to Friday, 8am to 4pm. If it's urgent and it has to be done out of hours, he can help, and that is mostly doors that won't shut or won't lock."   // CONFIRM 12: still silent on an out-of-hours premium. If he charges one, this needs it.
-    },
-    {
-      // Kept: a genuine decision the customer has to make, and good SEO
-      // body copy. Faithful compression of his own three-mesh
-      // explanation.
-      q: "What kind of fly screen mesh do I need?",
-      a: "Three options. Standard fibreglass for your usual bugs, midge mesh where the midges are small enough to get through standard mesh, and pet mesh where a cat or dog scratches at the screen."
     }
+    // ⛔ P13 CUT: "What kind of fly screen mesh do I need?" It was the
+    // one entry in this list that was not an OBJECTION. Every other
+    // question is something standing between the visitor and a text
+    // message — can it be fixed, what does it cost, is the quote free,
+    // how soon, do you take it away, do you come to me, it's a rental,
+    // what if it goes again, after hours. Mesh choice is a spec sheet,
+    // it is already answered at length in #services in his own words on
+    // two cards, and it was the LAST thing the page said before the
+    // close: the final objection-handler ended on midges. Nine
+    // objections, nine answers. The FAQPage JSON-LD is generated from
+    // this array so it follows automatically, and _generate-areas.py's
+    // FAQ_INDEXES ([0, 1, 2, 5, 7]) are unaffected because the cut is
+    // at the end.
   ],
 
   // ==========================================================
@@ -1837,10 +1983,24 @@ const base = {
     // weight. It is now the third-person wording faq[2] and #areas
     // already use, so it needs nobody's permission and loses no copy.
     // ⛔ Do not put first person back without a sourced quote of his.
-    italicLine: "Send him a photo of the door and he'll tell you what it needs.",
+    // ⚠️ P13: THE HEADING DIRECTLY ABOVE THIS IS "Send Lachlan a photo
+    // of the door." and this line used to be "Send him a photo of the
+    // door and he'll tell you what it needs." — the same instruction,
+    // twice, 40px apart, the second time in the display italic that is
+    // supposed to be the emotional beat of the section. The heading
+    // makes the ask; this line now carries the part the heading cannot,
+    // which is what you get back and how little it costs to find out.
+    // Still third person, still no new claim: `priceNote` and faq[1]
+    // already say he tells you before he drives out.
+    // ⛔ Do not put first person back here without a sourced quote.
+    italicLine: "He'll tell you what it needs before he drives out.",
     // "Nothing sends until you press send" is the answer to the unspoken
     // fear at the exact moment it occurs.
-    lede: "The form below writes the text for you. It opens your own messages app, and nothing sends until you press send.",
+    // Action first: the sentence opens on the literal tiny thing the
+    // visitor does ("fill in the blanks"), not on a description of the
+    // component that does it ("the form below…"). It also carries the
+    // phrase the retired `formOpenLabel` used to carry.
+    lede: "Fill in the blanks and it writes the text for you. It opens your own messages, and nothing sends until you press send.",
     fields: {
       name:    { label: "Your name",  placeholder: "So he knows who he's texting" },   // gives the reason instead of making a demand
       suburb:  { label: "Suburb",     placeholder: "Where the door is" },
@@ -1850,12 +2010,33 @@ const base = {
     // ⚠️ This string must NOT be reused as the #problem preview caption.
     // That is problem.previewLabel.
     submitLabel: "Write the text for me",
-    // The disclosure that OPENS the form used to print submitLabel too,
-    // so the visitor pressed "Write the text for me", the form appeared,
-    // and they had to press "Write the text for me" again.
-    formOpenLabel: "Fill in the blanks and it writes the text",
+    // ⭐ P13 — THE RISK-REVERSAL STACK AT THE DECISION POINT.
+    // #contact already repeated the warranty panel's three rows here
+    // (workmanship warranty, insurance, verified ABN). Those are
+    // CREDENTIALS. The reversal that actually decides this page — the
+    // quote costs nothing — appeared at the price, at the picker and in
+    // the FAQ, and NOT at the form, which is the last thing anybody
+    // reads before pressing the button.
+    // This row is prepended to those three at render time, so the stack
+    // reads offer-first: Quote · Workmanship warranty · Insurance · ABN.
+    // ⛔ It is ONE new row and it invents nothing: "free quote" is
+    // sourced twice (his own site's "Get A Free Quote" button and his IG
+    // caption) and "from a photo" is the mechanic the whole page runs
+    // on. Do NOT extend this stack with a money-back guarantee, a
+    // no-callout-fee line or a response time. He has published none of
+    // them.
+    quoteFact: { label: "Quote", value: "Free, from a photo" },
     fallbackLabel: "Rather talk? Call him",   // was "Or just call him": "or" plus "just" is a double hedge on the closing section's first row.
-    emailNote: "Email, if you'd rather",   // was "Prefer email?", which invited a sole trader's slowest channel with a question at the decision point.
+    // ⭐ P14. This row's value used to be `booking.phone`, which put the
+    // SAME ten digits directly under the text row's ten digits, 70px
+    // apart, in the closing section. It read as a duplication bug. The
+    // row does not carry a second destination — there is one number and
+    // one man — it carries the second VERB, so its value now says what
+    // it is. Nothing is lost: the digits are one row up, in the footer
+    // and in the nav pill, and the tel: href is untouched.
+    // ⛔ Do not put a second phone number here. There is only one.
+    fallbackValue: "The same number",
+    emailNote: "Or email him",   // was "Prefer email?", which invited a sole trader's slowest channel with a question at the decision point; then "Email, if you'd rather", which repeated `fallbackLabel`'s "rather" 60px above it.
     // The ONE real failure state on the site. On a desktop with no SMS
     // handler the sms: link does nothing at all and the visitor is left
     // staring at a form that appears broken. This is the single most

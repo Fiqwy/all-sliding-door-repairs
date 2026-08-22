@@ -460,7 +460,7 @@ function renderValue() {
          <span class="value__from mono-label">${esc(v.priceFrom.label)}</span>
          <span class="value__figure figure-mega"><span class="cur">$</span>${esc(String(v.priceFrom.amount))}${v.priceFrom.gst ? '<span class="suf">+GST</span>' : ''}</span>
          <div class="value__rule"></div>
-         <p class="value__note">${esc(content.warranty.heading)}</p>
+         <p class="value__note">${esc(v.priceAnchor)}</p>
          <p class="value__pricenote">${esc(v.priceNote)}</p>
          <blockquote class="value__pricequote">
            <span class="q">${esc(v.priceQuote.quote)}</span>
@@ -566,6 +566,21 @@ function renderServices() {
       </details>
     </article>`;
   }).join('');
+
+  // P14 — THE BAND'S NEXT STEP. Deliberately the mono go-link idiom the
+  // area pages already use inside this same band, not a `.btn`: six
+  // cards two bands above #warranty do not need a primary button, they
+  // need one quiet way out. `data-sms-body` routes it through the same
+  // blanks-last builder as every other ask on the site.
+  const foot = $('#servicesFoot');
+  foot.innerHTML =
+    `<p class="svc__foot-lead">${esc(s.footLead)}</p>
+     <a class="svc__go mono-label" data-sms-body="${esc(s.ctaSmsBody)}" href="${esc(content.booking.smsHref)}">${esc(s.ctaLabel)}${CHEV}</a>`;
+  // Same door-wipe every other band's payload gets, so it arrives with
+  // the last row of cards instead of being the one element on the page
+  // that is simply already there.
+  foot.classList.add('reveal', 'reveal--up');
+  foot.setAttribute('data-reveal', '');
 }
 
 // --- 6 · EMERGENCY — a REAL h2 (fixes D5) ------------------------
@@ -820,20 +835,13 @@ function renderStory() {
 // writes the sentence from that count. Zero trims prints nothing.
 // _generate-areas.py carries the identical function for the area pages —
 // if you change one, change both, and re-run the generator.
-function trimCaveat(items) {
-  const n = items.filter(it => it && it.trimmed).length;
-  if (!n) return '';
-  const t = content.voices.trimNote;
-  const word = t.words[n] || String(n);
-  return ' ' + (n === 1 ? t.one : t.many).replace('{N}', word);
-}
-
 function renderVoices() {
   const v = content.voices;
   if (!v.items || !v.items.length) { $('#voices').hidden = true; return; }
-  // The lede is the base sentence plus the computed caveat. `v` itself
-  // is never mutated: content.js stays the source of truth.
-  const head = Object.assign({}, v, { lede: v.lede + trimCaveat(v.items) });
+  // CLIENT 2026-08-22: the computed trim caveat is gone (see
+  // content.js voices.lede). The rendered ellipsis on each trimmed
+  // quote is the disclosure.
+  const head = v;
   $('#voicesHead').innerHTML =
     headHtml(head, 'voicesHeadH2') + `<p class="voices__banner mono-label">${esc(v.banner)}</p>`;
   // A11Y-M2: name the landmark by its h2, not by the whole header —
@@ -880,30 +888,44 @@ const GO_CHEV = `<svg class="area__chev" viewBox="0 0 12 12" fill="none" stroke=
 // off-origin request count is unchanged by a map. There is no tile
 // server, no Leaflet, and no second scroll owner.
 //
-// ⭐ P12 — THE LAYER STACK, and why it is in this order. The old map was
-// four flat shapes (sea, land, envelope, pins) and read as a beige blob
-// on navy. It is now nine layers, every one of them derived from the
-// same projection, painted back to front:
+// ⭐ P13 — THE LAYER STACK, and why it is in this order.
 //
-//   1  sea            --ink
-//   2  graticule      real quarter-degree lat/lon hairlines, 0.06 cream.
+// P12's plate was rejected: "make the map under where he goes look a lot
+// better, it looks really bad right now." It had inverted the grounds so
+// the SERVED area was the lightest thing on the plate and all other land
+// stepped down toward the sea — which spends the only contrast a map is
+// read by (land against water) on something that is not the geography.
+// The coastline went unreadable and the plate read as a beige blob.
+//
+// The rule now is ordinary cartographic orientation: ALL LAND IS LAND,
+// one parchment, and the ocean is the only dark element, on the east
+// where it belongs. The service area is a TERRITORY MARKED ON that
+// land. Eleven layers, every one derived from the same projection,
+// painted back to front:
+//
+//   1  sea            --ink, the only dark ground on the plate
+//   2  graticule      real quarter-degree lat/lon hairlines, cream 0.085.
 //                     Painted UNDER the land, so it only shows in water.
 //   3  shelf          three strokes of the OPEN coastline at 34/18/7 and
-//                     0.035/0.045/0.07 cream. Under the land, so only the
+//                     0.05/0.06/0.09 cream. Under the land, so only the
 //                     seaward half survives: the coast glow of a chart.
-//   4  land           the unserved ground, --map-land
-//   5  envelope lift  a real feDropShadow, so the service area sits ON
-//                     the land instead of being painted into it
-//   6  envelope       --map-served, a WARMER, LIGHTER ground. The area he
-//                     covers is the lit part of the picture; everything
-//                     else steps back. This is what replaced a 0.20
-//                     bronze tint that was nearly invisible over cream.
-//   7  envelope glow  an 18-unit bronze stroke CLIPPED to the envelope,
-//                     i.e. an inner rim light, not an outline
-//   8  envelope edge  the 3-unit brass edge itself
-//   9  shore          a 1.4-unit --ink hairline on the coastline, which
-//                     is what stops the lit envelope from bleeding into
-//                     the bay at small sizes
+//   4  land           --map-land, EVERY piece of land including the
+//                     islands, so Moreton Bay reads as a bay
+//   5  envelope       --map-served: the same parchment, brass-tinted.
+//                     No drop shadow — a territory drawn on a map does
+//                     not float above it (P12 gave it one, which is
+//                     part of why the plate read as a diagram).
+//   6  envelope rim   a 22-unit bronze stroke CLIPPED to the envelope,
+//                     i.e. an inner rim light, not a second outline
+//   7  motorway       the M1 spine, bronze 0.38 — one road line is what
+//                     makes a map read as a map. CLIPPED TO LAND.
+//   8  river          the Brisbane River, --ink 0.30, which is what
+//                     puts Brisbane where a Brisbane reader expects it.
+//                     Clipped to land for the same reason.
+//   9  envelope edge  the 3.2-unit brass edge itself, over both
+//  10  shore          a 1.6-unit --ink hairline on the coastline
+//  11  isle           the same hairline on the islands, without which
+//                     they read as smudges at a 350px plate
 //
 // ⚠️ THE PINS AND LABELS ARE HTML, NOT SVG, AND THAT IS THE POINT.
 // SVG <text> in a viewBox scales with the plate, which is why the old
@@ -942,29 +964,33 @@ function mapSvg(a) {
   // is unchanged: it is the <figcaption>'s first sentence, real text
   // every visitor gets, and each pin keeps its own aria-label.
   const grat = g.graticule.map(d => `<path d="${esc(d)}"></path>`).join('');
-  const shelf = [[34, '.035'], [18, '.045'], [7, '.07']]
+  const shelf = [[34, '.05'], [18, '.06'], [7, '.09']]
     .map(([w, o]) => `<path d="${esc(g.coast)}" stroke-width="${w}" stroke-opacity="${o}"></path>`).join('');
   const islands = g.islands.map(d => `<path class="map__land" d="${esc(d)}"></path>`).join('');
+  const isleEdge = g.islands.map(d => `<path class="map__isle" d="${esc(d)}"></path>`).join('');
   return `<figure class="map">
     <div class="map__plate">
       <div class="map__field">
         <svg class="map__svg" viewBox="${esc(g.viewBox)}" focusable="false" aria-hidden="true">
           <defs>
             <clipPath id="mapEnvClip"><path d="${esc(g.envelope)}"></path></clipPath>
-            <filter id="mapEnvLift" x="-15%" y="-15%" width="130%" height="130%">
-              <feDropShadow dx="0" dy="7" stdDeviation="10"
-                            flood-color="rgb(15,33,50)" flood-opacity="0.30"></feDropShadow>
-            </filter>
+            <clipPath id="mapLandClip"><path d="${esc(g.land)}"></path></clipPath>
           </defs>
           <rect class="map__sea" x="0" y="0" width="100%" height="100%"></rect>
           <g class="map__grat">${grat}</g>
           <g class="map__shelf">${shelf}</g>
           <path class="map__land" d="${esc(g.land)}"></path>
           ${islands}
-          <g filter="url(#mapEnvLift)"><path class="map__area" d="${esc(g.envelope)}"></path></g>
+          <path class="map__area" d="${esc(g.envelope)}"></path>
           <g clip-path="url(#mapEnvClip)"><path class="map__area-glow" d="${esc(g.envelope)}"></path></g>
+          <g clip-path="url(#mapLandClip)">
+            ${g.roads.map(d => `<path class="map__road map__road--minor" d="${esc(d)}"></path>`).join('')}
+            <path class="map__road" d="${esc(g.motorway)}"></path>
+            ${g.rivers.map(d => `<path class="map__river" d="${esc(d)}"></path>`).join('')}
+          </g>
           <path class="map__area-edge" d="${esc(g.envelope)}"></path>
           <path class="map__shore" d="${esc(g.coast)}"></path>
+          ${isleEdge}
         </svg>
         <div class="map__pins">${pins}</div>
       </div>
@@ -979,6 +1005,24 @@ function mapSvg(a) {
     <figcaption class="map__note"><span class="visually-hidden">${esc(a.map.alt)}</span>${esc(a.map.note)}</figcaption>
   </figure>`;
 }
+
+// ⚠️ P13 — THE SUBURB STRIP IS CAPPED AT SIX, IN THE RENDERER, NOT IN
+// THE DATA. Client: "not too much information where it doesn't need to
+// be." Gold Coast listed eleven suburbs, Logan and Ipswich eight; at
+// 1440 that wrapped every row to two lines and turned a five-item list
+// into a wall of place names nobody reads to the end of. Six is the
+// number that holds ONE line at 1440 for every region.
+//   · the DATA is untouched — `suburbs` stays complete, because the
+//     region page's own intro prose names every one of them and the
+//     row links straight to it.
+//   · when there are more, the strip says so. A truncated list with no
+//     marker reads as an EXCLUSION to anyone living in name seven, and
+//     that is the one thing this section must never do.
+const SUB_CAP = 6;
+const subsHtml = (subs) => {
+  const shown = subs.slice(0, SUB_CAP).map(esc).join(' &middot; ');
+  return subs.length > SUB_CAP ? `${shown} &middot; and more` : shown;
+};
 
 function renderAreas() {
   const a = content.areas;
@@ -1002,7 +1046,7 @@ function renderAreas() {
            <span class="area__mark" aria-hidden="true"></span>
            <span class="area__body" aria-hidden="true">
              <span class="area__name">${esc(r.name)}</span>
-             <span class="area__subs">${r.suburbs.map(esc).join(' &middot; ')}</span>
+             <span class="area__subs">${subsHtml(r.suburbs)}</span>
            </span>
            <span class="area__go mono" aria-hidden="true">Covered${GO_CHEV}</span>
          </a>`).join('')}
@@ -1055,10 +1099,22 @@ function renderFaq() {
 }
 
 // --- 13 · CONTACT ------------------------------------------------
-// Left: the italic line, the call and text rows, and the three trust
-// facts repeated at the point of conversion. Right: the form card.
-// At ≤640 the form collapses behind "Or fill in the details" and the
-// call row leads (M0).
+// Left: the italic line, the call and text rows, and the risk-reversal
+// stack repeated at the point of conversion. Right: the form card.
+//
+// ⚠️ P13 — THE FORM IS FULLY VISIBLE AT EVERY WIDTH AND NEVER TAKES
+// FOCUS. It used to be a `<details data-macc>`: at ≤640 initMobileStructure()
+// closed it and `.contact__formwrap:not([open]) .contact__formcard` hid
+// every field behind a summary, so on a phone — the device that
+// composes the SMS — the last section of the page showed a heading, two
+// phone rows and a closed drawer. The four fields ARE the offer
+// ("fill in the blanks and it writes the text"), and an offer behind a
+// disclosure is one extra decision at the exact point the visitor is
+// deciding. It is a plain <div> now, so there is no toggle, no
+// `open` state and no summary to press.
+// ⛔ Do NOT add autofocus, .focus() or scrollIntoView to these fields.
+// Nothing here may pop the keyboard: focus is the visitor's, on a
+// deliberate tap. `--fs-input` is a 16px floor so iOS cannot zoom.
 function renderContact() {
   const c = content.contact;
   const f = c.fields;
@@ -1083,9 +1139,12 @@ function renderContact() {
     ? `<div class="field"><label for="f-${id}">${esc(o.label)}</label><textarea id="f-${id}" name="${id}" rows="4" placeholder="${esc(o.placeholder)}"${attrs(id)}></textarea></div>`
     : `<div class="field"><label for="f-${id}">${esc(o.label)}</label><input id="f-${id}" name="${id}" type="text" placeholder="${esc(o.placeholder)}"${attrs(id)}></div>`;
 
-  // The trust facts repeated here are the warranty panel's rows —
-  // repetition at the point of conversion, never a new claim.
-  const facts = content.warranty.points.map(p =>
+  // ⭐ THE RISK-REVERSAL STACK (P13). The warranty panel's three rows
+  // repeated at the point of conversion — never a new claim — with the
+  // one reversal that actually decides the page prepended to them, so
+  // the stack reads offer first and credentials after it. See
+  // content.contact.quoteFact.
+  const facts = [c.quoteFact].concat(content.warranty.points).map(p =>
     `<span class="contact__fact">${esc(p.label)} · ${esc(p.value)}</span>`).join('');
 
   $('#contactMount').innerHTML =
@@ -1093,13 +1152,20 @@ function renderContact() {
        <p class="contact__italic em-serif">${esc(c.italicLine)}</p>
        <div class="contact__direct">
          <a class="contact__primary" href="${esc(content.booking.smsHref)}" data-sms-body="${esc(content.hero.primaryCta.smsBody)}"><span class="k">${esc(content.hero.primaryCta.label)}</span><span class="num">${esc(content.booking.phone)}</span></a>
-         <a href="${esc(content.booking.phoneHref)}"><span class="k">${esc(c.fallbackLabel)}</span><span class="num">${esc(content.booking.phone)}</span></a>
+         <!-- P14: this row used to reprint content.booking.phone, so the
+              closing section stacked the SAME ten digits twice, 70px
+              apart, and read as a duplication bug. It is the same
+              number as the row above it by definition — the row's job
+              is the second VERB, not a second destination — so it says
+              so instead of repeating it. The tel: href is unchanged,
+              the label is unchanged, and the number is still on screen
+              one row up and again in the footer. -->
+         <a href="${esc(content.booking.phoneHref)}"><span class="k">${esc(c.fallbackLabel)}</span><span class="num">${esc(c.fallbackValue)}</span></a>
          <a href="mailto:${esc(content.booking.email)}"><span class="k">${esc(c.emailNote)}</span>${esc(content.booking.email)}</a>
        </div>
        <div class="contact__facts">${facts}</div>
      </div>
-     <details class="contact__formwrap" data-macc open>
-       <summary>${esc(c.formOpenLabel)}${CHEV}</summary>
+     <div class="contact__formwrap">
        <div class="contact__formcard">
          <form class="form" id="contactForm" novalidate>
            ${field('name', f.name)}
@@ -1112,7 +1178,7 @@ function renderContact() {
              <a href="${esc(content.booking.phoneHref)}" class="num">${esc(c.noteFailureTel)}</a>.</p>
          </form>
        </div>
-     </details>`;
+     </div>`;
 
   // The form NEVER posts. It composes a text message; nothing is sent
   // until the visitor presses send, and there is no success state.
@@ -1576,7 +1642,13 @@ function initFab() {
   // thresholds, no second rAF and no scroll listener beyond the one
   // above, which was already here.
   const bands = ['#contact', '#footer'].map(sel => $(sel)).filter(Boolean);
-  const ctas = $$('.picker__cta, .value__cta, .voices__cta, .faq__foot, .contact__direct');
+  // ⚠️ P14 ADDED TWO. `.emergency__cta` was always a `.btn--primary`
+  // and was never on this list, so the pill has been sitting on top of
+  // the ONE call button on the page that answers an urgent door — the
+  // exact defect the note above says was fixed, with one band missed.
+  // `.svc__foot` is #services' new next step and would have been the
+  // second. If a band gains a CTA, it gains a selector here.
+  const ctas = $$('.picker__cta, .value__cta, .voices__cta, .faq__foot, .contact__direct, .emergency__cta, .svc__foot');
   if ('IntersectionObserver' in window && (bands.length || ctas.length)) {
     const seen = new Map();
     const io = new IntersectionObserver(entries => {
@@ -1595,12 +1667,14 @@ function initFab() {
 // ============================================================
 // 7. MOBILE STRUCTURE (M0)
 //    [data-macc] details: forced open ≥641, accordion ≤640.
-//    Only #story and #contact use it now. #services owns a real
-//    <details> at every breakpoint (client direction: "maybe drop
-//    down info"), and #voices is a rail everywhere, so the ≤640
-//    DOM move of the voices cards into #work has been RETIRED —
-//    a rail costs one card height on a phone, which is what the
-//    merge existed to save.
+//    ⚠️ P13: ONLY #story uses it now. #contact's form was taken out
+//    of it deliberately — the fill-in-the-blanks form must be fully
+//    visible at ≤640, because on a phone it IS the offer. See the
+//    note above renderContact(). #services owns a real <details> at
+//    every breakpoint (client direction: "maybe drop down info"),
+//    and #voices is a rail everywhere, so the ≤640 DOM move of the
+//    voices cards into #work has been RETIRED — a rail costs one
+//    card height on a phone, which is what the merge existed to save.
 // ============================================================
 function initMobileStructure() {
   const mq = matchMedia('(max-width: 640px)');
