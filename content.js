@@ -1965,7 +1965,7 @@ const base = {
     // visitor does ("fill in the blanks"), not on a description of the
     // component that does it ("the form below…"). It also carries the
     // phrase the retired `formOpenLabel` used to carry.
-    lede: "Fill in the blanks and it writes the text for you. It opens your own messages, and nothing sends until you press send.",
+    lede: "Fill in the blanks and it writes the text for you. It opens in your own messages, where you can add the photo, and nothing sends until you press send.",
     fields: {
       name:    { label: "Your name",  placeholder: "So I know who I'm texting" },   // gives the reason instead of making a demand
       suburb:  { label: "Suburb",     placeholder: "Where the door is" },
